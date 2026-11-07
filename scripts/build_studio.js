@@ -2525,32 +2525,37 @@ function buildStudio() {
     showToast('🎉 반응형 시맨틱 ' + fileName + ' 파일이 성공적으로 다운로드되었습니다!');
   };
 
-  // ── 배포용 순수 HTML 복사 (isExport = true: 하이라이트 및 인스펙터 스크립트 제거) ──
-  document.getElementById('copyHtmlBtn').addEventListener('click', function(){
-    currentData.stackBlocks = canvasBlocks;
-    var html = (currentStackView === 'canvas') ? compileSemanticHtml(canvasBlocks) : renderReportHtml(currentData, true);
-    navigator.clipboard.writeText(html).then(function(){
-      showToast('📋 순수 배포용 반응형 HTML이 클립보드에 복사되었습니다.');
-    });
-  });
-
-  // ── 배포용 순수 HTML 다운로드 (isExport = true: 하이라이트 및 인스펙터 스크립트 제거) ──
-  document.getElementById('downloadHtmlBtn').addEventListener('click', function(){
-    if (currentStackView === 'canvas') {
-      exportStackToHtml('export.html');
-    } else {
+  // ── 배포용 순수 HTML 복사 및 다운로드 이벤트 바인딩 (null-safe) ──
+  var copyBtn = document.getElementById('copyHtmlBtn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', function(){
       currentData.stackBlocks = canvasBlocks;
-      var html = renderReportHtml(currentData, true);
-      var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = (currentData.title || 'workflow-report').replace(/\\s+/g, '_') + '.html';
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('💾 순수 배포용 HTML 파일이 다운로드되었습니다. (하이라이트 스크립트 제거됨)');
-    }
-  });
+      var html = (currentStackView === 'canvas') ? compileSemanticHtml(canvasBlocks) : renderReportHtml(currentData, true);
+      navigator.clipboard.writeText(html).then(function(){
+        showToast('📋 순수 배포용 반응형 HTML이 클립보드에 복사되었습니다.');
+      });
+    });
+  }
+
+  var dlBtn = document.getElementById('downloadHtmlBtn');
+  if (dlBtn) {
+    dlBtn.addEventListener('click', function(){
+      if (currentStackView === 'canvas') {
+        exportStackToHtml('export.html');
+      } else {
+        currentData.stackBlocks = canvasBlocks;
+        var html = renderReportHtml(currentData, true);
+        var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = (currentData.title || 'workflow-report').replace(/\\s+/g, '_') + '.html';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('💾 순수 배포용 HTML 파일이 다운로드되었습니다. (하이라이트 스크립트 제거됨)');
+      }
+    });
+  }
 
   // ── 수직 스택(Linear Stack) 노션/구글 설문지형 캔버스 조작 엔진 ──
   var canvasBlocks = [];
@@ -2559,7 +2564,7 @@ function buildStudio() {
 
   // ── 실행 취소 / 다시 실행 (Undo / Redo) 엔진 ──
   var historyStack = [];
-  var redoStack = [];
+  var redoHistory = [];
   var maxHistory = 40;
   var editDebounceTimer = null;
 
@@ -2570,7 +2575,7 @@ function buildStudio() {
     }
     historyStack.push(snapshot);
     if (historyStack.length > maxHistory) historyStack.shift();
-    redoStack = [];
+    redoHistory = [];
     updateUndoRedoButtons();
     updateHeaderBadge();
   }
@@ -2578,7 +2583,7 @@ function buildStudio() {
   window.undoStack = function() {
     if (historyStack.length <= 1) return;
     var current = historyStack.pop();
-    redoStack.push(current);
+    redoHistory.push(current);
     var prev = historyStack[historyStack.length - 1];
     canvasBlocks = JSON.parse(prev);
     reindexBlockOrders();
@@ -2590,8 +2595,8 @@ function buildStudio() {
   };
 
   window.redoStack = function() {
-    if (redoStack.length === 0) return;
-    var next = redoStack.pop();
+    if (redoHistory.length === 0) return;
+    var next = redoHistory.pop();
     historyStack.push(next);
     canvasBlocks = JSON.parse(next);
     reindexBlockOrders();
@@ -2611,9 +2616,9 @@ function buildStudio() {
       undoBtn.style.cursor = (historyStack.length <= 1) ? 'not-allowed' : 'pointer';
     }
     if (redoBtn) {
-      redoBtn.disabled = redoStack.length === 0;
-      redoBtn.style.opacity = (redoStack.length === 0) ? '0.45' : '1';
-      redoBtn.style.cursor = (redoStack.length === 0) ? 'not-allowed' : 'pointer';
+      redoBtn.disabled = redoHistory.length === 0;
+      redoBtn.style.opacity = (redoHistory.length === 0) ? '0.45' : '1';
+      redoBtn.style.cursor = (redoHistory.length === 0) ? 'not-allowed' : 'pointer';
     }
   }
 
@@ -3568,37 +3573,25 @@ function buildStudio() {
     box-shadow: 0 0 0 2px rgba(25,103,210,.14);
   }
   .dock-tool-btn .dock-icon { font-size: 1.15rem; line-height: 1; flex-shrink: 0; }
-  .dock-tool-btn .dock-label-group { display: flex; flex-direction: column; flex: 1; min-width: 0; padding-right: 48px; }
+  .dock-tool-btn .dock-label-group { display: flex; flex-direction: column; flex: 1; min-width: 0; }
   .dock-tool-btn .dock-name { font-size: .82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .dock-tool-btn .dock-sub { font-size: .70rem; color: #70757a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .dock-tool-btn.active .dock-sub { color: #1a73e8; font-weight: 600; }
   .dock-tool-btn .dock-pill {
-    font-size: .66rem; font-weight: 800; padding: 2px 5px; border-radius: 5px;
-    background: #dadce0; color: #5f6368;
+    font-size: .66rem; font-weight: 800; padding: 2px 6px; border-radius: 5px;
+    background: #dadce0; color: #5f6368; flex-shrink: 0; margin-left: auto;
   }
   .dock-tool-btn.active .dock-pill { background: #1967d2; color: #ffffff; }
 
-  /* 툴바 도크 내 '+' 하위 블록 추가 버튼 (요구사항 2) */
-  .dock-add-btn {
-    position: absolute; top: 6px; right: 28px; width: 18px; height: 18px; border-radius: 50%;
-    border: 1px solid #c6dafc; background: #e8f0fe; color: #1967d2; font-size: 13px; font-weight: 800;
-    display: flex; align-items: center; justify-content: center; cursor: pointer; line-height: 1;
-    transition: all .14s ease; z-index: 2; padding: 0;
-  }
-  .dock-add-btn:hover {
-    background: #1967d2; color: #fff; border-color: #1967d2; transform: scale(1.15);
-    box-shadow: 0 2px 6px rgba(25,103,210,.25);
-  }
-
-  /* 툴 우측 상단 '?' 도움말 아이콘 */
+  /* 툴 우측 '?' 도움말 아이콘 (조화로운 플렉스 인라인 배치) */
   .tool-help-btn {
-    position: absolute; top: 6px; right: 6px; width: 18px; height: 18px; border-radius: 50%;
-    border: 1px solid #dadce0; background: #fff; color: #5f6368; font-size: 11px; font-weight: 800;
-    display: flex; align-items: center; justify-content: center; cursor: pointer; line-height: 1;
-    transition: all .14s ease; z-index: 2; padding: 0;
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 1px solid #dadce0; background: #ffffff; color: #5f6368; font-size: 11px; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center; cursor: pointer; line-height: 1;
+    transition: all .14s ease; flex-shrink: 0; padding: 0; margin-left: 4px;
   }
   .tool-help-btn:hover {
-    background: #1967d2; color: #fff; border-color: #1967d2; transform: scale(1.15);
+    background: #1967d2; color: #fff; border-color: #1967d2; transform: scale(1.12);
     box-shadow: 0 2px 6px rgba(25,103,210,.25);
   }
 
@@ -4463,7 +4456,6 @@ function buildStudio() {
                 <span class="dock-sub">Hero 컨테이너 래퍼</span>
               </div>
               <span class="dock-pill" id="pillTool_header">필수</span>
-              <button class="dock-add-btn" onclick="openBlockPicker(event, 'header')" title="헤더 하위 컴포넌트 추가">+</button>
               <button class="tool-help-btn" onclick="openToolHelpModal(event, 'header')" title="설명 및 적용 예시 보기">?</button>
             </div>
 
@@ -4475,7 +4467,6 @@ function buildStudio() {
                 <span class="dock-sub">상단 고정 네비게이션</span>
               </div>
               <span class="dock-pill" id="pillTool_toolbar">ON</span>
-              <button class="dock-add-btn" onclick="openBlockPicker(event, 'header')" title="서브 옵션 설정">+</button>
               <button class="tool-help-btn" onclick="openToolHelpModal(event, 'toolbar')" title="설명 및 적용 예시 보기">?</button>
             </div>
 
@@ -4487,7 +4478,6 @@ function buildStudio() {
                 <span class="dock-sub">4열 반응형 그리드</span>
               </div>
               <span class="dock-pill" id="pillTool_kpiStats">OFF</span>
-              <button class="dock-add-btn" onclick="openBlockPicker(event, 'kpiStats')" title="KPI 지표 추가">+</button>
               <button class="tool-help-btn" onclick="openToolHelpModal(event, 'kpiStats')" title="설명 및 적용 예시 보기">?</button>
             </div>
 
@@ -4499,7 +4489,6 @@ function buildStudio() {
                 <span class="dock-sub">가로 Flexbox 파이프라인</span>
               </div>
               <span class="dock-pill" id="pillTool_flowmap">OFF</span>
-              <button class="dock-add-btn" onclick="openBlockPicker(event, 'flowmap')" title="진행 단계 추가">+</button>
               <button class="tool-help-btn" onclick="openToolHelpModal(event, 'flowmap')" title="설명 및 적용 예시 보기">?</button>
             </div>
 
@@ -4511,7 +4500,6 @@ function buildStudio() {
                 <span class="dock-sub">3열 원근 모듈 그리드</span>
               </div>
               <span class="dock-pill" id="pillTool_cards">OFF</span>
-              <button class="dock-add-btn" onclick="openBlockPicker(event, 'cards')" title="플립 카드 추가">+</button>
               <button class="tool-help-btn" onclick="openToolHelpModal(event, 'cards')" title="설명 및 적용 예시 보기">?</button>
             </div>
 
@@ -4523,7 +4511,6 @@ function buildStudio() {
                 <span class="dock-sub">수직 워크플로우 스택</span>
               </div>
               <span class="dock-pill" id="pillTool_steps">0단계</span>
-              <button class="dock-add-btn" onclick="openBlockPicker(event, 'steps')" title="새 실행 단계 추가">+</button>
               <button class="tool-help-btn" onclick="openToolHelpModal(event, 'steps')" title="설명 및 적용 예시 보기">?</button>
             </div>
 
@@ -4535,7 +4522,6 @@ function buildStudio() {
                 <span class="dock-sub">점검 그룹 래퍼 카드</span>
               </div>
               <span class="dock-pill" id="pillTool_checklist">OFF</span>
-              <button class="dock-add-btn" onclick="openBlockPicker(event, 'checklist')" title="점검 항목 추가">+</button>
               <button class="tool-help-btn" onclick="openToolHelpModal(event, 'checklist')" title="설명 및 적용 예시 보기">?</button>
             </div>
           </div>
@@ -4693,7 +4679,6 @@ function buildStudio() {
 
       <div style="display:flex;align-items:center;gap:8px;">
         <span id="canvasBlockCountBadge" style="font-size: .74rem; background:#e8f0fe; color:#1967d2; padding:2px 8px; border-radius:999px; font-weight:700;">3개 블록 구성 중</span>
-        <button class="btn" onclick="exportStackToHtml('export.html')" style="padding:3px 9px;font-size:.74rem;background:#e6f4ea;color:#137333;border-color:#ceead6;font-weight:700;" title="캔버스 블록을 반응형 export.html로 다운로드">⬇️ export.html</button>
       </div>
     </div>
 
@@ -4714,7 +4699,6 @@ function buildStudio() {
         <button class="canvas-tool-chip" onclick="addBlockToStack('postcardSimulator')"><span>✉️</span> 엽서 시뮬레이터</button>
         <button class="canvas-tool-chip" onclick="addBlockToStack('infoNote')"><span>💡</span> 안내 노트</button>
         <button class="canvas-tool-chip" onclick="addBlockToStack('textButtonBlock')"><span>🎯</span> 텍스트/버튼</button>
-        <button class="canvas-tool-chip" onclick="exportStackToHtml('export.html')" style="background:#e6f4ea;color:#137333;border-color:#ceead6;margin-left:auto;font-weight:800;" title="캔버스 블록을 export.html 파일로 내보내기"><span>📥</span> export.html 내보내기</button>
       </div>
 
       <!-- 중앙 캔버스 스크롤 영역 -->
