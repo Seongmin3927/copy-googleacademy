@@ -52,7 +52,8 @@
           backDesc: "안전하고 책임감 있는 AI 사용법, PARTS 프롬프트와 Prompt Chaining을 실습합니다.",
           backTags: ["이미지 생성", "책임 있는 AI", "PARTS", "Prompt Chaining"],
           backBtnText: "모듈 1 실습 열기 →",
-          accentColor: "#1967d2"
+          accentColor: "#1967d2",
+          mtGoto: "1"
         },
         settings: {
           align: "center", // 'left' | 'center' | 'right'
@@ -97,9 +98,15 @@
               name: "T (Tone / 어조)",
               chips: ["간결하고 전문적", "친절하고 상세함"],
               selected: "간결하고 전문적"
+            },
+            {
+              key: "style",
+              name: "S (Style / 제약조건)",
+              chips: ["200자 이내 요약", "사내 기밀 마스킹 준수", "실행 체크리스트 포함"],
+              selected: "200자 이내 요약"
             }
           ],
-          assembledPrompt: "당신은 구글 시니어 TPM입니다. 2026 MT 기획안을 수립해 주세요. 결과는 마크다운 표 형식으로 정리하고, 간결하고 전문적인 어조를 유지하세요.",
+          assembledPrompt: "당신은 구글 시니어 TPM입니다. 2026 MT 기획안을 수립해 주세요. 결과는 마크다운 표 형식으로 정리하고, 간결하고 전문적인 어조를 유지하세요. [제약조건: 200자 이내 요약]",
           copyBtnText: "📋 프롬프트 복사"
         },
         settings: {
@@ -272,6 +279,7 @@
         // 1. 3D 플립 카드
         case 'flipCard': {
           const accent = d.accentColor || '#1967d2';
+          const mtGoto = d.mtGoto || '1';
           return `
 <div class="stack-block stack-flipcard" data-block-id="${node.id}" style="max-width:${maxW};margin:${marginH};padding:10px 0;">
   <div style="perspective:1400px;width:100%;min-height:360px;">
@@ -299,7 +307,7 @@
           </div>
         </div>
         <div>
-          <button type="button" style="width:100%;background:${accent};color:#fff;border:none;border-radius:12px;padding:12px;font-size:.92rem;font-weight:700;cursor:pointer;"${editAttr('backBtnText')}>${d.backBtnText || '확인 →'}</button>
+          <button type="button" data-noflip data-module="${mtGoto}" onclick="if(!event.target.isContentEditable){ if(typeof goModule==='function'){ goModule(${mtGoto}); } else { try{ window.parent.postMessage({type:'mt-goto', module:${mtGoto}}, '*'); }catch(e){} } }" style="width:100%;background:${accent};color:#fff;border:none;border-radius:12px;padding:12px;font-size:.92rem;font-weight:700;cursor:pointer;"${editAttr('backBtnText')}>${d.backBtnText || '모듈 실습 열기 →'}</button>
         </div>
       </div>
     </div>

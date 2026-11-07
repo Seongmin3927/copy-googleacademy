@@ -2378,10 +2378,370 @@ function buildStudio() {
       var obj = ((blk.data.categories.find(function(c){ return c.key === 'objective'; }) || {}).selected) || '';
       var fmt = ((blk.data.categories.find(function(c){ return c.key === 'format'; }) || {}).selected) || '';
       var tone = ((blk.data.categories.find(function(c){ return c.key === 'tone'; }) || {}).selected) || '';
-      blk.data.assembledPrompt = '당신은 ' + role + '입니다. ' + obj + '을(를) 완수하세요. 결과는 ' + fmt + ' 형식으로 작성하고, ' + tone + ' 어조를 유지하세요.';
+      var style = ((blk.data.categories.find(function(c){ return c.key === 'style'; }) || {}).selected) || '';
+
+      var prompt = '당신은 ' + role + '입니다. ' + obj + '을(를) 완수하세요. 결과는 ' + fmt + ' 형식으로 작성하고, ' + tone + ' 어조를 유지하세요.';
+      if (style) {
+        prompt += ' [제약조건: ' + style + ']';
+      }
+      blk.data.assembledPrompt = prompt;
       renderStackCanvas();
       updateLivePreview();
     }
+  };
+
+  // ── 위젯 세부 설정 모달 (Widget Configuration Modal) 조작 엔진 ──
+  var activeConfigBlockId = null;
+
+  function escapeFormVal(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function getFormVal(id) {
+    var el = document.getElementById(id);
+    return el ? el.value : '';
+  }
+
+  window.openWidgetConfigModal = function(e, blockId) {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    var blk = canvasBlocks.find(function(b){ return b.id === blockId; });
+    if (!blk) return;
+
+    activeConfigBlockId = blockId;
+    var template = (typeof STUDIO_CATALOG !== 'undefined' && STUDIO_CATALOG.templates[blk.type]) || {};
+    var icon = template.icon || '⚙️';
+    var name = template.name || blk.type;
+
+    var iconEl = document.getElementById('widgetConfigModalIcon');
+    if (iconEl) iconEl.innerText = icon;
+    var titleEl = document.getElementById('widgetConfigModalTitle');
+    if (titleEl) titleEl.innerText = name + ' 세부 설정';
+    var tagEl = document.getElementById('widgetConfigModalTypeTag');
+    if (tagEl) tagEl.innerText = blk.type;
+
+    var body = document.getElementById('widgetConfigModalBody');
+    if (body) body.innerHTML = renderWidgetConfigFormHtml(blk);
+
+    var modal = document.getElementById('widgetConfigModal');
+    if (modal) modal.style.display = 'flex';
+  };
+
+  window.closeWidgetConfigModal = function() {
+    var modal = document.getElementById('widgetConfigModal');
+    if (modal) modal.style.display = 'none';
+    activeConfigBlockId = null;
+  };
+
+  function renderWidgetConfigFormHtml(blk) {
+    var d = blk.data || {};
+    var s = blk.settings || {};
+
+    if (blk.type === 'flipCard') {
+      return '<div class="widget-form-section">' +
+        '<div class="widget-section-title">🎴 3D 플립 카드 - 앞면 (Front) 설정</div>' +
+        '<div class="form-row">' +
+          '<div class="form-group" style="flex:1;">' +
+            '<label>앞면 상단 뱃지</label>' +
+            '<input type="text" id="cfg_flip_badge" value="' + escapeFormVal(d.badge || '') + '" placeholder="예: MODULE 01">' +
+          '</div>' +
+          '<div class="form-group" style="width:120px;">' +
+            '<label>액센트 색상</label>' +
+            '<input type="color" id="cfg_flip_accentColor" value="' + escapeFormVal(d.accentColor || '#1967d2') + '" style="height:38px;padding:2px;">' +
+          '</div>' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>앞면 제목</label>' +
+          '<input type="text" id="cfg_flip_frontTitle" value="' + escapeFormVal(d.frontTitle || '') + '" placeholder="카드 앞면 제목">' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>앞면 요약 설명</label>' +
+          '<textarea id="cfg_flip_frontDesc" rows="2" placeholder="카드 앞면 요약 설명">' + escapeFormVal(d.frontDesc || '') + '</textarea>' +
+        '</div>' +
+        '<div class="form-row">' +
+          '<div class="form-group" style="flex:1;">' +
+            '<label>앞면 버튼 문구</label>' +
+            '<input type="text" id="cfg_flip_frontBtnText" value="' + escapeFormVal(d.frontBtnText || '자세히 보기 →') + '">' +
+          '</div>' +
+          '<div class="form-group" style="flex:1;">' +
+            '<label>회전 안내 힌트</label>' +
+            '<input type="text" id="cfg_flip_frontHint" value="' + escapeFormVal(d.frontHint || '카드를 누르면 상세 내용 ↻') + '">' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="widget-form-section">' +
+        '<div class="widget-section-title">🔄 3D 플립 카드 - 뒷면 (Back) 및 이동 설정</div>' +
+        '<div class="form-group">' +
+          '<label>뒷면 상세 제목</label>' +
+          '<input type="text" id="cfg_flip_backTitle" value="' + escapeFormVal(d.backTitle || '') + '" placeholder="카드 뒷면 상세 학습 목표">' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>뒷면 상세 설명</label>' +
+          '<textarea id="cfg_flip_backDesc" rows="3" placeholder="카드 뒷면 상세 내용">' + escapeFormVal(d.backDesc || '') + '</textarea>' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>뒷면 태그 목록 (쉼표로 구분)</label>' +
+          '<input type="text" id="cfg_flip_backTags" value="' + escapeFormVal((d.backTags || []).join(', ')) + '" placeholder="예: 이미지 생성, 책임 있는 AI, PARTS, Prompt Chaining">' +
+          '<small style="color:#5f6368;font-size:.74rem;">※ 쉼표(,)로 구분하여 입력하면 개별 해시태그 칩(#)으로 생성됩니다.</small>' +
+        '</div>' +
+        '<div class="form-row">' +
+          '<div class="form-group" style="flex:1;">' +
+            '<label>뒷면 액션 버튼 문구</label>' +
+            '<input type="text" id="cfg_flip_backBtnText" value="' + escapeFormVal(d.backBtnText || '모듈 실습 열기 →') + '">' +
+          '</div>' +
+          '<div class="form-group" style="flex:1;">' +
+            '<label>클릭 이동 모듈 번호 (mt-goto)</label>' +
+            '<input type="text" id="cfg_flip_mtGoto" value="' + escapeFormVal(d.mtGoto || '1') + '" placeholder="예: 1 또는 2, 3, 4">' +
+          '</div>' +
+        '</div>' +
+        '<div class="widget-tip-box">' +
+          '💡 <b>mt-goto 연동:</b> 뒷면 버튼 클릭 시 <code>postMessage({ type: "mt-goto", module: N })</code> 이벤트를 전송하여 해당 모듈(moduleN.html)로 즉시 전환하거나 부모 프레임과 연동합니다.' +
+        '</div>' +
+      '</div>';
+    }
+
+    if (blk.type === 'partsPrompt') {
+      var cats = d.categories || [];
+      function getCatChips(key, fallback) {
+        var c = cats.find(function(it){ return it.key === key; });
+        return c ? (c.chips || []).join(', ') : (fallback || '');
+      }
+      return '<div class="widget-form-section">' +
+        '<div class="widget-section-title">🧩 PARTS 프롬프트 칩 기본 정보</div>' +
+        '<div class="form-group">' +
+          '<label>조립기 타이틀</label>' +
+          '<input type="text" id="cfg_parts_title" value="' + escapeFormVal(d.title || '') + '" placeholder="예: Gemini 실무 프롬프트 조립기">' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>조립기 설명 문구</label>' +
+          '<textarea id="cfg_parts_desc" rows="2" placeholder="조립기 사용 안내">' + escapeFormVal(d.desc || '') + '</textarea>' +
+        '</div>' +
+      '</div>' +
+      '<div class="widget-form-section">' +
+        '<div class="widget-section-title">🏷️ 각 태그(P, A, R, T, S) 칩 텍스트 (쉼표로 구분)</div>' +
+        '<div class="form-group">' +
+          '<label><b style="color:#1967d2;">P (Role / 역할):</b> AI 모델에게 부여할 전문 페르소나</label>' +
+          '<input type="text" id="cfg_parts_p" value="' + escapeFormVal(getCatChips('role', '구글 시니어 TPM, 친근한 학생회 MT 총괄, 엄격한 안전 점검관')) + '">' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label><b style="color:#1967d2;">A (Objective / 목표):</b> 완수해야 할 핵심 작업</label>' +
+          '<input type="text" id="cfg_parts_a" value="' + escapeFormVal(getCatChips('objective', '2026 MT 기획안 수립, 실시간 예산안 산출, 비상연락망 체계 수립')) + '">' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label><b style="color:#1967d2;">R (Result / 결과 형식):</b> 결과물 문서 구조/포맷</label>' +
+          '<input type="text" id="cfg_parts_r" value="' + escapeFormVal(getCatChips('format', '마크다운 표, 실행 불릿 리스트, JSON 스키마')) + '">' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label><b style="color:#1967d2;">T (Tone / 어조):</b> 문체 및 분위기</label>' +
+          '<input type="text" id="cfg_parts_t" value="' + escapeFormVal(getCatChips('tone', '간결하고 전문적, 친절하고 상세함')) + '">' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label><b style="color:#1967d2;">S (Style &amp; Constraint / 제약조건):</b> 길이, 마스킹, 가이드라인</label>' +
+          '<input type="text" id="cfg_parts_s" value="' + escapeFormVal(getCatChips('style', '200자 이내 요약, 사내 기밀 마스킹 준수, 실행 체크리스트 포함')) + '">' +
+        '</div>' +
+      '</div>' +
+      '<div class="widget-form-section">' +
+        '<div class="widget-section-title">📋 원클릭 복사 본문 &amp; 버튼 설정</div>' +
+        '<div class="form-group">' +
+          '<label>원클릭 복사 프롬프트 본문</label>' +
+          '<textarea id="cfg_parts_assembledPrompt" rows="3" style="font-family:monospace;font-size:.82rem;">' + escapeFormVal(d.assembledPrompt || '') + '</textarea>' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>복사 버튼 문구</label>' +
+          '<input type="text" id="cfg_parts_copyBtnText" value="' + escapeFormVal(d.copyBtnText || '📋 프롬프트 복사') + '">' +
+        '</div>' +
+      '</div>';
+    }
+
+    if (blk.type === 'gasAccordion') {
+      return '<div class="widget-form-section">' +
+        '<div class="widget-section-title">📑 GAS 접이식 아코디언 기본 정보</div>' +
+        '<div class="form-group">' +
+          '<label>아코디언 타이틀</label>' +
+          '<input type="text" id="cfg_gas_title" value="' + escapeFormVal(d.title || '') + '" placeholder="예: Google Apps Script 핵심 배포 코드">' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>서브 타이틀 / 부가 설명</label>' +
+          '<textarea id="cfg_gas_subtitle" rows="2" placeholder="코드 요약 설명">' + escapeFormVal(d.subtitle || '') + '</textarea>' +
+        '</div>' +
+        '<div class="form-row">' +
+          '<div class="form-group" style="flex:1;">' +
+            '<label>로고 이미지 URL / 파일명</label>' +
+            '<input type="text" id="cfg_gas_logoSrc" value="' + escapeFormVal(d.logoSrc || 'apps-script-logo.png') + '">' +
+          '</div>' +
+          '<div class="form-group" style="flex:1;">' +
+            '<label>버튼/뱃지 문구</label>' +
+            '<input type="text" id="cfg_gas_badgeText" value="' + escapeFormVal(d.badgeText || '코드 보기 ▾') + '">' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="widget-form-section">' +
+        '<div class="widget-section-title">💻 펼쳐질 소스 코드 / 본문 내용</div>' +
+        '<div class="form-row">' +
+          '<div class="form-group" style="width:140px;">' +
+            '<label>문법 언어</label>' +
+            '<input type="text" id="cfg_gas_language" value="' + escapeFormVal(d.language || 'javascript') + '">' +
+          '</div>' +
+          '<div class="form-group" style="flex:1;display:flex;align-items:flex-end;padding-bottom:10px;">' +
+            '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700;color:var(--navy);margin:0;">' +
+              '<input type="checkbox" id="cfg_gas_isOpen" ' + (d.isOpen ? 'checked' : '') + ' style="width:18px;height:18px;cursor:pointer;">' +
+              '<span>최초 로드 시 펼침 (open 상태로 표시)</span>' +
+            '</label>' +
+          '</div>' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>펼쳐질 코드 / 본문 내용 전문</label>' +
+          '<textarea id="cfg_gas_code" rows="9" class="widget-code-editor">' + escapeFormVal(d.code || '') + '</textarea>' +
+        '</div>' +
+      '</div>';
+    }
+
+    if (blk.type === 'postcardSimulator') {
+      return '<div class="widget-form-section">' +
+        '<div class="widget-section-title">✉️ 엽서 시뮬레이터 설정</div>' +
+        '<div class="form-group">' +
+          '<label>시뮬레이터 제목</label>' +
+          '<input type="text" id="cfg_post_title" value="' + escapeFormVal(d.title || '') + '">' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>설명 문구</label>' +
+          '<textarea id="cfg_post_desc" rows="2">' + escapeFormVal(d.desc || '') + '</textarea>' +
+        '</div>' +
+        '<div class="form-row">' +
+          '<div class="form-group" style="flex:1;">' +
+            '<label>실행 버튼 문구</label>' +
+            '<input type="text" id="cfg_post_runBtnText" value="' + escapeFormVal(d.runBtnText || '⚡ 자동화 실행하기') + '">' +
+          '</div>' +
+          '<div class="form-group" style="flex:1;">' +
+            '<label>초기화 버튼 문구</label>' +
+            '<input type="text" id="cfg_post_resetBtnText" value="' + escapeFormVal(d.resetBtnText || '↺ 초기화') + '">' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    if (blk.type === 'infoNote') {
+      return '<div class="widget-form-section">' +
+        '<div class="widget-section-title">💡 안내 노트 설정</div>' +
+        '<div class="form-row">' +
+          '<div class="form-group" style="flex:1;">' +
+            '<label>노트 유형</label>' +
+            '<select id="cfg_note_variant" style="height:38px;">' +
+              '<option value="tip"' + (d.variant === 'tip' ? ' selected' : '') + '>팁 (Tip - 파랑)</option>' +
+              '<option value="note"' + (d.variant === 'note' ? ' selected' : '') + '>참고 (Note - 초록)</option>' +
+              '<option value="warn"' + (d.variant === 'warn' ? ' selected' : '') + '>주의 (Warn - 빨강)</option>' +
+            '</select>' +
+          '</div>' +
+          '<div class="form-group" style="width:100px;">' +
+            '<label>아이콘</label>' +
+            '<input type="text" id="cfg_note_icon" value="' + escapeFormVal(d.icon || '💡') + '">' +
+          '</div>' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>제목</label>' +
+          '<input type="text" id="cfg_note_title" value="' + escapeFormVal(d.title || '') + '">' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>본문 내용</label>' +
+          '<textarea id="cfg_note_content" rows="3">' + escapeFormVal(d.content || '') + '</textarea>' +
+        '</div>' +
+      '</div>';
+    }
+
+    // textButtonBlock fallback
+    return '<div class="widget-form-section">' +
+      '<div class="widget-section-title">🎯 텍스트 &amp; 액션 버튼 설정</div>' +
+      '<div class="form-group">' +
+        '<label>상단 아이브로우</label>' +
+        '<input type="text" id="cfg_cta_eyebrow" value="' + escapeFormVal(d.eyebrow || '') + '">' +
+      '</div>' +
+      '<div class="form-group">' +
+        '<label>타이틀</label>' +
+        '<input type="text" id="cfg_cta_title" value="' + escapeFormVal(d.title || '') + '">' +
+      '</div>' +
+      '<div class="form-group">' +
+        '<label>본문 설명</label>' +
+        '<textarea id="cfg_cta_desc" rows="3">' + escapeFormVal(d.description || '') + '</textarea>' +
+      '</div>' +
+    '</div>';
+  }
+
+  window.applyWidgetConfig = function() {
+    var blk = canvasBlocks.find(function(b){ return b.id === activeConfigBlockId; });
+    if (!blk) return;
+
+    var d = blk.data;
+    if (blk.type === 'flipCard') {
+      d.badge = getFormVal('cfg_flip_badge');
+      d.accentColor = getFormVal('cfg_flip_accentColor');
+      d.frontTitle = getFormVal('cfg_flip_frontTitle');
+      d.frontDesc = getFormVal('cfg_flip_frontDesc');
+      d.frontBtnText = getFormVal('cfg_flip_frontBtnText');
+      d.frontHint = getFormVal('cfg_flip_frontHint');
+      d.backTitle = getFormVal('cfg_flip_backTitle');
+      d.backDesc = getFormVal('cfg_flip_backDesc');
+      d.backTags = getFormVal('cfg_flip_backTags').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+      d.backBtnText = getFormVal('cfg_flip_backBtnText');
+      d.mtGoto = getFormVal('cfg_flip_mtGoto') || '1';
+    } else if (blk.type === 'partsPrompt') {
+      d.title = getFormVal('cfg_parts_title');
+      d.desc = getFormVal('cfg_parts_desc');
+
+      function parseChips(valStr, defArr) {
+        var arr = valStr.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+        return arr.length > 0 ? arr : defArr;
+      }
+
+      var roleChips = parseChips(getFormVal('cfg_parts_p'), ['구글 시니어 TPM', '친근한 학생회 MT 총괄', '엄격한 안전 점검관']);
+      var objChips = parseChips(getFormVal('cfg_parts_a'), ['2026 MT 기획안 수립', '실시간 예산안 산출', '비상연락망 체계 수립']);
+      var fmtChips = parseChips(getFormVal('cfg_parts_r'), ['마크다운 표', '실행 불릿 리스트', 'JSON 스키마']);
+      var toneChips = parseChips(getFormVal('cfg_parts_t'), ['간결하고 전문적', '친절하고 상세함']);
+      var styleChips = parseChips(getFormVal('cfg_parts_s'), ['200자 이내 요약', '사내 기밀 마스킹 준수', '실행 체크리스트 포함']);
+
+      d.categories = [
+        { key: 'role', name: 'P (Role / 역할)', chips: roleChips, selected: roleChips[0] },
+        { key: 'objective', name: 'A (Objective / 목표)', chips: objChips, selected: objChips[0] },
+        { key: 'format', name: 'R (Result / 결과 형식)', chips: fmtChips, selected: fmtChips[0] },
+        { key: 'tone', name: 'T (Tone / 어조)', chips: toneChips, selected: toneChips[0] },
+        { key: 'style', name: 'S (Style / 제약조건)', chips: styleChips, selected: styleChips[0] }
+      ];
+
+      d.assembledPrompt = getFormVal('cfg_parts_assembledPrompt');
+      d.copyBtnText = getFormVal('cfg_parts_copyBtnText');
+    } else if (blk.type === 'gasAccordion') {
+      d.title = getFormVal('cfg_gas_title');
+      d.subtitle = getFormVal('cfg_gas_subtitle');
+      d.logoSrc = getFormVal('cfg_gas_logoSrc');
+      d.badgeText = getFormVal('cfg_gas_badgeText');
+      d.language = getFormVal('cfg_gas_language');
+      var openCheck = document.getElementById('cfg_gas_isOpen');
+      d.isOpen = openCheck ? openCheck.checked : false;
+      d.code = getFormVal('cfg_gas_code');
+    } else if (blk.type === 'postcardSimulator') {
+      d.title = getFormVal('cfg_post_title');
+      d.desc = getFormVal('cfg_post_desc');
+      d.runBtnText = getFormVal('cfg_post_runBtnText');
+      d.resetBtnText = getFormVal('cfg_post_resetBtnText');
+    } else if (blk.type === 'infoNote') {
+      d.variant = getFormVal('cfg_note_variant');
+      d.icon = getFormVal('cfg_note_icon');
+      d.title = getFormVal('cfg_note_title');
+      d.content = getFormVal('cfg_note_content');
+    } else if (blk.type === 'textButtonBlock') {
+      d.eyebrow = getFormVal('cfg_cta_eyebrow');
+      d.title = getFormVal('cfg_cta_title');
+      d.description = getFormVal('cfg_cta_desc');
+    }
+
+    reindexBlockOrders();
+    renderStackCanvas();
+    updateLivePreview();
+    closeWidgetConfigModal();
+
+    var name = (typeof STUDIO_CATALOG !== 'undefined' && STUDIO_CATALOG.templates[blk.type] && STUDIO_CATALOG.templates[blk.type].name) || blk.type;
+    showToast('✨ [' + name + '] 위젯 설정이 즉시 반영되었습니다!');
   };
 
   window.renderStackCanvas = function() {
@@ -2416,6 +2776,7 @@ function buildStudio() {
             '<span class="block-name-tag">' + blockName + '</span>' +
           '</div>' +
           '<div class="block-actions-group">' +
+            '<button class="fab-btn" onclick="openWidgetConfigModal(event, \\'' + blk.id + '\\')" title="블록 세부 설정 (인터랙션 전용)">⚙️ 설정</button>' +
             '<button class="fab-btn" onclick="moveBlockUp(event, \\'' + blk.id + '\\')" title="위로 이동"' + (idx === 0 ? ' disabled style="opacity:0.35;cursor:not-allowed;"' : '') + '>▲</button>' +
             '<button class="fab-btn" onclick="moveBlockDown(event, \\'' + blk.id + '\\')" title="아래로 이동"' + (idx === canvasBlocks.length - 1 ? ' disabled style="opacity:0.35;cursor:not-allowed;"' : '') + '>▼</button>' +
             '<button class="fab-btn" onclick="duplicateBlock(event, \\'' + blk.id + '\\')" title="블록 복제 (바로 아래 복사)">📋 복제</button>' +
@@ -3038,6 +3399,77 @@ function buildStudio() {
     text-overflow: ellipsis;
   }
 
+  /* 위젯 세부 설정 모달 전용 스타일 */
+  .widget-modal-card {
+    width: 620px;
+    max-width: 92vw;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .widget-modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    font-size: .88rem;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .widget-modal-tag {
+    font-size: .70rem;
+    font-weight: 700;
+    color: #1967d2;
+    background: #e8f0fe;
+    border: 1px solid #c6dafc;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-left: 6px;
+  }
+  .widget-form-section {
+    background: #f8fafd;
+    border: 1px solid #e1ecfa;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .widget-section-title {
+    font-size: .85rem;
+    font-weight: 800;
+    color: var(--navy);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e3e8ee;
+  }
+  .widget-tip-box {
+    background: #fef7e0;
+    border: 1px solid #f9ab00;
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: .80rem;
+    color: #5c3800;
+    line-height: 1.5;
+  }
+  .form-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .widget-code-editor {
+    font-family: Consolas, monospace;
+    font-size: .82rem;
+    white-space: pre;
+    line-height: 1.5;
+    background: #1f2d44;
+    color: #f8fafd;
+    border-radius: 8px;
+    border: 1px solid #3c4d69;
+    padding: 10px;
+  }
+
   /* JSON 모드 */
   #jsonEditor {
     width: 100%; height: 100%; font-family: "Consolas", monospace; font-size: .82rem;
@@ -3537,6 +3969,27 @@ function buildStudio() {
     <div class="modal-footer">
       <button class="btn" onclick="closeSaveModal()">취소</button>
       <button class="btn primary" id="confirmSaveBtn">저장하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 위젯 세부 설정 모달 (Widget Configuration Modal) ── -->
+<div id="widgetConfigModal" class="modal-overlay" style="display:none;" onclick="if(event.target === this) closeWidgetConfigModal();">
+  <div class="modal-card wide widget-modal-card">
+    <div class="modal-header">
+      <h3>
+        <span id="widgetConfigModalIcon" style="font-size:1.35rem;line-height:1;">⚙️</span>
+        <span id="widgetConfigModalTitle">위젯 세부 설정</span>
+        <span id="widgetConfigModalTypeTag" class="widget-modal-tag"></span>
+      </h3>
+      <button class="modal-close-btn" onclick="closeWidgetConfigModal()">✕</button>
+    </div>
+    <div class="modal-body widget-modal-body" id="widgetConfigModalBody">
+      <!-- 동적 위젯별 폼 렌더링 -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeWidgetConfigModal()">취소</button>
+      <button class="btn primary" id="widgetConfigApplyBtn" onclick="applyWidgetConfig()">적용하기 (Apply)</button>
     </div>
   </div>
 </div>
