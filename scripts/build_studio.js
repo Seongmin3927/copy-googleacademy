@@ -2172,27 +2172,367 @@ function buildStudio() {
     }
   });
 
+  function escapeFormVal(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // ── 반응형 시맨틱 HTML 컴파일러 (Semantic Responsive HTML Compiler) ──
+  function compileSemanticHtml(blocks, pageTitle) {
+    var title = pageTitle || (typeof currentData !== 'undefined' && currentData.title) || 'Workflow Studio Export';
+    var blocksHtml = [];
+
+    if (!blocks || blocks.length === 0) {
+      blocksHtml.push('    <div style="text-align:center;padding:60px 20px;background:#ffffff;border:2px dashed #dadce0;border-radius:16px;color:#5f6368;">');
+      blocksHtml.push('      <div style="font-size:2rem;margin-bottom:8px;">📝</div>');
+      blocksHtml.push('      <b>구성된 블록이 없습니다.</b>');
+      blocksHtml.push('    </div>');
+    } else {
+      blocks.forEach(function(blk){
+        var rawHtml = (typeof STUDIO_CATALOG !== 'undefined') ? STUDIO_CATALOG.renderBlockHtml(blk, false) : '';
+        // 완전한 에디터 아티팩트 제거 (contenteditable, data-field, oninput, title 툴팁 등)
+        var clean = rawHtml
+          .replace(/\\s*contenteditable="[^"]*"/gi, '')
+          .replace(/\\s*spellcheck="[^"]*"/gi, '')
+          .replace(/\\s*data-field="[^"]*"/gi, '')
+          .replace(/\\s*oninput="onContentEdited\\([^)]*\\)"/gi, '')
+          .replace(/\\s*title="클릭하여 직접 텍스트 수정"/gi, '');
+
+        blocksHtml.push('    <!-- Semantic Block: ' + blk.type + ' (' + blk.id + ') -->');
+        blocksHtml.push('    <div class="builder-block" data-type="' + blk.type + '" id="' + blk.id + '">');
+        blocksHtml.push('      ' + clean);
+        blocksHtml.push('    </div>');
+      });
+    }
+
+    var doc = [
+      '<!DOCTYPE html>',
+      '<html lang="ko">',
+      '<head>',
+      '<meta charset="UTF-8">',
+      '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
+      '<title>' + escapeFormVal(title) + '</title>',
+      '<link rel="preconnect" href="https://cdn.jsdelivr.net">',
+      '<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">',
+      '<style>',
+      '  :root {',
+      '    --primary: #1a73e8;',
+      '    --primary-hover: #174ea6;',
+      '    --navy: #0b1a2c;',
+      '    --navy-2: #243551;',
+      '    --bg: #f8fafd;',
+      '    --paper: #ffffff;',
+      '    --text: #202124;',
+      '    --muted: #5f6368;',
+      '    --line: #dadce0;',
+      '    --accent: #1967d2;',
+      '    --radius-lg: 20px;',
+      '    --radius-md: 14px;',
+      '    --radius-sm: 8px;',
+      '    --shadow-sm: 0 2px 8px rgba(36,53,81,0.06);',
+      '    --shadow-md: 0 8px 24px rgba(36,53,81,0.08);',
+      '    --shadow-lg: 0 16px 40px rgba(36,53,81,0.14);',
+      '  }',
+      '',
+      '  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }',
+      '  body {',
+      '    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;',
+      '    background: var(--bg);',
+      '    color: var(--text);',
+      '    line-height: 1.6;',
+      '    -webkit-font-smoothing: antialiased;',
+      '    min-height: 100vh;',
+      '  }',
+      '',
+      '  /* 상단 헤더 바 */',
+      '  .builder-header {',
+      '    background: rgba(255, 255, 255, 0.94);',
+      '    backdrop-filter: blur(10px);',
+      '    border-bottom: 1px solid var(--line);',
+      '    padding: 14px 24px;',
+      '    display: flex;',
+      '    align-items: center;',
+      '    justify-content: space-between;',
+      '    position: sticky;',
+      '    top: 0;',
+      '    z-index: 1000;',
+      '  }',
+      '  .builder-header-brand {',
+      '    display: flex;',
+      '    align-items: center;',
+      '    gap: 8px;',
+      '    font-weight: 800;',
+      '    font-size: .94rem;',
+      '    color: var(--navy);',
+      '  }',
+      '  .builder-header-dot {',
+      '    width: 9px;',
+      '    height: 9px;',
+      '    border-radius: 50%;',
+      '    background: var(--primary);',
+      '  }',
+      '  .builder-header-badge {',
+      '    font-size: .74rem;',
+      '    font-weight: 700;',
+      '    background: #e8f0fe;',
+      '    color: #1967d2;',
+      '    padding: 3px 10px;',
+      '    border-radius: 999px;',
+      '  }',
+      '',
+      '  /* 반응형 페이지 래퍼 */',
+      '  .builder-page-wrap {',
+      '    max-width: 960px;',
+      '    margin: 0 auto;',
+      '    padding: 40px 20px 80px;',
+      '    display: flex;',
+      '    flex-direction: column;',
+      '    gap: 24px;',
+      '  }',
+      '',
+      '  /* 시맨틱 블록 컨테이너 */',
+      '  .builder-block {',
+      '    position: relative;',
+      '    width: 100%;',
+      '    transition: transform .2s ease;',
+      '  }',
+      '',
+      '  /* 3D 플립 카드 스타일 */',
+      '  .fcard {',
+      '    position: relative;',
+      '    width: 100%;',
+      '    min-height: 360px;',
+      '    transform-style: preserve-3d;',
+      '    transition: transform .6s cubic-bezier(.2, .85, .32, 1.2);',
+      '    border-radius: var(--radius-lg);',
+      '    box-shadow: var(--shadow-md);',
+      '    cursor: pointer;',
+      '  }',
+      '  .fcard.flipped {',
+      '    transform: rotateY(180deg);',
+      '  }',
+      '  .fcard:hover {',
+      '    box-shadow: var(--shadow-lg);',
+      '  }',
+      '  .face {',
+      '    position: absolute;',
+      '    inset: 0;',
+      '    backface-visibility: hidden;',
+      '    -webkit-backface-visibility: hidden;',
+      '    border-radius: var(--radius-lg);',
+      '  }',
+      '  .face.front {',
+      '    background: #ffffff;',
+      '    border: 1px solid var(--line);',
+      '  }',
+      '  .face.back {',
+      '    background: #ffffff;',
+      '    border: 1px solid rgba(25, 103, 210, 0.3);',
+      '    transform: rotateY(180deg);',
+      '  }',
+      '',
+      '  /* GAS 접이식 아코디언 */',
+      '  .gasfold {',
+      '    background: #ffffff;',
+      '    border: 1px solid var(--line);',
+      '    border-left: 5px solid var(--primary);',
+      '    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;',
+      '    box-shadow: var(--shadow-sm);',
+      '    overflow: hidden;',
+      '    transition: all .2s ease;',
+      '  }',
+      '  .gasfold summary {',
+      '    cursor: pointer;',
+      '    list-style: none;',
+      '    user-select: none;',
+      '  }',
+      '  .gasfold summary::-webkit-details-marker {',
+      '    display: none;',
+      '  }',
+      '  .gasfold[open] summary {',
+      '    border-bottom: 1px solid #f1f3f4;',
+      '  }',
+      '',
+      '  /* PARTS 프롬프트 칩 호버/활성 스타일 */',
+      '  .stack-partsprompt button {',
+      '    transition: all .14s ease;',
+      '  }',
+      '  .stack-partsprompt button:hover {',
+      '    opacity: .9;',
+      '    transform: translateY(-1px);',
+      '  }',
+      '  .stack-partsprompt button:active {',
+      '    transform: translateY(0);',
+      '  }',
+      '',
+      '  /* 모바일 및 데스크톱 반응형 미디어 쿼리 */',
+      '  @media (max-width: 768px) {',
+      '    .builder-header { padding: 10px 16px; }',
+      '    .builder-page-wrap { padding: 20px 12px 60px; gap: 16px; }',
+      '    .fcard { min-height: 380px; }',
+      '    .face.front, .face.back { padding: 20px 16px !important; }',
+      '    .stack-partsprompt { padding: 18px 14px !important; }',
+      '    .stack-cta { padding: 26px 16px !important; }',
+      '    .gasfold summary { padding: 14px 16px !important; }',
+      '  }',
+      '',
+      '  @media (max-width: 480px) {',
+      '    .builder-page-wrap { padding: 16px 8px 48px; gap: 14px; }',
+      '    .fcard { min-height: 420px; }',
+      '  }',
+      '',
+      '  @media print {',
+      '    .builder-header { display: none; }',
+      '    .builder-page-wrap { padding: 0; max-width: 100%; }',
+      '    .fcard { page-break-inside: avoid; }',
+      '    .builder-block { page-break-inside: avoid; }',
+      '  }',
+      '</style>',
+      '</head>',
+      '<body>',
+      '  <header class="builder-header">',
+      '    <div class="builder-header-brand">',
+      '      <span class="builder-header-dot"></span> ' + escapeFormVal(title),
+      '    </div>',
+      '    <span class="builder-header-badge">✨ Standalone Responsive Export</span>',
+      '  </header>',
+      '',
+      '  <main class="builder-page-wrap">',
+      blocksHtml.join('\\n'),
+      '  </main>',
+      '',
+      '  <footer style="text-align:center;padding:24px;color:#70757a;font-size:.80rem;border-top:1px solid #dadce0;margin-top:40px;">',
+      '    ' + escapeFormVal(title) + ' · Generated by Gemini Style Workflow Studio Engine',
+      '  </footer>',
+      '',
+      '  <!-- 번들링된 독립 실행형 인터랙션 스크립트 -->',
+      '  <script>',
+      '    // 1. 3D 플립 카드 회전 및 모듈 이동 제어 (mt-goto 지원)',
+      '    var MT_FILES = { 1: "module1.html", 2: "module2.html", 3: "module3.html", 4: "module4.html" };',
+      '    function goModule(n) {',
+      '      if (window.parent && window.parent !== window) {',
+      '        try { window.parent.postMessage({ type: "mt-goto", module: n }, "*"); return; } catch(e){}',
+      '      }',
+      '      if (MT_FILES[n]) { location.href = MT_FILES[n]; }',
+      '      else { location.href = "module" + n + ".html"; }',
+      '    }',
+      '',
+      '    document.querySelectorAll(".fcard").forEach(function(card){',
+      '      card.addEventListener("click", function(e){',
+      '        var btn = e.target.closest("[data-noflip]");',
+      '        if (btn) {',
+      '          e.stopPropagation();',
+      '          var mod = btn.getAttribute("data-module") || "1";',
+      '          goModule(mod);',
+      '          return;',
+      '        }',
+      '        card.classList.toggle("flipped");',
+      '      });',
+      '    });',
+      '',
+      '    // 2. 범용 원클릭 클립보드 복사 함수',
+      '    function copyTextToClipboard(text, btnEl) {',
+      '      if (navigator.clipboard && navigator.clipboard.writeText) {',
+      '        navigator.clipboard.writeText(text).then(function(){',
+      '          showCopyFeedback(btnEl);',
+      '        }).catch(function(){ fallbackCopy(text, btnEl); });',
+      '      } else {',
+      '        fallbackCopy(text, btnEl);',
+      '      }',
+      '    }',
+      '    function fallbackCopy(text, btnEl) {',
+      '      var ta = document.createElement("textarea");',
+      '      ta.value = text;',
+      '      ta.style.position = "fixed"; ta.style.opacity = "0";',
+      '      document.body.appendChild(ta);',
+      '      ta.select();',
+      '      try { document.execCommand("copy"); showCopyFeedback(btnEl); } catch(e){}',
+      '      document.body.removeChild(ta);',
+      '    }',
+      '    function showCopyFeedback(btnEl) {',
+      '      if (!btnEl) return;',
+      '      var orig = btnEl.innerText;',
+      '      btnEl.innerText = "✓ 복사 완료!";',
+      '      btnEl.style.transform = "scale(1.05)";',
+      '      setTimeout(function(){ btnEl.innerText = orig; btnEl.style.transform = ""; }, 1800);',
+      '    }',
+      '',
+      '    // 3. PARTS 프롬프트 칩 동적 인터랙션 및 프롬프트 재조합',
+      '    window.selectPartsChip = function(blockId, catKey, chipValue) {',
+      '      if (window.event && window.event.target && window.event.target.parentElement) {',
+      '        var p = window.event.target.parentElement;',
+      '        p.querySelectorAll("button").forEach(function(b){',
+      '          b.style.background = "#ffffff"; b.style.color = "#243551"; b.style.borderColor = "#dadce0";',
+      '          b.classList.remove("active");',
+      '        });',
+      '        window.event.target.style.background = "#1967d2";',
+      '        window.event.target.style.color = "#ffffff";',
+      '        window.event.target.style.borderColor = "#1967d2";',
+      '        window.event.target.classList.add("active");',
+      '      }',
+      '    };',
+      '',
+      '    // 4. 엽서 시뮬레이터 인터랙션',
+      '    document.querySelectorAll(".stack-simulator button").forEach(function(btn){',
+      '      if (btn.innerText.indexOf("자동화 실행") !== -1) {',
+      '        btn.addEventListener("click", function(){',
+      '          var self = this; var orig = self.innerText;',
+      '          self.disabled = true; self.innerText = "⚡ 파이프라인 가동 중...";',
+      '          setTimeout(function(){',
+      '            self.disabled = false; self.innerText = orig;',
+      '            alert("✨ 모의 엽서 자동 발송 시뮬레이션(PDF 렌더링 ➔ Gmail 자동 발송)이 완료되었습니다!");',
+      '          }, 1200);',
+      '        });',
+      '      }',
+      '    });',
+      '  <' + '/script>',
+      '</body>',
+      '</html>'
+    ];
+
+    return doc.join('\\n');
+  }
+
+  // ── export.html 자동 다운로드 트리거 엔진 ──
+  window.exportStackToHtml = function(customFileName) {
+    var fileName = customFileName || 'export.html';
+    var htmlContent = compileSemanticHtml(canvasBlocks);
+    var blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('🎉 반응형 시맨틱 ' + fileName + ' 파일이 성공적으로 다운로드되었습니다!');
+  };
+
   // ── 배포용 순수 HTML 복사 (isExport = true: 하이라이트 및 인스펙터 스크립트 제거) ──
   document.getElementById('copyHtmlBtn').addEventListener('click', function(){
     currentData.stackBlocks = canvasBlocks;
-    var html = renderReportHtml(currentData, true);
+    var html = (currentStackView === 'canvas') ? compileSemanticHtml(canvasBlocks) : renderReportHtml(currentData, true);
     navigator.clipboard.writeText(html).then(function(){
-      showToast('📋 순수 배포용 HTML이 클립보드에 복사되었습니다. (하이라이트 스크립트 제거됨)');
+      showToast('📋 순수 배포용 반응형 HTML이 클립보드에 복사되었습니다.');
     });
   });
 
   // ── 배포용 순수 HTML 다운로드 (isExport = true: 하이라이트 및 인스펙터 스크립트 제거) ──
   document.getElementById('downloadHtmlBtn').addEventListener('click', function(){
-    currentData.stackBlocks = canvasBlocks;
-    var html = renderReportHtml(currentData, true);
-    var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = (currentData.title || 'workflow-report').replace(/\\s+/g, '_') + '.html';
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('💾 순수 배포용 HTML 파일이 다운로드되었습니다. (하이라이트 스크립트 제거됨)');
+    if (currentStackView === 'canvas') {
+      exportStackToHtml('export.html');
+    } else {
+      currentData.stackBlocks = canvasBlocks;
+      var html = renderReportHtml(currentData, true);
+      var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = (currentData.title || 'workflow-report').replace(/\\s+/g, '_') + '.html';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('💾 순수 배포용 HTML 파일이 다운로드되었습니다. (하이라이트 스크립트 제거됨)');
+    }
   });
 
   // ── 수직 스택(Linear Stack) 노션/구글 설문지형 캔버스 조작 엔진 ──
@@ -3565,6 +3905,7 @@ function buildStudio() {
     <button class="btn" id="openSaveBtn" style="background:#e8f0fe; color:#1967d2; border-color:#c6dafc;" title="현재 작성 중인 작업 내용을 브라우저에 영구 저장">💾 작업 저장</button>
     <button class="btn" id="copyHtmlBtn" title="배포용 순수 HTML 복사 (하이라이트 기능 제외)">📋 HTML 복사</button>
     <button class="btn primary" id="downloadHtmlBtn" title="배포용 순수 HTML 다운로드 (하이라이트 기능 제외)">⬇️ 단일 HTML 다운로드</button>
+    <button class="btn primary" id="exportStackBtn" onclick="exportStackToHtml('export.html')" style="background:#0d652d; border-color:#0d652d;" title="캔버스 블록을 완전한 반응형 시맨틱 HTML(export.html)로 다운로드">📥 export.html 다운로드</button>
   </div>
 </header>
 
@@ -3838,6 +4179,7 @@ function buildStudio() {
 
       <div style="display:flex;align-items:center;gap:8px;">
         <span id="canvasBlockCountBadge" style="font-size: .74rem; background:#e8f0fe; color:#1967d2; padding:2px 8px; border-radius:999px; font-weight:700;">3개 블록 구성 중</span>
+        <button class="btn" onclick="exportStackToHtml('export.html')" style="padding:3px 9px;font-size:.74rem;background:#e6f4ea;color:#137333;border-color:#ceead6;font-weight:700;" title="캔버스 블록을 반응형 export.html로 다운로드">⬇️ export.html</button>
       </div>
     </div>
 
@@ -3854,6 +4196,7 @@ function buildStudio() {
         <button class="canvas-tool-chip" onclick="addBlockToStack('postcardSimulator')"><span>✉️</span> 엽서 시뮬레이터</button>
         <button class="canvas-tool-chip" onclick="addBlockToStack('infoNote')"><span>💡</span> 안내 노트</button>
         <button class="canvas-tool-chip" onclick="addBlockToStack('textButtonBlock')"><span>🎯</span> 텍스트/버튼</button>
+        <button class="canvas-tool-chip" onclick="exportStackToHtml('export.html')" style="background:#e6f4ea;color:#137333;border-color:#ceead6;margin-left:auto;font-weight:800;" title="캔버스 블록을 export.html 파일로 내보내기"><span>📥</span> export.html 내보내기</button>
       </div>
 
       <!-- 중앙 캔버스 스크롤 영역 -->

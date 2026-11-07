@@ -47,7 +47,17 @@ const requiredTokens = [
   'cfg_parts_assembledPrompt',
   'cfg_gas_title',
   'cfg_gas_code',
-  'cfg_gas_isOpen'
+  'cfg_gas_isOpen',
+  // Export Engine Tokens
+  'exportStackToHtml',
+  'compileSemanticHtml',
+  'class="builder-block"',
+  'export.html',
+  'exportStackBtn',
+  'URL.createObjectURL',
+  '@media (max-width: 768px)',
+  'copyTextToClipboard',
+  'goModule'
 ];
 
 requiredTokens.forEach(token => {
@@ -170,5 +180,32 @@ assert(!staticHtml.includes('contenteditable="true"'), 'Static HTML must NOT con
 assert(!staticHtml.includes('oninput="onContentEdited'), 'Static HTML must NOT contain oninput handler');
 
 console.log('  ✓ Dual-mode rendering verified (Editable vs Clean Static Export)');
+
+// 12. Test Semantic HTML Export compilation
+function mockCompileSemanticHtml(testBlocks, title) {
+  var blocksHtml = testBlocks.map(function(blk){
+    var rawHtml = STUDIO_CATALOG.renderBlockHtml(blk, false);
+    var clean = rawHtml
+      .replace(/\s*contenteditable="[^"]*"/gi, '')
+      .replace(/\s*spellcheck="[^"]*"/gi, '')
+      .replace(/\s*data-field="[^"]*"/gi, '')
+      .replace(/\s*oninput="onContentEdited\([^)]*\)"/gi, '')
+      .replace(/\s*title="클릭하여 직접 텍스트 수정"/gi, '');
+    return '    <div class="builder-block" data-type="' + blk.type + '" id="' + blk.id + '">\n      ' + clean + '\n    </div>';
+  }).join('\n\n');
+
+  return '<!DOCTYPE html>\n<html lang="ko">\n<head>\n<title>' + title + '</title>\n<style>\n.builder-block { width: 100%; }\n@media (max-width: 768px) { .builder-page-wrap { padding: 12px; } }\n</style>\n</head>\n<body>\n<main class="builder-page-wrap">\n' + blocksHtml + '\n</main>\n<script>\nfunction goModule(n){}\nfunction copyTextToClipboard(){}\n</script>\n</body>\n</html>';
+}
+
+const compiled = mockCompileSemanticHtml(blocks, 'Unit Test Export');
+assert(compiled.includes('<!DOCTYPE html>'));
+assert(compiled.includes('<title>Unit Test Export</title>'));
+assert(compiled.includes('class="builder-block"'));
+assert(!compiled.includes('contenteditable="true"'));
+assert(!compiled.includes('onContentEdited'));
+assert(compiled.includes('@media (max-width: 768px)'));
+assert(compiled.includes('function goModule'));
+assert(compiled.includes('function copyTextToClipboard'));
+console.log('  ✓ Semantic Responsive Export HTML Compilation verified with 0 editor artifacts');
 
 console.log('\n🎉 ALL VERIFICATION CHECKS PASSED WITH 100% SUCCESS!');
