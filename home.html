@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제미나이 아카데미 · 홈 (강의 교안)</title>
+<link rel="stylesheet" href="fonts/pretendard.css">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" as="style" crossorigin
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+  :root{
+    --cream:#ffffff;--cream-2:#f1f3f4;--paper:#ffffff;
+    --navy:#243551;--navy-2:#34496b;--teal:#1e8e3e;--terra:#1967d2;--gold:#4a90e8;
+    --ink:#2f2a24;--muted:#7a7064;--line:#e8eaed;--shadow:0 14px 40px rgba(36,53,81,.14);
+  }
+  *{box-sizing:border-box;}
+  html{font-size:21px;}
+  body{margin:0;font-family:"Pretendard Variable","Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:var(--ink);
+    background:#ffffff;line-height:1.72;}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 22px;}
+
+  .hero{padding:52px 0 20px;text-align:center;}
+  .stamp-badge{display:inline-flex;align-items:center;gap:9px;color:#5f6368;padding:6px 14px;border-radius:999px;font-weight:600;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;border:0;background:rgba(255,255,255,.75);box-shadow:0 1px 2px rgba(60,64,67,.08);}
+  .hero h1{font-size:clamp(2rem,3.4vw,3rem);line-height:1.15;margin:18px 0 12px;color:var(--navy);font-weight:600;letter-spacing:-.035em;}
+  .hero h1 .hl{background:linear-gradient(100deg,#4a90e8,#4aa8f5 40%,#ac87eb 72%,#ee4d5d);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .hero p{font-size:1.08rem;color:var(--navy-2);max-width:700px;margin:0 auto;}
+
+  section{padding:22px 0 30px;}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:#80868b;margin-bottom:8px;}
+  h2.sec{font-size:1.4rem;margin:0 0 6px;color:var(--navy);font-weight:600;}
+  .lead{font-size:1rem;color:var(--muted);margin:0 0 18px;}
+
+  /* ── 모듈 카드 그리드 (뒤집기 · 프리미엄) ── */
+  .modgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;}
+  .flip{perspective:1400px;cursor:pointer;}
+  .flip-inner{position:relative;width:100%;height:312px;transition:transform .6s cubic-bezier(.2,.7,.2,1);transform-style:preserve-3d;}
+  .flip.flipped .flip-inner{transform:rotateY(180deg);}
+
+  .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    display:flex;flex-direction:column;justify-content:space-between;border-radius:20px;padding:24px;overflow:hidden;
+    background:
+      radial-gradient(135% 95% at 50% -25%, rgba(255,255,255,.96), rgba(255,255,255,0) 60%),
+      linear-gradient(157deg,#ffffff 0%,#f8f9fa 55%,#e8eaed 100%);
+    box-shadow:0 12px 30px rgba(36,53,81,.12), inset 0 0 0 1px rgba(33,123,254,.35);
+    transition:box-shadow .3s ease, transform .3s ease;}
+  /* 좌측 메탈릭 바 */
+  .face::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;z-index:2;
+    background:linear-gradient(180deg,var(--accent,var(--teal)),var(--gold));}
+  /* 광택 스윕 */
+  .face::after{content:"";position:absolute;top:-60%;left:-85%;width:55%;height:220%;pointer-events:none;z-index:3;
+    background:linear-gradient(115deg,transparent 0%,rgba(255,255,255,.7) 50%,transparent 100%);transform:rotate(9deg);opacity:0;}
+  .flip:hover .face::after{animation:sheen 1.15s ease;}
+  @keyframes sheen{0%{left:-85%;opacity:0;}12%{opacity:.95;}100%{left:140%;opacity:0;}}
+  .flip:hover .face{box-shadow:0 24px 52px rgba(36,53,81,.2), inset 0 0 0 1px rgba(33,123,254,.72), 0 0 32px -8px var(--accent,var(--teal));}
+  .back{transform:rotateY(180deg);}
+  /* 뒤집힘 상태에 따라 보이지 않는 면은 클릭을 받지 않음 */
+  .flip.flipped .front{pointer-events:none;}
+  .flip:not(.flipped) .back{pointer-events:none;}
+  .flip:hover .flip-inner{transform:translateY(-3px);}
+  .flip.flipped .flip-inner,
+  .flip.flipped:hover .flip-inner{transform:rotateY(180deg);}
+
+  .no{position:relative;z-index:2;font-size:.72rem;font-weight:600;letter-spacing:.2em;
+    background:linear-gradient(90deg,#4a90e8,#4aa8f5 45%,#4a90e8);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .no::before{content:"✦ ";}
+  /* 앞면 */
+  .front .ftitle{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;flex:1;}
+  .front h3{margin:10px 0 0;font-size:1.46rem;color:var(--navy);font-weight:600;line-height:1.28;letter-spacing:-.01em;}
+  /* 뒷면 */
+  .back .backbody{position:relative;z-index:2;overflow:auto;}
+  .back h3{margin:4px 0 8px;font-size:1.05rem;color:var(--navy);font-weight:600;line-height:1.3;}
+  .back p{margin:0 0 12px;font-size:.9rem;color:var(--navy-2);}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+  .tag{font-size:.72rem;font-weight:600;padding:4px 11px;border-radius:999px;color:var(--navy-2);
+    background:linear-gradient(180deg,#ffffff,#e8eaed);border:1px solid rgba(33,123,254,.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.6);}
+  .cardfoot{position:relative;z-index:2;display:flex;flex-direction:column;gap:9px;}
+  .cardbtn{position:relative;z-index:2;display:inline-flex;align-items:center;justify-content:center;gap:7px;width:100%;cursor:pointer;border:0;overflow:hidden;
+    font-family:inherit;font-weight:600;font-size:.94rem;padding:12px 16px;border-radius:14px;color:#fff;letter-spacing:.01em;
+    background:var(--accent,var(--navy));
+    box-shadow:0 8px 18px rgba(36,53,81,.18), inset 0 1px 0 rgba(255,255,255,.3), inset 0 0 0 1px rgba(255,255,255,.1);transition:.18s;}
+  /* 버튼: 같은 색 계열 그라데이션 (네이비/검정 제거) */
+  .m1 .cardbtn{background:#174ea6;}
+  .m2 .cardbtn{background:#1967d2;}
+  .m3 .cardbtn{background:#4a90e8;}
+  .m4 .cardbtn{background:#8ab4f8;}
+  .cardbtn::after{content:"";position:absolute;top:0;left:-120%;width:60%;height:100%;transform:skewX(-18deg);pointer-events:none;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);}
+  .cardbtn:hover{filter:brightness(1.07) saturate(1.05);transform:translateY(-1px);
+    box-shadow:0 13px 26px rgba(36,53,81,.32), inset 0 1px 0 rgba(255,255,255,.35);}
+  .cardbtn:hover::after{animation:btnsheen .75s ease;}
+  @keyframes btnsheen{0%{left:-120%;}100%{left:135%;}}
+  .flip-hint{position:relative;z-index:2;text-align:center;font-size:.76rem;font-weight:600;color:var(--muted);opacity:.85;}
+
+  /* module accent colors */
+  .m1{--accent:#174ea6;}
+  .m2{--accent:#1967d2;}
+  .m3{--accent:#4a90e8;}
+  .m4{--accent:#8ab4f8;}
+  /* 카드 면 색을 위쪽 흐름 지도와 매치 */
+  .m1 .face{background:#ffffff;}
+  .m2 .face{background:#ffffff;}
+  .m3 .face{background:#ffffff;}
+  .m4 .face{background:#ffffff;}
+
+  /* ── 흐름 띠 & 상세 토글 ── */
+  .flowmap{display:flex;align-items:stretch;flex-wrap:wrap;gap:10px;margin:2px 0 58px;}
+  .fstep{flex:1 1 150px;min-width:140px;display:flex;align-items:center;gap:10px;
+    background:linear-gradient(180deg,#ffffff,#f8f9fa);border:1px solid rgba(33,123,254,.4);
+    border-left:4px solid var(--accent,var(--teal));border-radius:14px;padding:10px 12px;box-shadow:0 4px 12px rgba(36,53,81,.06);}
+  /* 단계별 밝은 컬러 (네이비 최소화) */
+  .fstep.m1{background:#ffffff;--accent:#174ea6;}
+  .fstep.m2{background:#ffffff;--accent:#1967d2;}
+  .fstep.m3{background:#ffffff;--accent:#4a90e8;}
+  .fstep.m4{background:#ffffff;--accent:#8ab4f8;}
+  .fnum{flex:none;width:27px;height:27px;border-radius:50%;display:grid;place-items:center;font-size:.82rem;font-weight:600;color:#fff;
+    background:var(--accent,var(--teal));box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 2px 6px rgba(36,53,81,.14);}
+  .fmeta b{display:block;font-size:.94rem;color:var(--navy);line-height:1.2;font-weight:600;}
+  .fmeta .ft{display:block;font-size:.74rem;color:var(--muted);}
+  .farrow{align-self:center;color:#1967d2;font-weight:600;font-size:1.15rem;}
+  .flowmore{margin:48px 0;border:0;border-radius:22px;background:var(--paper);box-shadow:0 4px 14px rgba(36,53,81,.05);overflow:hidden;}
+  .flowmore summary{cursor:pointer;list-style:none;padding:14px 18px;font-weight:600;color:var(--navy);font-size:.98rem;display:flex;align-items:center;gap:8px;}
+  .flowmore summary::-webkit-details-marker{display:none;}
+  .flowmore summary::after{content:"▾";margin-left:auto;color:var(--muted);transition:.2s;}
+  .flowmore[open] summary::after{transform:rotate(180deg);}
+  .flowmore-body{padding:2px 18px 18px;font-size:.92rem;color:var(--navy-2);line-height:1.72;}
+  .flowmore-body h4{margin:14px 0 4px;font-size:.92rem;color:var(--navy);font-weight:600;}
+  .flowmore-body p{margin:0 0 6px;}
+  .flowkey{margin-top:12px;background:#e6f8ef;border-left:4px solid var(--teal);border-radius:10px;padding:12px 14px;color:var(--navy-2);}
+  @media(max-width:640px){ .fstep{flex:1 1 100%;} .farrow{width:100%;text-align:center;transform:rotate(90deg);} }
+
+  /* ── 강사용 슬라이드 잠금 ── */
+  .lockbox{border:1px dashed var(--line);border-radius:16px;background:var(--paper);padding:30px 22px;text-align:center;box-shadow:0 6px 18px rgba(36,53,81,.06);}
+  .lockbox .lock-ic{font-size:2rem;}
+  .lockbox h3{margin:8px 0 4px;color:var(--navy);font-size:1.15rem;font-weight:600;}
+  .lockbox .sub{color:var(--muted);font-size:.9rem;margin:0 0 16px;}
+  .pwrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+  .pwrow input{font-family:inherit;font-size:.95rem;padding:11px 14px;border:1.5px solid var(--line);border-radius:11px;width:200px;background:#fff;color:var(--ink);}
+  .pwrow input:focus{outline:none;border-color:var(--teal);}
+  .pwrow button{font-family:inherit;font-weight:600;font-size:.92rem;padding:11px 20px;border:0;border-radius:11px;background:var(--navy);color:#fff;cursor:pointer;transition:.16s;}
+  .pwrow button:hover{background:var(--terra);}
+  .pwmsg{display:none;color:#c0392b;font-size:.86rem;font-weight:600;margin-top:12px;}
+
+  .slidewrap{display:none;}
+  .slidebox{position:relative;width:100%;aspect-ratio:16/9;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);background:#000;}
+  .slidebox iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+  .btnrow{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;}
+  .cta-btn{display:inline-flex;align-items:center;gap:8px;background:#1967d2;color:#fff;text-decoration:none;font-weight:600;font-size:.92rem;padding:11px 20px;border-radius:11px;box-shadow:0 2px 8px rgba(60,64,67,.16);transition:.18s;cursor:pointer;border:0;font-family:inherit;}
+  .cta-btn:hover{transform:translateY(-1px);}
+  .cta-btn.teal{background:var(--teal);}
+  .cta-btn.pad{background:#fff;color:#1967d2;border:1px solid #c6dafc;box-shadow:0 1px 2px rgba(60,64,67,.10);}
+  .cta-btn.intro-btn{background:linear-gradient(100deg,#4a90e8,#4aa8f5 40%,#ac87eb 72%,#ee4d5d);}
+
+  .padbox{margin-top:16px;border:0;border-radius:22px;overflow:hidden;box-shadow:0 6px 20px rgba(36,53,81,.08);background:#F4F4F4;}
+  .padbox iframe{width:100%;height:640px;display:block;border:0;}
+
+  footer{padding:26px 22px 44px;text-align:center;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);margin-top:20px;}
+  @media (max-width:640px){ .modgrid{grid-template-columns:1fr;} .flip-inner{height:344px;} .padbox iframe{height:520px;} }
+
+  body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:3px;z-index:9999;pointer-events:none;background:linear-gradient(90deg,#3186ff 0%,#3186ff 24%,#2b8ee7 33%,#1fa1ad 41%,#12b572 50%,#91c52b 58%,#ffae0e 66%,#ff6c2e 75%,#c85774 84%,#4380ee 93%,#3186ff 100%);}
+
+  .hero{position:relative;}
+  .hero::before{content:"";position:absolute;inset:-40px 0 -10px;z-index:0;pointer-events:none;
+    background:radial-gradient(620px 360px at 22% 30%, rgba(233,242,255,.95) 0%, rgba(233,242,255,0) 70%),radial-gradient(560px 340px at 68% 22%, rgba(238,226,248,.85) 0%, rgba(238,226,248,0) 70%),radial-gradient(600px 360px at 82% 62%, rgba(224,236,252,.8) 0%, rgba(224,236,252,0) 70%),radial-gradient(620px 380px at 38% 78%, rgba(224,240,255,.9) 0%, rgba(224,240,255,0) 70%);}
+  .hero > *{position:relative;z-index:1;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="stamp-badge">🎓 Gemini Academy · 구글 대학생 연수</span>
+    <h1>제미나이 아카데미<br><span class="hl">MT 프로젝트</span> 강의 교안</h1>
+    <p>AI로 MT를 <b>기획부터 자동화까지</b> 직접 만드는 실습 연수예요. 아래 <b>4개 모듈 카드</b>를 눌러 바로 실습으로 이동하세요.</p>
+    <div class="btnrow"><a class="cta-btn intro-btn" href="intro.html" target="_top">▶ 오늘의 흐름 보기</a></div>
+  </div>
+</header>
+
+<!-- ── 모듈 카드 ── -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Curriculum · 오늘의 4개 모듈</div>
+    <h2 class="sec">🗺️ 무엇을 만드나요?</h2>
+    <p class="lead">카드를 누르면 해당 실습 탭으로 이동해요.</p>
+
+    <!-- 전체 흐름 한 줄 지도 -->
+    <div class="flowmap">
+      <div class="fstep m1"><span class="fnum">1</span><div class="fmeta"><b>준비</b><span class="ft">AI 기초·프롬프트</span></div></div>
+      <span class="farrow">→</span>
+      <div class="fstep m2"><span class="fnum">2</span><div class="fmeta"><b>기획</b><span class="ft">폼·안내·프로그램</span></div></div>
+      <span class="farrow">→</span>
+      <div class="fstep m3"><span class="fnum">3</span><div class="fmeta"><b>결정</b><span class="ft">응답 → 대시보드</span></div></div>
+      <span class="farrow">→</span>
+      <div class="fstep m4"><span class="fnum">4</span><div class="fmeta"><b>아카이빙</b><span class="ft">추억 자동 기록</span></div></div>
+    </div>
+
+    <div class="modgrid">
+
+      <!-- 모듈 1 -->
+      <div class="flip m1">
+        <div class="flip-inner">
+          <div class="face front">
+            <div class="ftitle"><span class="no">MODULE 01</span><h3>AI 기초 &amp; 프롬프트 실무</h3></div>
+            <div class="cardfoot">
+              <span class="flip-hint">카드를 누르면 상세 내용 ↻</span>
+            </div>
+          </div>
+          <div class="face back">
+            <div class="backbody">
+              <span class="no">MODULE 01</span>
+              <p>본격 프로젝트에 앞서 다지는 토대예요. <b>30초 만에 MT 가이드 이미지</b>를 만들고, <b>안전하고 책임감 있는 AI 사용법</b>, 프로의 질문법 <b>PARTS 프롬프트</b>와 <b>Prompt Chaining</b>까지 익혀요.</p>
+              <div class="tags"><span class="tag">이미지 생성</span><span class="tag">책임 있는 AI</span><span class="tag">PARTS</span><span class="tag">Prompt Chaining</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 모듈 2 -->
+      <div class="flip m2">
+        <div class="flip-inner">
+          <div class="face front">
+            <div class="ftitle"><span class="no">MODULE 02</span><h3>‘우리의’ 맞춤형 MT 기획</h3></div>
+            <div class="cardfoot">
+              <button class="cardbtn" data-noflip data-module="2">모듈 2 열기 →</button>
+              <span class="flip-hint">카드를 누르면 상세 내용 ↻</span>
+            </div>
+          </div>
+          <div class="face back">
+            <div class="backbody">
+              <span class="no">MODULE 02</span>
+              <p>수요조사 <b>구글 폼</b>을 만들고, <b>CANVAS</b>로 MT 안내 웹페이지를, <b>Gemini Notebook</b>으로 MT 규정·프로그램을 기획해요.</p>
+              <div class="tags"><span class="tag">구글 폼</span><span class="tag">Canvas</span><span class="tag">Gemini Notebook</span></div>
+            </div>
+            <button class="cardbtn" data-noflip data-module="2">모듈 2 열기 →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 모듈 3 -->
+      <div class="flip m3">
+        <div class="flip-inner">
+          <div class="face front">
+            <div class="ftitle"><span class="no">MODULE 03</span><h3>‘어디로·언제’ 결정 대시보드</h3></div>
+            <div class="cardfoot">
+              <button class="cardbtn" data-noflip data-module="3">모듈 3 열기 →</button>
+              <span class="flip-hint">카드를 누르면 상세 내용 ↻</span>
+            </div>
+          </div>
+          <div class="face back">
+            <div class="backbody">
+              <span class="no">MODULE 03</span>
+              <p>설문 응답을 <b>앱스 스크립트(Apps Script) API</b>로 실시간으로 불러와, <b>Gemini Canvas</b>로 ‘MT 결정 대시보드’를 만들고 <b>라이브로 구동</b>해요.</p>
+              <div class="tags"><span class="tag">Apps Script</span><span class="tag">API</span><span class="tag">Canvas</span><span class="tag">실시간 연동</span></div>
+            </div>
+            <button class="cardbtn" data-noflip data-module="3">모듈 3 열기 →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 모듈 4 -->
+      <div class="flip m4">
+        <div class="flip-inner">
+          <div class="face front">
+            <div class="ftitle"><span class="no">MODULE 04</span><h3>MT 추억 아카이빙</h3></div>
+            <div class="cardfoot">
+              <button class="cardbtn" data-noflip data-module="4">모듈 4 열기 →</button>
+              <span class="flip-hint">카드를 누르면 상세 내용 ↻</span>
+            </div>
+          </div>
+          <div class="face back">
+            <div class="backbody">
+              <span class="no">MODULE 04</span>
+              <p>참가자용 <b>추억 사진·소감 폼</b>을 만들고, <b>추억 엽서·응모권을 자동 발급</b>하는 <b>앱스 스크립트(Apps Script) 기반 무인 자동화</b>를 구축해요.</p>
+              <div class="tags"><span class="tag">참가자 폼</span><span class="tag">엽서 자동 발급</span><span class="tag">응모권</span><span class="tag">트리거 자동화</span></div>
+            </div>
+            <button class="cardbtn" data-noflip data-module="4">모듈 4 열기 →</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 전체 흐름 상세 (선택) -->
+    <details class="flowmore">
+      <summary>🔎 왜 이 순서일까? — 모듈 1→4가 어떻게 이어지는지</summary>
+      <div class="flowmore-body">
+        <h4>① 프로젝트 흐름 — MT의 처음부터 끝까지</h4>
+        <p><b>준비(1)</b>에서 AI 다루는 기본기를 익히고 → <b>기획(2)</b>에서 수요조사·안내·프로그램을 설계하고 → <b>결정(3)</b>에서 모인 응답을 대시보드로 정리해 ‘어디로·언제’를 정하고 → <b>아카이빙(4)</b>에서 끝난 뒤의 추억을 자동으로 기록해요.</p>
+        <h4>② 기술 흐름 — 갈수록 자동화가 깊어져요</h4>
+        <p>프롬프트 기초(1) → 도구 활용(2) → <b>앱스 스크립트(Apps Script)로 데이터 읽기·API(3)</b> → <b>앱스 스크립트(Apps Script)로 자동 반응·트리거(4)</b>. 모듈 3·4는 <b>같은 도구(앱스 스크립트(Apps Script)), 다른 초능력</b>이에요 — 3은 데이터를 <b>읽어서 내보내고</b>, 4는 제출에 <b>자동으로 반응</b>하죠.</p>
+        <div class="flowkey">🔗 <b>모든 걸 잇는 건 ‘구글 폼’이에요.</b> 모듈 2가 폼을 <b>만들고</b> → 모듈 3이 그 응답을 <b>읽고</b> → 모듈 4가 새 폼 응답에 <b>반응해요</b>. 즉 <b>만든다 → 읽는다 → 반응한다</b>로 하나의 프로젝트가 관통합니다.</div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ── 패들렛 ── -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Community</div>
+    <h2 class="sec">💙 우리 아카데미 패들렛</h2>
+    <p class="lead">질문·자료·결과물을 여기에 함께 모아요. 화면이 안 보이면 아래 버튼으로 새 창에서 열 수 있어요.</p>
+    <a class="cta-btn pad" href="https://padlet.com/JA_Korea/2026-gemini-academy-b764lse6h0ho7u3g" target="_blank" rel="noopener">💙 패들렛 열기</a>
+    <div class="padbox">
+      <iframe src="https://padlet.com/embed/b764lse6h0ho7u3g" allow="camera;microphone;geolocation;clipboard-write;encrypted-media;fullscreen" title="제미나이 아카데미 패들렛"></iframe>
+    </div>
+  </div>
+</section>
+
+<footer>제미나이 아카데미 · 구글 대학생 연수 &nbsp;|&nbsp; 모듈 1(강의·PPT) · 모듈 2 MT 기획 · 모듈 3 결정 대시보드 · 모듈 4 엽서 자동화</footer>
+
+<script>
+  /* 통합뷰 밖에서 직접 열었을 때 쓰는 파일 경로 (배포 시 영문명으로 자동 치환됨) */
+  var MT_FILES = { 2:'module2.html', 3:'module3.html', 4:'module4.html' };
+
+  /* 모듈 카드 → 상단 탭 전환 (부모 통합뷰로 메시지 전송) */
+  function goModule(n){
+    var framed = false;
+    try { framed = (window.parent && window.parent !== window); } catch(e) { framed = true; }
+    if(framed){
+      try { window.parent.postMessage({ type:'mt-goto', module:n }, '*'); return; } catch(e){}
+    }
+    if(MT_FILES[n]) location.href = MT_FILES[n];   /* 통합뷰 밖이면 직접 이동 */
+  }
+
+  /* 카드 클릭 처리: 열기 버튼이면 이동, 그 외엔 뒤집기 (핸들러 하나로 통합) */
+  document.querySelectorAll('.flip').forEach(function(card){
+    card.addEventListener('click', function(e){
+      var btn = (e.target && e.target.closest) ? e.target.closest('[data-noflip]') : null;
+      if(btn){                                   /* 모듈 열기 버튼 */
+        e.preventDefault();
+        goModule(parseInt(btn.getAttribute('data-module'), 10));
+        return;                                  /* 뒤집지 않음 */
+      }
+      card.classList.toggle('flipped');          /* 나머지 영역 = 뒤집기 */
+    });
+  });
+</script>
+
+</body>
+</html>

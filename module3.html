@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>(앱스 스크립트(Apps Script)판) 모듈 3 · 실시간 의사결정 대시보드 (Gemini Canvas)</title>
+<link rel="stylesheet" href="fonts/pretendard.css">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" as="style" crossorigin
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+  :root{
+    --cream:#ffffff;--cream-2:#f1f3f4;--paper:#ffffff;
+    --navy:#243551;--navy-2:#34496b;--teal:#1e8e3e;--terra:#1967d2;--gold:#4a90e8;
+    --ink:#2f2a24;--muted:#7a7064;--line:#e8eaed;--shadow:0 14px 40px rgba(36,53,81,.14);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;font-size:21px;}
+  body{margin:0;font-family:"Pretendard Variable","Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:var(--ink);
+    background:#ffffff;line-height:1.72;}
+
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(8px);background:var(--navy);border-bottom:1px solid rgba(255,255,255,.12);}
+  .nav-inner{max-width:1240px;margin:0 auto;padding:12px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+  .brand{font-weight:600;color:#fff;letter-spacing:.2px;display:flex;align-items:center;gap:8px;font-size:1.02rem;}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--terra);box-shadow:0 0 0 4px rgba(25,103,210,.18);}
+  .nav-links{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;}
+  .nav-links a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.86rem;font-weight:600;padding:6px 11px;border-radius:999px;transition:.18s;}
+  .nav-links a:hover{background:rgba(255,255,255,.18);color:#fff;}
+  .nav-links a{width:32px;height:32px;padding:0;display:grid;place-items:center;border-radius:10px;background:linear-gradient(135deg,#4a90e8,#4aa8f5);color:#fff;font-weight:600;font-size:.95rem;box-shadow:0 3px 10px rgba(25,103,210,.35);}
+  .nav-links a{animation:navGlow 3.6s ease-in-out infinite;}
+  .nav-links a:nth-child(2){animation-delay:.3s;} .nav-links a:nth-child(3){animation-delay:.6s;} .nav-links a:nth-child(4){animation-delay:.9s;} .nav-links a:nth-child(5){animation-delay:1.2s;} .nav-links a:nth-child(6){animation-delay:1.5s;}
+  @keyframes navGlow{0%,100%{box-shadow:0 3px 10px rgba(25,103,210,.35),0 0 8px rgba(66,133,244,.35);}50%{box-shadow:0 3px 12px rgba(25,103,210,.45),0 0 20px rgba(110,168,255,.75);}}
+  @media (prefers-reduced-motion:reduce){.nav-links a{animation:none;}}
+  .nav-links a:hover{background:linear-gradient(135deg,#5a95f6,#ab85d6);color:#fff;transform:translateY(-1px);}
+  .stepcard{scroll-margin-top:74px;}
+
+  .wrap{max-width:1240px;margin:0 auto;padding:0 22px;}
+  section{padding:58px 0;border-bottom:1px dashed var(--line);}
+  section:last-of-type{border-bottom:none;}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#80868b;margin-bottom:14px;}
+  .eyebrow::before{content:"\1F4CA";font-size:1rem;}
+  h2.sec{font-size:1.9rem;margin:0 0 10px;color:var(--navy);font-weight:600;letter-spacing:-.01em;}
+  .lead{font-size:1.06rem;color:var(--muted);max-width:780px;margin:0 0 26px;}
+
+  .hero{position:relative;overflow:hidden;padding:70px 0 60px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(36,53,81,.04),transparent 40%);}
+  .stamp-badge{display:inline-flex;align-items:center;gap:9px;border:1px solid #dadce0;color:#5f6368;padding:6px 14px;border-radius:999px;font-weight:600;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;background:rgba(255,255,255,.5);}
+  .hero h1{font-size:clamp(2rem,3.4vw,3rem);line-height:1.14;margin:20px 0 14px;color:var(--navy);font-weight:600;letter-spacing:-.035em;}
+  .hero h1 .hl{background:linear-gradient(100deg,#4a90e8,#4aa8f5 40%,#ac87eb 72%,#ee4d5d);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .hero p.sub{font-size:1.14rem;color:var(--navy-2);max-width:720px;margin:0 0 26px;}
+  .meta-row{display:flex;gap:12px;flex-wrap:wrap;}
+  .chip{background:var(--paper);border:0;border-radius:22px;padding:10px 15px;font-size:.9rem;color:var(--navy-2);font-weight:600;box-shadow:0 4px 14px rgba(36,53,81,.05);}
+  .chip b{color:var(--terra);}
+
+  .grid{display:grid;gap:18px;}
+  .grid-3{grid-template-columns:repeat(3,1fr);}
+  .card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 10px 28px rgba(36,53,81,.12), 0 2px 6px rgba(36,53,81,.06);}
+  .card h3{margin:0 0 8px;color:var(--navy);font-size:1.12rem;}
+  .card p{margin:0;color:var(--muted);font-size:.95rem;}
+  .card .ico{font-size:1.6rem;margin-bottom:6px;display:block;}
+
+  /* 앱스 스크립트란? — 로고 카드 펼침 */
+  .gasfold{margin-top:4.8rem;background:var(--paper);border:1px solid var(--line);
+    border-left:4px solid #4a90e8;border-radius:0 18px 18px 0;
+    box-shadow:0 6px 20px rgba(36,53,81,.05);overflow:hidden;}
+  .gasfold>summary{cursor:pointer;list-style:none;padding:22px 26px;display:flex;
+    align-items:center;gap:22px;flex-wrap:wrap;transition:.16s;}
+  .gasfold>summary::-webkit-details-marker{display:none;}
+  .gasfold>summary:hover{background:var(--cream-2);}
+  .gasfold .logo{flex:none;width:190px;max-width:46vw;}
+  .gasfold .logo img{width:100%;display:block;}
+  .gasfold .ttl{flex:1;min-width:200px;}
+  .gasfold .ttl h3{margin:0 0 5px;font-size:1.18rem;color:var(--navy);}
+  .gasfold .ttl p{margin:0;font-size:.9rem;color:var(--muted);line-height:1.55;}
+  .gasfold .open{display:inline-flex;align-items:center;gap:7px;margin-top:10px;
+    background:#1967d2;color:#fff;border-radius:999px;padding:6px 15px;
+    font-size:.84rem;font-weight:600;}
+  .gasfold .open::after{content:"＋";font-weight:700;}
+  .gasfold[open] .open::after{content:"−";}
+  .gasfold[open] .open{background:var(--navy);}
+  .gasbody{padding:0 26px 24px;}
+  /* 앱스 스크립트가 뭔가요 — 도입 설명 */
+  .gasbox{background:var(--paper);border:1px solid var(--line);border-left:4px solid #4a90e8;
+    border-radius:0 18px 18px 0;padding:24px 26px;margin-top:22px;box-shadow:0 6px 20px rgba(36,53,81,.05);}
+  .gasbox h3{margin:0 0 6px;font-size:1.18rem;color:var(--navy);}
+  .gasbox .sub{margin:0 0 18px;font-size:.92rem;color:var(--muted);}
+  .gasrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:3.2rem;}
+  .gasrow .g{background:var(--cream-2);border-radius:14px;padding:15px 16px;}
+  .gasrow .g .n{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;
+    border-radius:8px;background:#1967d2;color:#fff;font-weight:600;font-size:.84rem;margin-bottom:8px;}
+  .gasrow .g h4{margin:0 0 5px;font-size:.98rem;color:var(--navy);}
+  .gasrow .g p{margin:0;font-size:.88rem;line-height:1.6;color:var(--navy-2);}
+  .gasbig{margin-top:14px;background:linear-gradient(135deg,#f8f9fa,#f1f6fd);
+    border:1px solid #c6dafc;border-radius:16px;padding:17px 19px;}
+  .gasbig-hd{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:13px;}
+  .gasbig-hd h5{margin:0;font-size:.98rem;font-weight:600;color:var(--navy);}
+  .gasbig-hd .tag{background:#1967d2;color:#fff;font-size:.74rem;font-weight:600;
+    border-radius:999px;padding:3px 11px;}
+  .gasbig-flow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px;margin-bottom:13px;}
+  .gasbig-flow i{font-style:normal;font-size:.88rem;font-weight:600;color:var(--navy);
+    background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 15px;
+    box-shadow:0 2px 6px rgba(36,53,81,.06);white-space:nowrap;}
+  .gasbig-flow em{font-style:normal;font-size:.9rem;color:#1967d2;font-weight:700;margin:0 2px;}
+  .gasbig>p{margin:0;font-size:.9rem;line-height:1.75;color:var(--navy-2);}
+  .gasbig>p b{color:var(--terra);}
+  .gasbig-flow i{transition:background .25s,color .25s,border-color .25s,box-shadow .25s,transform .25s;}
+  .gasbig-flow i.on{background:#1967d2;color:#fff;border-color:#1967d2;
+    box-shadow:0 4px 12px rgba(25,103,210,.32);transform:translateY(-2px);}
+  .gasbig-flow i.now{transform:translateY(-3px) scale(1.07);
+    box-shadow:0 7px 22px rgba(33,123,254,.6),0 0 0 4px rgba(33,123,254,.22);}
+  .gasbig-flow em{transition:opacity .25s,transform .25s;opacity:.3;}
+  .gasbig-flow em.on{opacity:1;transform:translateX(1px);}
+  .gasrun{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;text-align:center;}
+  .gasrun-btn{background:#243551;color:#fff;border:none;
+    font-weight:600;font-size:.85rem;padding:9px 18px;border-radius:10px;cursor:pointer;
+    box-shadow:0 6px 16px rgba(25,103,210,.3);transition:.18s;white-space:nowrap;}
+  .gasrun-btn:hover{transform:translateY(-1px);}
+  .gasrun-btn:disabled{opacity:.5;cursor:default;transform:none;}
+  .gasrun-msg{font-size:.85rem;font-weight:600;color:var(--muted);line-height:1.5;}
+  .gasrun-msg.live{color:var(--teal);}
+  .gasrun-msg.done{color:var(--terra);}
+  .gasfx{max-width:560px;margin:0 auto 14px;}
+  .gasfx .imgwrap{position:relative;width:100%;border-radius:14px;overflow:hidden;
+    border:1px solid var(--line);box-shadow:0 10px 28px rgba(36,53,81,.16);
+    background:#243551;aspect-ratio:1630/924;}
+  .gasfx .imgwrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+  .gasfx .cf .after{opacity:0;transition:opacity 1s ease;}
+  .gasfx .cf.done .after{opacity:1;}
+  .gasfx .proc{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    opacity:0;pointer-events:none;transition:opacity .25s;z-index:4;}
+  .gasfx .proc.on{opacity:1;}
+  .gasfx .shimmer{position:absolute;inset:0;
+    background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.5) 50%,transparent 70%);
+    transform:translateX(-100%);}
+  .gasfx .proc.on .shimmer{animation:gasfxsh 1.1s linear infinite;}
+  @keyframes gasfxsh{to{transform:translateX(100%);}}
+  .gasfx .procbox{position:relative;z-index:2;background:rgba(36,53,81,.88);color:#fff;
+    padding:13px 20px;border-radius:14px;text-align:center;}
+  .gasfx .procbox span{font-weight:600;font-size:.86rem;}
+  .gasfx .spin{width:22px;height:22px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;
+    border-radius:50%;margin:0 auto 7px;animation:gasfxsp .7s linear infinite;}
+  @keyframes gasfxsp{to{transform:rotate(360deg);}}
+  .gasfx .fxbadge{position:absolute;top:10px;right:10px;background:var(--teal);color:#fff;
+    font-weight:600;font-size:.8rem;padding:6px 12px;border-radius:99px;
+    box-shadow:0 6px 16px rgba(30,142,62,.4);opacity:0;transform:translateY(-6px);
+    transition:.3s;z-index:5;}
+  .gasfx .fxbadge.on{opacity:1;transform:none;}
+  .gasbig>p.sub{margin-top:11px;padding-top:11px;border-top:1px solid var(--line);
+    font-size:.85rem;color:var(--muted);}
+  .gasbig>p.sub b{color:var(--teal);}
+  .gasmore{margin-top:3.2rem;background:#fff;border:1px solid var(--line);border-radius:13px;overflow:hidden;}
+  .gasmore>summary{cursor:pointer;list-style:none;padding:13px 16px;font-size:.92rem;font-weight:600;
+    color:var(--navy);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .gasmore>summary::-webkit-details-marker{display:none;}
+  .gasmore>summary::after{content:"＋";margin-left:auto;font-weight:700;color:var(--terra);}
+  .gasmore[open]>summary::after{content:"−";}
+  .gasmore>summary:hover{background:var(--cream-2);}
+  .gasmore>summary span{font-weight:600;color:var(--muted);font-size:.88em;}
+  .gasmore-body{padding:4px 16px 18px;border-top:1px solid var(--line);}
+  .gasmore-body>p{margin:12px 0 0;font-size:.92rem;line-height:1.7;color:var(--navy-2);}
+  .gascmp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px;}
+  .gascmp>div{border-radius:14px;padding:14px 15px;border:1px solid var(--line);}
+  .gascmp .bad{background:#fdf1ec;border-color:#d4e2ff;}
+  .gascmp .good{background:#e6f8ef;border-color:#bcdbd8;}
+  .gascmp .lb{display:inline-block;font-size:.8rem;font-weight:600;border-radius:999px;
+    padding:3px 11px;margin-bottom:9px;}
+  .gascmp .bad .lb{background:var(--terra);color:#fff;}
+  .gascmp .good .lb{background:var(--teal);color:#fff;}
+  .gascmp .lb em{font-style:normal;font-weight:700;letter-spacing:.04em;
+    background:rgba(255,255,255,.28);border-radius:999px;padding:1px 7px;margin-left:6px;font-size:.92em;}
+  .gasen{display:inline-block;margin-left:5px;font-size:.82em;font-weight:600;color:var(--teal);
+    background:rgba(30,142,62,.1);border-radius:6px;padding:1px 7px;}
+  .gaswho{margin:1.6rem 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;}
+  .gaswho li{font-size:.9rem;line-height:1.6;color:var(--navy-2);background:#fff;
+    border:1px solid var(--line);border-radius:10px;padding:9px 13px;}
+  .gascmp code{display:block;background:#fff;border:1px solid var(--line);border-radius:8px;
+    padding:8px 10px;font-size:.84rem;color:var(--navy);word-break:break-all;}
+  .gascmp>div>p{margin:9px 0 0;font-size:.88rem;line-height:1.65;color:var(--navy-2);}
+  .gascmp>div>p code{display:inline;border:0;background:rgba(0,0,0,.05);padding:1px 5px;}
+  .gasmore-end{margin-top:14px !important;background:var(--cream-2);border-radius:10px;
+    padding:11px 14px;font-weight:600;}
+  @media(max-width:640px){ .gascmp{grid-template-columns:1fr;} }
+  .gasuse-wrap{margin-top:4.8rem;background:rgba(30,142,62,.08);border-radius:14px;padding:15px 16px 16px;}
+  .gasuse-wrap>h5{margin:0 0 12px;font-size:.94rem;font-weight:600;color:var(--teal);
+    display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;}
+  .gasuse-wrap>h5 em{font-style:normal;font-size:.82rem;font-weight:600;color:var(--muted);}
+  .gasuse-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:10px;}
+  @media(min-width:1040px){ .gasuse-grid{grid-template-columns:repeat(4,1fr);} }
+  .gasuse-grid>div{background:#fff;border:0;border-radius:22px;
+    padding:14px 13px;text-align:center;box-shadow:0 2px 8px rgba(36,53,81,.04);}
+  .gasuse-grid .ic{display:block;font-size:1.5rem;line-height:1;margin-bottom:8px;}
+  .gasuse-grid .ic.cnt{position:relative;height:1.5rem;}
+  .gasuse-grid .ic.cnt i{position:absolute;left:0;right:0;top:1px;font-style:normal;
+    font-size:1.02rem;font-weight:700;letter-spacing:-.01em;color:var(--teal);opacity:0;
+    animation:cntnum 5.6s linear infinite;animation-delay:var(--d);}
+  .gasuse-grid .ic.cnt i.full{color:var(--terra);}
+  .gasuse-grid .ic.cnt i.lk{font-size:1.5rem;top:0;animation:cntlock 5.6s linear infinite;}
+  @keyframes cntnum{
+    0%{opacity:0;transform:translateY(5px);}
+    4%,16%{opacity:1;transform:translateY(0);}
+    21%,100%{opacity:0;transform:translateY(-5px);}
+  }
+  @keyframes cntlock{
+    0%,60%{opacity:0;transform:scale(.6);}
+    68%{opacity:1;transform:scale(1.18);}
+    74%,96%{opacity:1;transform:scale(1);}
+    100%{opacity:0;transform:scale(1);}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .gasuse-grid .ic.cnt i{animation:none;opacity:0;}
+    .gasuse-grid .ic.cnt i.lk{opacity:1;}
+  }
+  .gasuse-grid b{display:block;font-size:.92rem;color:var(--navy);margin-bottom:5px;}
+  .gasuse-grid p{margin:0;font-size:.81rem;line-height:1.55;color:var(--muted);}
+  .gasuse-grid dl{margin:11px 0 0;padding-top:10px;border-top:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;gap:3px;text-align:left;}
+  .gasuse-grid dt{margin:0;font-size:.66rem;line-height:1.45;flex:none;}
+  .gasuse-grid dd{margin:0;font-size:.76rem;line-height:1.45;font-weight:600;color:var(--teal);}
+  .gasuse-grid dd.flow{display:flex;flex-wrap:nowrap;justify-content:center;align-items:center;gap:1px;}
+  .gasuse-grid dd.flow i{font-style:normal;font-size:.65rem;font-weight:600;color:var(--navy-2);
+    background:#eef0f4;border-radius:999px;padding:2px 5px;white-space:nowrap;}
+  .gasuse-grid dd.flow em{font-style:normal;font-size:.62rem;color:#bdc4cf;font-weight:600;margin:0;}
+  .gasmeta{margin:12px 0 3.2rem;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+  .gasmeta span{background:rgba(30,142,62,.1);border:1px dashed var(--teal);color:var(--teal);
+    border-radius:999px;padding:6px 14px;font-size:.84rem;font-weight:600;}
+  .gasuse{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+  .gasuse>div{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+    border-radius:14px;padding:14px 16px;}
+  .gasuse .hd{display:flex;align-items:center;gap:9px;margin-bottom:9px;}
+  .gasuse .m{flex:none;background:var(--teal);color:#fff;font-size:.76rem;font-weight:600;
+    border-radius:999px;padding:3px 11px;}
+  .gasuse .kw{font-size:1.05rem;font-weight:700;color:#8ab4f8;letter-spacing:-.01em;}
+  .gasuse p{margin:0;font-size:.92rem;line-height:1.65;color:#cfd9e8;font-weight:600;}
+  .gasuse p b{color:#fff;font-weight:600;}
+  .gasuse p>span{display:inline-block;margin-top:5px;font-size:.86rem;color:#a9b8cd;font-weight:500;}
+  .gasuse p>span b{color:#dfe6f0;font-weight:600;}
+  @media(max-width:700px){ .gasuse{grid-template-columns:1fr;} }
+  @media(max-width:820px){ .gasrow{grid-template-columns:1fr;} }
+  .why-box{background:linear-gradient(135deg,var(--navy),var(--navy-2));color:#f1f3f4;border-radius:20px;padding:32px 30px;box-shadow:var(--shadow);}
+  .why-box h3{color:#fff;margin:0;font-size:1.3rem;}
+  .why-head{display:flex;align-items:center;justify-content:space-between;gap:16px;
+    flex-wrap:wrap;margin-bottom:12px;}
+  .why-btn{flex:none;display:inline-block;background:rgba(255,255,255,.14);color:#fff;
+    border:1px solid rgba(255,255,255,.32);border-radius:999px;padding:9px 18px;
+    font-size:.88rem;font-weight:600;text-decoration:none;transition:.16s;white-space:nowrap;}
+  .why-btn:hover{background:#fff;color:var(--navy);border-color:#fff;transform:translateY(-1px);}
+  .why-box p{color:#d9e0ec;margin:0 0 14px;}
+  .why-box .pills{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+  .why-box .pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);padding:7px 13px;border-radius:999px;font-size:.85rem;font-weight:600;color:#fff;}
+
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;justify-content:center;}
+  .flow .step{flex:1 1 150px;min-width:138px;background:#fff;border:1px solid var(--line);border-radius:22px;padding:18px 12px;text-align:center;box-shadow:0 10px 28px rgba(36,53,81,.12), 0 2px 6px rgba(36,53,81,.06);position:relative;}
+  .flow .step .n{width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;margin:0 auto 8px;font-size:.85rem;}
+  .flow .step .ico{font-size:1.7rem;display:block;margin-bottom:6px;}
+  .flow .step h4{margin:0 0 4px;font-size:.95rem;color:var(--navy);}
+  .flow .step p{margin:0;font-size:.78rem;color:var(--muted);}
+  .flow .arr{display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:1.5rem;padding:0 6px;}
+  @media(max-width:760px){.flow .arr{transform:rotate(90deg);padding:6px 0;}}
+
+  .stepcard{background:var(--paper);border:0;border-radius:24px;padding:26px 28px;margin-bottom:4.5rem;box-shadow:0 6px 20px rgba(36,53,81,.05),0 0 22px rgba(25,103,210,.16);animation:cardGlow 3.6s ease-in-out infinite;transition:box-shadow .25s;}
+  .stepcard:hover{box-shadow:0 10px 28px rgba(36,53,81,.10),0 0 40px rgba(25,103,210,.40);}
+  @keyframes cardGlow{0%,100%{box-shadow:0 6px 20px rgba(36,53,81,.06),0 0 18px rgba(25,103,210,.14);}50%{box-shadow:0 8px 26px rgba(36,53,81,.09),0 0 40px rgba(25,103,210,.34);}}
+  .stepcard:nth-of-type(2){animation-delay:.5s;}
+  .stepcard:nth-of-type(3){animation-delay:1s;}
+  .stepcard:nth-of-type(4){animation-delay:1.5s;}
+  .stepcard:nth-of-type(5){animation-delay:2s;}
+  @media (prefers-reduced-motion:reduce){.stepcard{animation:none;}}
+  .stepcard .head{display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+  .stepcard .num{flex:none;width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#4a90e8,#4aa8f5);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:1.15rem;box-shadow:0 5px 14px rgba(25,103,210,.35);}
+  .stepcard .head h3{margin:0;color:var(--navy);font-size:1.2rem;}
+  .stepcard p{margin:6px 0;}
+  .stepcard ol,.stepcard ul{margin:8px 0 0;padding-left:20px;color:var(--ink);}
+  .stepcard li{margin-bottom:7px;}
+  .stepcard .note{background:#f8f9fa;border-left:4px solid #4a90e8;border-radius:0 10px 10px 0;padding:12px 16px;margin-top:14px;font-size:.92rem;color:var(--navy-2);}
+  .stepcard .goal{display:inline-block;background:rgba(30,142,62,.12);color:var(--teal);font-weight:600;font-size:.82rem;padding:5px 12px;border-radius:999px;margin-bottom:6px;}
+  .substep{font-weight:600;color:var(--navy);margin:44px 0 6px;font-size:1.18rem;}
+  .substep:first-of-type{margin-top:18px;}
+  details.tip{margin:12px 0;background:#f8f9fa;border:1px solid #c6dafc;border-radius:14px;padding:2px 16px;}
+  details.tip summary{cursor:pointer;font-weight:600;color:var(--navy);padding:12px 0;list-style:none;font-size:.95rem;}
+  details.tip summary::-webkit-details-marker{display:none;}
+  details.tip summary::before{content:"▸  ";color:var(--terra);font-weight:600;}
+  details.tip[open] summary::before{content:"▾  ";}
+  details.tip .tb{padding:0 2px 14px;color:var(--navy-2);font-size:.93rem;line-height:1.75;}
+  .placeholder{border:2px dashed var(--terra);border-radius:14px;background:rgba(25,103,210,.06);color:var(--terra);font-weight:600;font-size:.9rem;padding:12px 16px;margin-top:12px;}
+  .gallery{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px;}
+  .gallery a{display:block;text-decoration:none;border:0;border-radius:22px;overflow:hidden;background:var(--paper);box-shadow:0 5px 16px rgba(36,53,81,.06);transition:.18s;}
+  .gallery a:hover{transform:translateY(-3px);box-shadow:var(--shadow);}
+  .gallery img{display:block;width:100%;height:auto;}
+  .gallery .imgph{aspect-ratio:16/10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:#fcfcfd;border-bottom:1px dashed var(--line);color:var(--muted);font-weight:600;font-size:.85rem;text-align:center;padding:14px;}
+  .gallery .cap{padding:10px 14px;font-weight:600;color:var(--navy);font-size:.9rem;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .gallery .cap .go{font-size:.78rem;color:var(--teal);}
+  @media(max-width:640px){.gallery{grid-template-columns:1fr;}}
+  .demo-shot{display:block;margin:12px 0;border:0;border-radius:22px;overflow:hidden;box-shadow:0 6px 18px rgba(36,53,81,.08);transition:.18s;}
+  .demo-shot:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+  .demo-shot img{display:block;width:100%;height:auto;}
+  .demo-shot .imgph{aspect-ratio:2/1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:#fcfcfd;color:var(--muted);font-weight:600;padding:20px;text-align:center;}
+  .urlbox{margin-top:14px;background:linear-gradient(135deg,#e6f8ef,#f1f3f4);border:0;border-radius:22px;padding:14px 16px;box-shadow:0 4px 14px rgba(36,53,81,.05);}
+  .urlbox label{display:block;font-weight:600;color:var(--teal);font-size:.9rem;margin-bottom:8px;}
+  .urlbox input{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:9px;font-size:.9rem;font-family:inherit;color:var(--ink);background:#fff;box-sizing:border-box;}
+  .urlbox input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(30,142,62,.15);}
+  .urlbox .ok{margin-top:7px;font-size:.82rem;font-weight:600;color:var(--teal);display:none;}
+  .urlbox.filled .ok{display:block;}
+  .urlbox .urlrow{display:flex;gap:8px;align-items:stretch;}
+  .urlbox .urlrow input{flex:1;width:auto;}
+  .urlbox .urlrow button{flex:none;background:var(--navy);color:#fff;border:1px solid var(--navy-2);border-radius:9px;padding:0 16px;font-size:.85rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:.15s;}
+  .urlbox .urlrow button:hover{background:var(--navy-2);transform:translateY(-1px);}
+
+  #hands .stepcard.collapsible{padding-top:0;padding-bottom:0;}
+  #hands .stepcard.collapsible .head{cursor:pointer;padding:22px 0;margin-bottom:0;user-select:none;}
+  #hands .stepcard.collapsible .head h3{transition:color .15s;}
+  #hands .stepcard.collapsible .head:hover h3{color:var(--terra);}
+  #hands .stepcard .donebtn{flex:none;margin-left:auto;border:1px solid var(--line);background:var(--cream-2);color:var(--muted);border-radius:999px;padding:5px 13px;font-size:.78rem;font-weight:600;cursor:pointer;transition:.15s;}
+  #hands .stepcard .donebtn:hover{border-color:var(--teal);color:var(--teal);}
+  #hands .stepcard.done .donebtn{background:#1e8e3e;color:#fff;border-color:#1e8e3e;}
+  #hands .stepcard.done .num{background:linear-gradient(135deg,#1e8e3e,#1e8e3e);box-shadow:0 2px 8px rgba(60,64,67,.14);}
+  #hands .stepcard.done .head h3{color:var(--muted);}
+  #hands .stepcard .chev{flex:none;margin-left:12px;color:var(--terra);font-size:1.05rem;transition:transform .2s;}
+  #hands .stepcard.collapsed .chev{transform:rotate(-90deg);}
+  #hands .stepcard .m-body{padding:0 0 24px;animation:mf .25s ease;}
+  #hands .stepcard.collapsed .m-body{display:none;}
+  .s1btn{margin-left:auto;flex:none;background:var(--cream-2);border:1px solid var(--line);color:var(--navy-2);border-radius:999px;padding:5px 14px;font-size:.8rem;font-weight:600;cursor:pointer;transition:.15s;}
+  .s1btn:hover{border-color:var(--terra);color:var(--terra);}
+  .stepcard.s1collapsed .s1body{display:none;}
+  @keyframes mf{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
+
+  .tool-tag{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:600;padding:3px 10px;border-radius:999px;margin-left:8px;vertical-align:middle;}
+  .tool-tag.sheets{background:rgba(15,157,88,.12);color:#0f9d58;}
+  .tool-tag.forms{background:rgba(25,103,210,.12);color:#1967d2;}
+  .tool-tag.canvas{background:rgba(30,142,62,.14);color:var(--teal);}
+  .tool-tag.play{background:rgba(25,103,210,.14);color:var(--terra);}
+
+  .prompt-box{background:linear-gradient(135deg,#e9f2ff,#e6f8ef);border:2px dashed #4a90e8;border-radius:18px;padding:20px 22px;margin:16px 0;box-shadow:0 6px 20px rgba(66,133,244,.1);}
+  .prompt-box .gh{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+  .prompt-box .gh .gi{flex:none;width:40px;height:40px;border-radius:11px;background:#1967d2;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.25rem;box-shadow:0 5px 14px rgba(66,133,244,.35);}
+  .prompt-box h4{margin:0;color:var(--navy);font-size:1.05rem;}
+  .prompt-box .desc{color:var(--navy-2);margin:0 0 8px;font-size:.94rem;}
+
+  .codewrap{position:relative;margin-top:12px;display:flex;flex-direction:column;}
+  .codewrap .copy{align-self:flex-end;margin-bottom:8px;background:var(--navy);color:#fff;border:1px solid var(--navy-2);border-radius:9px;padding:8px 15px;font-size:.8rem;font-weight:600;cursor:pointer;transition:.15s;box-shadow:0 4px 12px rgba(36,53,81,.18);}
+  .codewrap .copy:hover{background:var(--navy-2);transform:translateY(-1px);}
+  pre.datablock{white-space:pre;font-size:.72rem;line-height:1.55;max-height:320px;}
+  pre{background:#1f2d44;color:#e6edf3;border-radius:14px;padding:20px;overflow:auto;font-family:"SFMono-Regular",Consolas,Menlo,monospace;font-size:.8rem;line-height:1.62;margin:0;box-shadow:var(--shadow);white-space:pre-wrap;word-break:break-word;max-height:460px;}
+
+  .cta-btn{display:inline-block;margin-top:14px;background:#243551;color:#fff;text-decoration:none;font-weight:600;font-size:1rem;padding:12px 24px;border-radius:14px;box-shadow:0 4px 14px rgba(60,64,67,.16);transition:.18s;}
+  .cta-btn.teal{background:#243551;box-shadow:0 8px 20px rgba(30,142,62,.3);}
+  .cta-btn:hover{transform:translateY(-2px);}
+  .kbd{background:var(--cream-2);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:.85rem;font-weight:600;color:var(--navy);}
+  .mono{font-family:"SFMono-Regular",Consolas,Menlo,monospace;background:var(--cream-2);padding:1px 6px;border-radius:5px;font-size:.86rem;color:var(--terra);text-decoration:none;}
+
+  .kpi-demo{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px;}
+  .kpi-demo .k{background:var(--paper);border:0;border-radius:22px;padding:16px 14px;text-align:center;box-shadow:0 5px 16px rgba(36,53,81,.05);}
+  .kpi-demo .k .lab{font-size:.78rem;color:var(--muted);font-weight:600;}
+  .kpi-demo .k .val{font-size:1.35rem;color:var(--navy);font-weight:600;margin-top:4px;}
+  .kpi-demo .k .sub{font-size:.72rem;color:var(--teal);font-weight:600;margin-top:2px;}
+  @media(max-width:680px){.kpi-demo{grid-template-columns:repeat(2,1fr);}}
+
+  .closing{background:linear-gradient(120deg,#2f7fe6,#2f97ec 40%,#a27fe0 72%,#e5566a);color:#fff;border-radius:22px;padding:44px 38px;text-align:center;box-shadow:0 14px 36px rgba(47,127,230,.26);}
+  .closing h2{color:#fff;font-size:1.75rem;margin:0 0 12px;}
+  .closing p{color:#eef3fb;max-width:660px;margin:0 auto;font-size:1.03rem;}
+  .closing .ach-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:24px 0 6px;}
+  .closing .ach{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.26);border-radius:14px;padding:14px 18px;min-width:150px;font-weight:600;font-size:.93rem;line-height:1.45;color:#fff;}
+  .closing .ach .n{font-size:1.6rem;margin-bottom:5px;}
+
+  footer{padding:36px 0 56px;text-align:center;color:var(--muted);font-size:.85rem;}
+  @media(max-width:820px){.grid-3{grid-template-columns:1fr;}.kpi-demo{grid-template-columns:repeat(2,1fr);}}
+  .tool-tag.gas{background:#e8f0fe;color:#1967d2;}
+  .tool-tag.gem{background:rgba(25,103,210,.14);color:var(--terra);}
+  .warn{background:#fdeee7;border-left:4px solid var(--terra);border-radius:0 10px 10px 0;padding:12px 16px;margin-top:14px;font-size:.92rem;color:#174ea6;}
+
+  body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:3px;z-index:9999;pointer-events:none;background:linear-gradient(90deg,#3186ff 0%,#3186ff 24%,#2b8ee7 33%,#1fa1ad 41%,#12b572 50%,#91c52b 58%,#ffae0e 66%,#ff6c2e 75%,#c85774 84%,#4380ee 93%,#3186ff 100%);}
+
+  .hero{position:relative;}
+  .hero::before{content:"";position:absolute;inset:-40px 0 -10px;z-index:0;pointer-events:none;
+    background:radial-gradient(620px 360px at 22% 30%, rgba(233,242,255,.95) 0%, rgba(233,242,255,0) 70%),radial-gradient(560px 340px at 68% 22%, rgba(238,226,248,.85) 0%, rgba(238,226,248,0) 70%),radial-gradient(600px 360px at 82% 62%, rgba(224,236,252,.8) 0%, rgba(224,236,252,0) 70%),radial-gradient(620px 380px at 38% 78%, rgba(224,240,255,.9) 0%, rgba(224,240,255,0) 70%);}
+  .hero > *{position:relative;z-index:1;}
+  .sharebox{margin:18px 0 6px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:0;overflow:hidden;}
+  .sharebox>summary{cursor:pointer;list-style:none;padding:14px 18px;font-weight:600;color:var(--navy);font-size:.98rem;background:#f8fafd;}
+  .sharebox>summary::-webkit-details-marker{display:none;}
+  .sharebox>summary::before{content:"＋ ";color:#1967d2;font-weight:700;}
+  .sharebox[open]>summary::before{content:"− ";}
+  .sharebox>summary span{font-weight:500;color:var(--muted);font-size:.86rem;}
+  .sb-body{padding:6px 18px 18px;}
+  .sb-acc{margin-top:14px;}
+  .sb-acc h5{margin:0 0 6px;font-size:.95rem;font-weight:600;color:var(--navy);}
+  .sb-acc p{margin:0;font-size:.9rem;line-height:1.65;color:var(--navy-2);}
+  .sb-steps{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:16px;}
+  .sb-steps li{font-size:.9rem;color:var(--navy-2);}
+  .sb-steps li b{display:block;margin-bottom:4px;color:var(--navy);}
+  .sb-tip{display:block;font-size:.82rem;color:var(--muted);margin-bottom:6px;}
+  .sb-steps img{display:block;max-width:100%;width:560px;border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 14px rgba(36,53,81,.08);}
+  .sb-alt{background:#eff5fe;border-radius:12px;padding:12px 14px;}
+  .sb-cap{margin:14px 0 0;font-size:.9rem;color:#1967d2;background:#e8f0fe;border-radius:10px;padding:10px 14px;}
+
+  /* ⚙️ 앱스 스크립트 발표 화면 */
+  .gs-go{flex:none;align-self:center;margin-left:auto;width:46px;height:28px;border:0;padding:0;cursor:pointer;background:linear-gradient(100deg,#4a90e8,#4aa8f5);border-radius:999px;box-shadow:0 4px 12px rgba(155,114,203,.3);}
+  .gs-go:hover{filter:brightness(1.08);}
+  .dxm{position:fixed;inset:0;z-index:9000;background:rgba(20,28,45,.72);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:2vh 2vw;opacity:0;transition:opacity .22s ease;}
+  .dxm.open{opacity:1;} .dxm[hidden]{display:none;}
+  .dxm-card{--u:min(1vw,1.75vh);width:min(1560px,96vw);max-height:96vh;overflow:hidden;background:#fff;border-radius:calc(var(--u)*2);box-shadow:0 30px 80px rgba(0,0,0,.35);padding:calc(var(--u)*2.6) calc(var(--u)*3.6);cursor:pointer;transform:scale(.96) translateY(10px);transition:transform .3s cubic-bezier(.2,.9,.3,1);display:flex;flex-direction:column;}
+  .dxm.open .dxm-card{transform:none;}
+  .dxm-top{display:flex;align-items:center;justify-content:space-between;}
+  .dxm-kicker{font-size:max(.78rem,calc(var(--u)*1.05));font-weight:700;letter-spacing:.06em;color:#7a5bb0;}
+  .dxm-x{border:0;background:#f1f3f4;color:var(--navy-2);width:40px;height:40px;border-radius:50%;font-size:1.1rem;cursor:pointer;flex:none;}
+  .dxm-title{margin:calc(var(--u)*.8) 0 calc(var(--u)*1.4);font-size:max(1.3rem,calc(var(--u)*2.6));font-weight:800;color:var(--navy);letter-spacing:-.02em;}
+  .dxm-stage.flip>*{animation:dxmIn .45s ease both;}
+  @keyframes dxmIn{from{opacity:.25;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .dxm-msg{margin:calc(var(--u)*1.3) 0 0;padding:calc(var(--u)*1.1) calc(var(--u)*1.6);border-radius:14px;background:#f1f3f4;color:var(--navy-2);font-size:max(.92rem,calc(var(--u)*1.35));line-height:1.55;}
+  .dxm-foot{display:flex;align-items:center;gap:14px;margin-top:calc(var(--u)*1.3);}
+  .dxm-bar{flex:1;height:6px;border-radius:99px;background:#eceff3;overflow:hidden;}
+  .dxm-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#4a90e8,#4aa8f5,#ac87eb);transition:width .35s ease;}
+  .dxm-nav{flex:none;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--navy);font-size:1.4rem;line-height:1;cursor:pointer;display:grid;place-items:center;}
+  .dxm-nav:disabled{opacity:.35;cursor:default;} .dxm-nav:hover{border-color:#1967d2;color:#1967d2;}
+  .dxm-page{font-size:.9rem;font-weight:700;color:var(--navy-2);font-variant-numeric:tabular-nums;}
+  .dxm-keys{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);}
+  .dxm-k{border:1px solid var(--line);background:#fff;color:var(--navy-2);border-radius:999px;padding:5px 12px;font:inherit;font-size:.8rem;font-weight:600;cursor:pointer;}
+  .dxm-k:hover{border-color:#1967d2;color:#1967d2;}
+  .gs-hero{text-align:center;padding:calc(var(--u)*1.5) 0;}
+  .gs-hero img{height:calc(var(--u)*7);max-width:80%;}
+  .gs-hero .big{font-size:max(1.4rem,calc(var(--u)*3));font-weight:800;color:var(--navy);margin:calc(var(--u)*1.6) 0;}
+  .gs-hero .big b{color:#1967d2;}
+  .gs-chips{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;}
+  .gs-chips span{background:#e8f0fe;color:#1967d2;font-weight:700;border-radius:999px;padding:6px 14px;font-size:max(.85rem,calc(var(--u)*1.2));}
+  .gs-pt{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto auto;column-gap:calc(var(--u)*2.4);align-items:center;background:#f8fafd;border:1px solid var(--line);border-radius:20px;padding:calc(var(--u)*2.6) calc(var(--u)*3);}
+  .gs-num{grid-row:1/4;width:calc(var(--u)*8);height:calc(var(--u)*8);border-radius:calc(var(--u)*2);background:linear-gradient(135deg,#4a90e8,#4aa8f5);color:#fff;font-weight:800;font-size:calc(var(--u)*4.4);display:grid;place-items:center;box-shadow:0 10px 26px rgba(66,133,244,.3);}
+  .gs-ic{font-size:calc(var(--u)*2.4);}
+  .gs-pt h3{margin:0;font-size:max(1.2rem,calc(var(--u)*2.3));color:var(--navy);}
+  .gs-pt p{margin:calc(var(--u)*.8) 0 0;font-size:max(1rem,calc(var(--u)*1.55));line-height:1.65;color:var(--navy-2);}
+  .gs-pt p b{color:#1967d2;}
+  .gs-api{text-align:center;}
+  .gs-flow{display:flex;justify-content:center;align-items:center;gap:calc(var(--u)*1.4);flex-wrap:wrap;margin:calc(var(--u)*1) 0 calc(var(--u)*2);}
+  .gs-flow span{background:#f8fafd;border:1px solid var(--line);border-radius:18px;padding:calc(var(--u)*1.4) calc(var(--u)*2);font-weight:800;font-size:max(1rem,calc(var(--u)*1.8));color:var(--navy);display:flex;flex-direction:column;gap:4px;}
+  .gs-flow span.k{background:#e8f0fe;border-color:#c6dafc;color:#1967d2;box-shadow:0 8px 22px rgba(66,133,244,.18);}
+  .gs-flow small{font-size:.6em;font-weight:600;color:var(--muted);}
+  .gs-flow em{font-style:normal;font-size:calc(var(--u)*2.4);color:#9aa0a6;}
+  .gs-api p{font-size:max(1rem,calc(var(--u)*1.6));color:var(--navy-2);margin:0;} .gs-api p small{color:var(--muted);font-size:.7em;margin-right:6px;} .gs-api p b{color:var(--navy);}
+  .gs-cmp{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--u)*2);}
+  .gs-cmp>div{border-radius:20px;padding:calc(var(--u)*2.2);border:1px solid var(--line);}
+  .gs-cmp .bad{background:#fdf1ef;border-color:#f3c7c1;} .gs-cmp .good{background:#eaf6ee;border-color:#bfe2cb;}
+  .gs-cmp>div>b{display:block;font-size:max(1.05rem,calc(var(--u)*1.8));color:var(--navy);} .gs-cmp>div>b em{font-style:normal;font-size:.7em;background:#fff;border-radius:999px;padding:2px 10px;margin-left:6px;}
+  .gs-cmp .bad>b em{color:#c5221f;} .gs-cmp .good>b em{color:#1e8e3e;}
+  .gs-cmp p b{color:var(--navy);}
+  .gs-cmp code{display:block;margin:calc(var(--u)*1.2) 0;background:#fff;border-radius:10px;padding:calc(var(--u)*1) calc(var(--u)*1.2);font-size:max(.95rem,calc(var(--u)*1.45));}
+  .gs-cmp p code{display:inline;margin:0;padding:1px 6px;}
+  .gs-cmp p{margin:0;font-size:max(.95rem,calc(var(--u)*1.4));line-height:1.6;color:var(--navy-2);}
+  .gs-use{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--u)*1.4);}
+  .gs-use>div{display:grid;grid-template-columns:auto 1fr;column-gap:calc(var(--u)*1.4);align-items:center;background:#f8fafd;border:1px solid var(--line);border-radius:18px;padding:calc(var(--u)*1.6) calc(var(--u)*2);}
+  .gs-use i{grid-row:1/3;font-style:normal;font-size:calc(var(--u)*3.4);}
+  .gs-use b{font-size:max(1.05rem,calc(var(--u)*1.8));color:var(--navy);} .gs-use p{margin:4px 0 0;font-size:max(.92rem,calc(var(--u)*1.35));color:var(--navy-2);}
+  .gs-chain{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:calc(var(--u)*1);margin:calc(var(--u)*1.5) 0 calc(var(--u)*2.4);}
+  .gs-chain span{background:linear-gradient(135deg,#e8f0fe,#f3e8fd);border:1px solid #d6cdf0;border-radius:16px;padding:calc(var(--u)*1.2) calc(var(--u)*1.8);font-weight:800;font-size:max(1rem,calc(var(--u)*1.9));color:var(--navy);}
+  .gs-chain em{font-style:normal;font-size:calc(var(--u)*2.2);color:#4aa8f5;}
+  .gs-ex{text-align:center;font-size:max(1rem,calc(var(--u)*1.6));line-height:1.7;color:var(--navy-2);margin:0;} .gs-ex b{color:#1967d2;}
+  .gs-steps{display:flex;align-items:stretch;justify-content:center;gap:calc(var(--u)*.8);flex-wrap:wrap;}
+  .gs-steps>div{flex:1;min-width:110px;background:#fff8ee;border:1px solid #c6dafc;border-radius:18px;padding:calc(var(--u)*1.6) calc(var(--u)*1);text-align:center;display:flex;flex-direction:column;gap:4px;}
+  .gs-steps i{font-style:normal;font-size:calc(var(--u)*3.4);}
+  .gs-steps b{font-size:max(1rem,calc(var(--u)*1.7));color:var(--navy);}
+  .gs-steps small{font-size:max(.8rem,calc(var(--u)*1.15));color:var(--muted);}
+  .gs-steps>em{align-self:center;font-style:normal;font-size:calc(var(--u)*2.2);color:#8e44c4;}
+  .gs-ba{display:flex;align-items:center;gap:calc(var(--u)*1.6);}
+  .gs-ba figure{flex:1;margin:0;text-align:center;}
+  .gs-ba img{max-height:calc(var(--u)*26);object-fit:contain;width:100%;border-radius:14px;box-shadow:0 8px 24px rgba(36,53,81,.15);}
+  .gs-ba figcaption{margin-top:calc(var(--u)*1);font-size:max(.9rem,calc(var(--u)*1.35));color:var(--navy-2);line-height:1.6;}
+  .gs-ba code{background:#eff5fe;border-radius:6px;padding:1px 6px;font-size:.9em;}
+  .gs-ba>em{font-style:normal;font-size:calc(var(--u)*3);color:#8e44c4;}
+  .gs-mail{display:grid;grid-template-columns:1.1fr 1fr;gap:calc(var(--u)*2.4);align-items:center;}
+  .gs-mail img{max-height:calc(var(--u)*30);object-fit:contain;width:100%;border-radius:14px;border:1px solid var(--line);box-shadow:0 8px 24px rgba(36,53,81,.12);}
+  .gs-mail ul{list-style:none;margin:0;padding:0;display:grid;gap:calc(var(--u)*1.2);}
+  .gs-mail li{font-size:max(1rem,calc(var(--u)*1.55));color:var(--navy-2);background:#f8fafd;border:1px solid var(--line);border-radius:14px;padding:calc(var(--u)*1) calc(var(--u)*1.4);}
+  .gs-mail li b{color:var(--navy);}
+  .gs-vs .m4{background:#fff8ee;border-color:#c6dafc;} .gs-vs .m4>b em{color:#8e44c4;}
+  .gs-vs p{font-size:max(1rem,calc(var(--u)*1.6));}
+  @media (max-width:760px){.gs-mail{grid-template-columns:1fr;}.gs-ba{flex-direction:column;}}
+  .od-go{display:inline-block;vertical-align:middle;margin-left:14px;}
+  .od-3{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--u)*1.6);}
+  .od-3>div{border-radius:20px;padding:calc(var(--u)*2.2) calc(var(--u)*1.6);border:2px solid;text-align:center;display:flex;flex-direction:column;gap:calc(var(--u)*.8);}
+  .od-3 .r{background:#e8f0fe;border-color:#aecbfa;} .od-3 .s{background:#e6f4ea;border-color:#a8dab5;} .od-3 .x{background:#f3e8fd;border-color:#d7aefb;}
+  .od-3 i{font-style:normal;font-size:calc(var(--u)*3.8);}
+  .od-3 b{font-size:max(1.05rem,calc(var(--u)*2));color:var(--navy);}
+  .od-3 p{margin:0;font-size:max(.92rem,calc(var(--u)*1.4));line-height:1.55;color:var(--navy-2);}
+  .od-3 code{background:#fff;border-radius:8px;padding:2px 8px;font-size:.92em;}
+  .od-pr{background:#1f2430;color:#e8eaed;border-radius:16px;padding:calc(var(--u)*1.8) calc(var(--u)*2.2);font-size:max(.82rem,calc(var(--u)*1.3));line-height:1.8;white-space:pre-wrap;text-align:left;margin:0;font-family:inherit;}
+  .od-pr mark{border-radius:6px;padding:1px 5px;color:#0b1a33;font-weight:700;}
+  .od-pr mark.r,.od-lg .r{background:#8ab4f8;} .od-pr mark.s,.od-lg .s{background:#81c995;} .od-pr mark.x,.od-lg .x{background:#d7aefb;} .od-pr mark.o,.od-lg .o{background:#dadce0;}
+  .od-pr mark.y{background:#eff5fe;}
+  .od-lg{display:flex;justify-content:center;flex-wrap:wrap;gap:calc(var(--u)*1.2);margin-top:calc(var(--u)*1.3);}
+  .od-lg span{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--navy);font-size:max(.85rem,calc(var(--u)*1.25));}
+  .od-lg i{display:inline-block;width:14px;height:14px;border-radius:4px;}
+  .od-loop{display:flex;align-items:stretch;justify-content:center;gap:calc(var(--u)*.8);flex-wrap:wrap;}
+  .od-loop>div{flex:1;min-width:110px;background:#f8fafd;border:1px solid var(--line);border-radius:18px;padding:calc(var(--u)*1.6) calc(var(--u)*1);text-align:center;display:flex;flex-direction:column;gap:4px;}
+  .od-loop>div.hot{background:#eff5fe;border-color:#c6dafc;}
+  .od-loop i{font-style:normal;font-size:calc(var(--u)*3.4);} .od-loop b{font-size:max(1rem,calc(var(--u)*1.7));color:var(--navy);} .od-loop small{font-size:max(.8rem,calc(var(--u)*1.15));color:var(--muted);}
+  .od-loop>em{align-self:center;font-style:normal;font-size:calc(var(--u)*2.2);color:#4aa8f5;}
+  .od-back{text-align:center;margin-top:calc(var(--u)*1.2);font-weight:800;color:#8e44c4;font-size:max(.95rem,calc(var(--u)*1.5));}
+  .od-3 .e{background:#eff5fe;border-color:#c6dafc;} .od-3 .e p code{color:#c5221f;}
+  @media (max-width:760px){.od-3{grid-template-columns:1fr;}}
+  @media (max-width:760px){.gs-cmp,.gs-use{grid-template-columns:1fr;}.dxm-keys{display:none;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="brand"><span class="dot"></span>모듈 3 · 실시간 의사결정 대시보드</div>
+    <div class="nav-links">
+      <a href="#step1" title="실습 1" aria-label="실습 1">1</a>
+      <a href="#step2" title="실습 2" aria-label="실습 2">2</a>
+      <a href="#step3" title="실습 3" aria-label="실습 3">3</a>
+      <a href="#step4" title="실습 4" aria-label="실습 4">4</a>
+      <a href="#step5" title="실습 5" aria-label="실습 5">5</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="stamp-badge">Module 3 · Decision Dashboard</span>
+    <h1>감이 아니라 데이터로, <span class="hl">'어디로·언제'</span> 정하기</h1>
+    <p class="sub">과·동아리원 여러 명의 의견(장소·날짜·예산·스타일)을 구글 폼으로 모아, <b>앱스 스크립트(Apps Script)가 JSON API로 배포</b>하고, 제미나이 캔버스가 그 주소를 실시간으로 불러와 KPI·차트를 그립니다. 쉼표·열 밀림 오류 없이 'MT 장소와 다 되는 날짜'를 데이터로 결정합니다.</p>
+    <div class="meta-row">
+      <div class="chip">도구 · <b>구글 시트 · Apps Script(JSON API) · Gemini Canvas</b></div>
+      <div class="chip">결과물 · <b>실시간 의사결정 대시보드</b></div>
+      <div class="chip">시간 · <b>약 25분</b></div>
+    </div>
+  </div>
+</header>
+
+<section id="overview">
+  <div class="wrap">
+    <div class="eyebrow">Overview</div>
+    <h2 class="sec">한눈에 보기 — 무엇을 · 왜 · 어떻게</h2>
+    <p class="lead">"가평 가자!" 하고 감으로 정하면 절반은 시큰둥합니다. 흩어진 의견을 데이터로 모아 차트로 보면, 모두가 납득하는 장소와 날짜가 보입니다.</p>
+    <div class="grid grid-3">
+      <div class="card"><span class="ico">🎯</span><h3>무엇을 (What)</h3><p>구글 폼 응답이 쌓인 시트를 <b>실시간으로 불러와</b>, KPI와 차트가 살아있는 '결정 대시보드'를 만듭니다.</p></div>
+      <div class="card"><span class="ico">💡</span><h3>왜 (Why)</h3><p>데이터로 정하면 "왜 거기?"라는 뒷말이 사라집니다. 과대표·총무의 의사결정에 설득력이 생깁니다.</p></div>
+      <div class="card"><span class="ico">⚙️</span><h3>어떻게 (How)</h3><p>폼·시트 → 앱스 스크립트(Apps Script)가 JSON API로 배포 → Gemini Canvas가 그 주소를 불러와 시각화. <b>앱스 스크립트가 뭔지는 바로 아래에서 설명합니다.</b></p></div>
+    </div>
+    <div style="margin-top:22px;">
+      <div class="why-box">
+        <div class="why-head">
+          <h3>핵심 메시지 — '보는 것'과 '결정하는 것'의 차이</h3>
+          <a class="why-btn" href="https://docs.google.com/spreadsheets/d/1bbt6_4HZA4TYs3nr205BdalVdOPrpQzbWgvbCt_d-QU/edit?usp=sharing" target="_blank" rel="noopener">📊 응답이 쌓인 시트 보기</a>
+        </div>
+        <p>같은 데이터라도 어떻게 보느냐에 따라 결정이 달라집니다. 인기 장소 1위, 가장 많이 되는 날짜, 적정 예산을 한 화면에서 보고 — 감이 아니라 숫자로 MT를 정합니다.</p>
+        <div class="pills"><span class="pill">앱스 스크립트(Apps Script) JSON API</span><span class="pill">KPI 스코어보드</span><span class="pill">Chart.js 차트</span><span class="pill">데이터 기반 결정</span></div>
+      </div>
+    </div>
+
+    <details class="gasfold">
+      <summary>
+        <span class="logo"><img src="apps-script-logo.png" alt="Google Apps Script"></span>
+        <span class="ttl">
+          <h3>앱스 스크립트(Apps Script)란?</h3>
+          <p>모듈 3과 모듈 4에서 함께 쓰는 도구입니다. 처음 보셔도 괜찮아요 — 네 가지만 알면 충분합니다.</p>
+          <span class="open">눌러서 설명 보기</span>
+        </span>
+        <button type="button" class="gs-go" id="gsBig" aria-label="발표 화면 열기"></button>
+      </summary>
+      <div class="gasbody">
+      <div class="gasrow">
+        <div class="g">
+          <div class="n">1</div>
+          <h4>구글 안에 들어있는 자동화 도구</h4>
+          <p>따로 설치하지 않습니다. 구글 <b>시트·폼·문서·슬라이드 안에</b> 이미 들어 있고, 구글 계정만 있으면 바로 열립니다.</p>
+        </div>
+        <div class="g">
+          <div class="n">2</div>
+          <h4>구글 앱들을 대신 조작합니다</h4>
+          <p>시트를 읽고, 문서를 만들고, 드라이브에 저장하고, <b>메일까지 보냅니다.</b> 사람이 손으로 하던 일을 <b>내가 넣은 코드가 대신합니다.</b></p>
+        </div>
+        <div class="g">
+          <div class="n">3</div>
+          <h4>알아서 실행됩니다</h4>
+          <p>내가 버튼을 누를 때는 물론, <b>폼에 응답이 들어오는 순간</b>이나 <b>매일 정해진 시간</b>에 저절로 실행되게 걸어둘 수 있습니다.</p>
+        </div>
+        <div class="g">
+          <div class="n">4</div>
+          <h4>내 데이터에 주소를 붙여줍니다</h4>
+          <p>앱스 스크립트에서 <b>웹 앱으로 배포</b>하면 <b>주소 하나</b>가 생깁니다. 대시보드는 그 주소로 찾아와 데이터를 가져갑니다. 이 주소를 <b>API</b>라고 불러요.</p>
+        </div>
+      </div>
+      <div class="gasmeta">
+        <span>설치 없음</span><span>구글 계정만 있으면 됨</span><span>무료</span><span>코드는 교안에 준비됨</span>
+      </div>
+      <details class="gasmore">
+        <summary>💬 이 주소가 왜 필요한가요? <span>API와 JSON 이야기</span></summary>
+        <div class="gasmore-body">
+          <p>구글 시트에 쌓인 답을 대시보드가 읽으려면 <b>읽을 수 있는 주소</b>가 하나 있어야 해요. 그 주소를 <b>API</b><span class="gasen">Application Programming Interface</span>라고 부릅니다. <b>프로그램끼리 데이터를 주고받는 통로</b>라는 뜻이에요.</p>
+          <p>그런데 주소가 데이터를 <b>담아서 보내는 방식</b>은 여러 가지가 있어요. 그중 <b>많이 쓰는 두 가지</b>를 비교해 볼게요.</p>
+          <ul class="gaswho">
+            <li>시트를 <b>그냥 공개해서</b> 만든 주소는 보통 → <b>쉼표로 죽 이어붙여</b> 보냅니다</li>
+            <li><b>오늘 우리가 만들 API</b> 주소는 → <b>값마다 이름표를 붙여</b> 보냅니다</li>
+          </ul>
+          <div class="gascmp">
+            <div class="bad">
+              <span class="lb">쉼표로 죽 이어붙이기 <em>CSV</em></span>
+              <code>김민준,가평,2학년</code>
+              <p>답 안에 <b>쉼표가 들어 있으면</b> 칸이 밀립니다.<br>구글 폼 <b>체크박스</b>는 답을 <code>가평, 강촌</code> 처럼 쉼표로 붙여 저장하기 때문에, 이 문제가 실제로 생깁니다.</p>
+            </div>
+            <div class="good">
+              <span class="lb">값마다 이름표를 붙이기 <em>JSON</em></span>
+              <code>이름: 김민준 / 장소: 가평 / 학년: 2학년</code>
+              <p>값에 <b>이름표가 붙어 있어서</b> 칸이 밀릴 일이 없습니다. 답 안에 쉼표가 있어도 그대로 전달됩니다.</p>
+            </div>
+          </div>
+          <p class="gasmore-end">👉 오늘 교안 코드는 <b>앱스 스크립트로 주소를 만들고, 이름표 방식(JSON)으로 내보내도록</b> 해 뒀어요.</p>
+        </div>
+      </details>
+      <div class="gasuse-wrap" style="margin-top:4.8rem;">
+        <h5>🙋 이럴 때 씁니다 <em>코드 몇 줄로 우리 상황에 맞게 만듭니다</em></h5>
+        <div class="gasuse-grid">
+          <div><span class="ic cnt" aria-hidden="true"><i style="--d:0s">28/30</i><i style="--d:1.2s">29/30</i><i class="full" style="--d:2.4s">30/30</i><i class="lk">🔒</i></span><b>선착순 자동 마감</b><p><b>응답이 들어올 때마다</b> 확인해서<br>정원이 차면 폼을 닫고<br>신청자에게 확정 메일을 보냅니다</p>
+            <dl><dt>🧰</dt><dd class="flow"><i>폼</i><em>→</em><i>시트</i><em>→</em><i>Gmail</i></dd></dl></div>
+          <div><span class="ic">👥</span><b>조 편성 자동 배정</b><p><b>버튼을 누르면</b> 조를 나누고<br>조장에게 명단을 보냅니다</p>
+            <dl><dt>🧰</dt><dd class="flow"><i>시트</i><em>→</em><i>Gmail</i></dd></dl></div>
+          <div><span class="ic">📮</span><b>사람마다 다른 파일</b><p><b>신청이 들어오는 순간</b> 엽서를 만들어<br>PDF로 바꿔 보냅니다</p>
+            <dl><dt>🧰</dt><dd class="flow"><i>폼</i><em>→</em><i>슬라이드</i><em>→</em><i>Gmail</i></dd></dl></div>
+          <div><span class="ic">💸</span><b>회비 안 낸 사람에게만</b><p><b>매일 확인해서</b> 미납자 행만 빨갛게 칠하고<br>그 사람에게만 메일을 보냅니다</p>
+            <dl><dt>🧰</dt><dd class="flow"><i>폼</i><em>→</em><i>시트</i><em>→</em><i>Gmail</i></dd></dl></div>
+        </div>
+      </div>
+      <div class="gasbig" style="margin-top:4.8rem;">
+        <div class="gasbig-hd">
+          <h5>🏆 앱스 스크립트는 도구 다섯 개를 하나로 잇습니다</h5>
+          <span class="tag">자동화의 완성형 · 미리보기</span>
+        </div>
+        <div class="gasbig-flow" id="gasChain">
+          <i data-msg="폼이 제출됐습니다 — 사진과 한마디">폼</i><em>→</em><i data-msg="시트에 한 줄 쌓였습니다">시트</i><em>→</em><i data-msg="엽서 템플릿에 이름·소감·사진이 얹혔습니다">슬라이드</i><em>→</em><i data-msg="PDF로 바꿔 드라이브에 저장했습니다">드라이브</i><em>→</em><i data-msg="본인 메일로 발송했습니다">Gmail</i>
+        </div>
+        <div class="gasrun">
+          <button type="button" class="gasrun-btn" id="gasRunBtn">▶ 자동화 실행해 보기</button>
+          <span class="gasrun-msg" id="gasRunMsg">버튼을 누르면 사람 손 없이 어떻게 굴러가는지 보입니다</span>
+        </div>
+        <div class="gasfx" id="gasFx">
+          <div class="imgwrap cf">
+            <img class="before" src="postcard-before.jpg" alt="자동화 전 — 빈 엽서">
+            <img class="after" src="postcard-after.jpg" alt="자동화 후 — 이름·소감·사진·응모번호가 채워진 엽서">
+            <div class="proc"><div class="shimmer"></div>
+              <div class="procbox"><div class="spin"></div><span>자동화 처리 중&#8230;</span></div>
+            </div>
+            <div class="fxbadge">완성! ✨</div>
+          </div>
+        </div>
+        <p>예를 들어 — 학생이 폼에 <b>사진과 한마디</b>를 남기면 → 시트에 쌓이고 → 슬라이드 <b>엽서 템플릿에 자동으로 얹히고</b> → 드라이브에 <b>PDF로 저장되고</b> → 본인 메일로 <b>발송됩니다.</b><br><b>사람 손은 한 번도 안 닿습니다.</b></p>
+      </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<section id="flow">
+  <div class="wrap">
+    <div class="eyebrow">Process</div>
+    <h2 class="sec">전체 흐름 — 시트에서 대시보드까지 (앱스 스크립트(Apps Script)판)</h2>
+    <p class="lead">폼을 새로 만들 필요가 없습니다. 데이터가 쌓인 시트를 앱스 스크립트(Apps Script)로 JSON API로 만들고, 그 주소를 프롬프트에 넣어 대시보드를 빌드합니다.</p>
+    <div class="flow">
+      <div class="step"><div class="n">1</div><span class="ico">👀</span><h4>라이브 체험</h4><p>폼 입력→대시보드 변화</p></div>
+      <div class="arr">➔</div>
+      <div class="step"><div class="n">2</div><span class="ico">📄</span><h4>폼 사본+데이터</h4><p>시트 연결·붙여넣기</p></div>
+      <div class="arr">➔</div>
+      <div class="step"><div class="n">3</div><span class="ico">⚙️</span><h4>앱스 스크립트(Apps Script) API</h4><p>코드 → 웹 앱 배포</p></div>
+      <div class="arr">➔</div>
+      <div class="step"><div class="n">4</div><span class="ico">📊</span><h4>Canvas 대시보드</h4><p>KPI+차트 빌드</p></div>
+      <div class="arr">➔</div>
+      <div class="step"><div class="n">5</div><span class="ico">🔄</span><h4>실시간 테스트</h4><p>새 응답 즉시 반영</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="hands">
+  <div class="wrap">
+    <div class="eyebrow">Hands-on</div>
+    <h2 class="sec">따라 하기 · 실습</h2>
+    <p class="lead">각 단계 제목을 눌러 펼치세요. 완료한 단계는 <b>완료</b> 버튼으로 체크됩니다.</p>
+
+    <!-- STEP 1 -->
+    <div class="stepcard" id="step1">
+      <div class="head"><div class="num">1</div><h3>[체험] "폼에 입력하면 실시간 대시보드가 바뀐다" <span class="tool-tag play">Live Demo</span></h3></div>
+      <div class="s1body">
+      <span class="goal">🎯 강사 시연 · 3분</span>
+      <p class="substep" style="margin-top:4.5rem;">① 먼저, 강사 데모 대시보드를 확인해 보세요</p>
+      <a class="demo-shot" href="https://share.gemini.google/0Bv5CszayiTK" target="_blank" rel="noopener">
+        <img src="demo-dashboard.png" alt="강사 데모 대시보드" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="imgph" style="display:none;">🖼️ 강사 데모 대시보드 캡처 삽입 (demo-dashboard.png)<br><small style="font-weight:400;">이미지를 누르면 실시간 대시보드가 열립니다</small></div>
+      </a>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <a class="cta-btn teal" href="https://share.gemini.google/0Bv5CszayiTK" target="_blank" rel="noopener">📊 데모 대시보드 열기 (실시간)</a>
+        <a class="cta-btn" href="https://docs.google.com/spreadsheets/d/1bbt6_4HZA4TYs3nr205BdalVdOPrpQzbWgvbCt_d-QU/edit?usp=sharing" target="_blank" rel="noopener" style="background:#fff;color:var(--navy-2);border:1px dashed #9aa5b4;box-shadow:none;font-size:.9rem;padding:10px 18px;">🔒 강사용 · 연결 시트</a>
+      </div>
+
+      <p class="substep" style="margin-top:6rem;">② 이제 구글 폼에 직접 입력해 보세요</p>
+      <p>수강생이 스마트폰으로 폼에 <b>가고 싶은 장소·가능한 날짜</b>를 입력하고 대시보드를 새로고침하면, 인기 장소 순위와 날짜별 가능 인원 그래프가 실시간으로 차오릅니다.</p>
+      <a class="cta-btn" href="https://forms.gle/DREhSvoF4tLjbdZ5A" target="_blank" rel="noopener">📝 실시간 입력용 폼 열기</a>
+
+      <div style="margin-top:6rem;display:flex;align-items:flex-start;gap:12px;background:linear-gradient(135deg,rgba(30,142,62,.14),rgba(30,142,62,.05));border:2px solid var(--teal);border-radius:14px;padding:18px 22px;font-size:1.35rem;font-weight:600;color:var(--teal);line-height:1.45;box-shadow:0 6px 18px rgba(30,142,62,.15);"><span style="font-size:1.7rem;line-height:1;">🎉</span><span>대시보드에 내 응답이 실시간으로 바뀌는 걸 확인하셨나요?<br><span style="display:inline-block;margin-top:8px;">그리고 <b>내 이름을 검색</b>하니 응답자 리스트에 나오나요?</span></span></div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="stepcard" id="step2">
+      <div class="head"><div class="num">2</div><h3>[준비] 폼 사본 → 게시 → 응답 시트 연결 → 더미데이터 <span class="tool-tag forms">Forms</span><span class="tool-tag sheets">Sheets</span></h3></div>
+      <span class="goal">🎯 결과물 · 데이터가 채워진 나만의 응답 시트</span>
+      <p>내 수요조사 폼을 사본으로 받아 <b>게시</b>하고, 응답 시트를 연결한 뒤, <b>가상 더미데이터</b>를 붙여넣어 '데이터가 쌓인 시트'를 만듭니다.</p>
+      <p class="substep" style="margin-top:4.5rem;">① MT 수요조사 폼 사본 만들기</p>
+      <p>아래 버튼을 누르면 완성된 수요조사 폼이 <b>내 드라이브에 사본</b>으로 복사됩니다.</p>
+      <a class="cta-btn teal" href="https://docs.google.com/forms/d/1KBghJd_3BtA9D2XcMCo3jTA0GX54m-3jEHX2qBKUZWM/copy" target="_blank" rel="noopener">📋 MT 수요조사 폼 사본 만들기</a>
+      <img src="form-copy.png" alt="구글 문서 복사 – 사본 만들기 화면" style="display:block;width:100%;max-width:720px;margin:16px 0 4px;border:0;border-radius:22px;box-shadow:0 6px 18px rgba(36,53,81,.08);" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <div class="placeholder" style="display:none;max-width:720px;">🖼️ '문서 복사 → 사본 만들기' 화면 캡처 삽입 (파일명: form-copy.png)</div>
+      <p class="substep" style="margin-top:4.5rem;">② 폼 게시하기 — 이걸 안 하면 아무도 응답할 수 없어요</p>
+      <p>사본으로 만든 폼은 아직 <b>게시되지 않은 상태</b>입니다. 이대로 링크를 보내면 학우들이 폼을 열 수 없어요.</p>
+      <ul>
+        <li>폼 우측 상단의 <span class="kbd">게시</span> 버튼 클릭</li>
+        <li><b>응답할 수 있는 사용자</b>를 <span class="kbd">링크가 있는 모든 사용자</span>로 변경</li>
+        <li><span class="kbd">게시</span> → 이어서 <span class="kbd">응답 링크 복사</span>로 주소를 받아 둡니다</li>
+      </ul>
+      <div class="note">💡 복사한 응답 링크는 <b>5단계 실시간 동기화 테스트</b>에서 씁니다.</div>
+      <p class="substep" style="margin-top:4.5rem;">③ 응답 시트 연결하기</p>
+      <ul>
+        <li>복사한 폼 상단의 <span class="kbd">응답</span> 탭 클릭 → 초록색 <span class="kbd">Sheets에 연결</span> 아이콘 → <b>새 스프레드시트 만들기</b></li>
+      </ul>
+      <p class="substep" style="margin-top:4.5rem;">④ 더미데이터 붙여넣기</p>
+      <ul>
+        <li><b>가상 응답 데이터</b>를 복사해, 연결된 시트의 <b>헤더(1행) 바로 아래(2행)</b>부터 붙여넣기</li>
+      </ul>
+      <p>아래 <b>복사</b> 버튼을 누르고, 연결된 응답 시트의 <b>2행(헤더 아래)부터</b> 붙여넣으세요. 열 순서가 폼과 같아 그대로 채워집니다.</p>
+      <div class="codewrap">
+        <button class="copy" onclick="copyPrompt(this)">📋 가상 응답 데이터 복사 (42명)</button>
+        <pre class="datablock">2026. 11. 07 AM 05:12:00	서하우	불참		1학년				
+2026. 11. 08 AM 10:09:00	류지찬	참석	[익숙함·접근성] 서울 근교 1시간 (대성리·가평·양평)	1학년	[2안] 11/27(금)~11/28(토)	정시 참석 (금요일 출발)	주량껏 즐기고 적당히 빠지는 조절 파!	에너자이저 (새벽까지 활동)
+2026. 11. 08 PM 02:12:00	윤하서	참석	[익숙함·접근성] 서울 근교 1시간 (대성리·가평·양평)	2학년	[2안] 11/27(금)~11/28(토)	정시 참석 (금요일 출발)	밤새 달리는 본격 음주 파!	온돌 단체방 OK
+2026. 11. 06 AM 03:10:00	정수현	참석	[액티비티·오션뷰] 바다·레저 (영종도·대부도·강화)	2학년	[3안] 11/28(토)~11/29(일)	정시 참석 (금요일 출발)	주량껏 즐기고 적당히 빠지는 조절 파!	에너자이저 (새벽까지 활동)
+2026. 11. 05 PM 10:18:00	박정우	참석	[힐링·자연] 2시간 내외 자연 (홍천·춘천·제천)	3학년	[2안] 11/27(금)~11/28(토)	금요일 밤 늦참 (회비 30% 감면)	주량껏 즐기고 적당히 빠지는 조절 파!	빛·소음 예민 (별도 취침공간)
+2026. 11. 07 AM 10:22:00	배준하	참석	[익숙함·접근성] 서울 근교 1시간 (대성리·가평·양평)	3학년	[2안] 11/27(금)~11/28(토)	정시 참석 (금요일 출발)	주량껏 즐기고 적당히 빠지는 조절 파!	신데렐라 (자정 전후 취침·수면방)
+2026. 11. 08 PM 08:08:00	최연은	불참		1학년				
+2026. 11. 07 AM 07:42:00	황채우	참석	[익숙함·접근성] 서울 근교 1시간 (대성리·가평·양평)	4학년	[2안] 11/27(금)~11/28(토)	금요일 밤 늦참 (회비 30% 감면)	안주·담소 중심 무알코올 힐링 파!	신데렐라 (자정 전후 취침·수면방)
+2026. 11. 07 AM 08:48:00	류지빈	참석	[도심형·호캉스] 서울 내 파티룸·공유공간	3학년	[2안] 11/27(금)~11/28(토)	금요일 밤 늦참 (회비 30% 감면)	밤새 달리는 본격 음주 파!	온돌 단체방 OK
+2026. 11. 09 AM 01:21:00	고지호	참석	[도심형·호캉스] 서울 내 파티룸·공유공간	3학년	[2안] 11/27(금)~11/28(토)	토요일 당일 합류 (회비 50% 감면)	주량껏 즐기고 적당히 빠지는 조절 파!	온돌 단체방 OK
+2026. 11. 08 AM 04:24:00	손주서	참석	[힐링·자연] 2시간 내외 자연 (홍천·춘천·제천)	3학년	모두 불가	정시 참석 (금요일 출발)	밤새 달리는 본격 음주 파!	신데렐라 (자정 전후 취침·수면방)
+2026. 11. 06 PM 10:56:00	신수진	미정	기타	3학년	[3안] 11/28(토)~11/29(일)		주량껏 즐기고 적당히 빠지는 조절 파!	에너자이저 (새벽까지 활동)
+2026. 11. 05 PM 08:19:00	윤아윤	참석	[감성·프라이빗] 독채 풀빌라·한옥 감성숙소	1학년	[1안] 11/20(금)~11/21(토)	정시 참석 (금요일 출발)	밤새 달리는 본격 음주 파!	온돌 단체방 OK
+2026. 11. 08 PM 08:15:00	정소찬	참석	[액티비티·오션뷰] 바다·레저 (영종도·대부도·강화)	4학년	[3안] 11/28(토)~11/29(일)	정시 참석 (금요일 출발)	안주·담소 중심 무알코올 힐링 파!	빛·소음 예민 (별도 취침공간)
+2026. 11. 09 AM 05:55:00	서윤희	미정	[힐링·자연] 2시간 내외 자연 (홍천·춘천·제천)	2학년	[2안] 11/27(금)~11/28(토)		밤새 달리는 본격 음주 파!	빛·소음 예민 (별도 취침공간)
+2026. 11. 07 PM 09:09:00	한재우	참석	[액티비티·오션뷰] 바다·레저 (영종도·대부도·강화)	1학년	[2안] 11/27(금)~11/28(토)	토요일 당일 합류 (회비 50% 감면)	주량껏 즐기고 적당히 빠지는 조절 파!	에너자이저 (새벽까지 활동)
+2026. 11. 06 PM 01:23:00	정하진	참석	[액티비티·오션뷰] 바다·레저 (영종도·대부도·강화)	4학년	[2안] 11/27(금)~11/28(토)	정시 참석 (금요일 출발)	주량껏 즐기고 적당히 빠지는 조절 파!	빛·소음 예민 (별도 취침공간)
+2026. 11. 08 AM 02:35:00	박예현	참석	[감성·프라이빗] 독채 풀빌라·한옥 감성숙소	3학년	[2안] 11/27(금)~11/28(토)	금요일 밤 늦참 (회비 30% 감면)	주량껏 즐기고 적당히 빠지는 조절 파!	에너자이저 (새벽까지 활동)
+2026. 11. 08 AM 09:07:00	문수준	참석	[익숙함·접근성] 서울 근교 1시간 (대성리·가평·양평)	3학년	[2안] 11/27(금)~11/28(토)	정시 참석 (금요일 출발)	안주·담소 중심 무알코올 힐링 파!	신데렐라 (자정 전후 취침·수면방)
+2026. 11. 06 AM 07:48:00	윤수율	참석	[익숙함·접근성] 서울 근교 1시간 (대성리·가평·양평)	3학년	[1안] 11/20(금)~11/21(토)	금요일 밤 늦참 (회비 30% 감면)	안주·담소 중심 무알코올 힐링 파!	빛·소음 예민 (별도 취침공간)
+2026. 11. 09 PM 11:03:00	서진윤	참석	[힐링·자연] 2시간 내외 자연 (홍천·춘천·제천)	1학년	[3안] 11/28(토)~11/29(일)	토요일 당일 합류 (회비 50% 감면)	안주·담소 중심 무알코올 힐링 파!	신데렐라 (자정 전후 취침·수면방)
+2026. 11. 06 AM 11:26:00	오지늘	참석	[도심형·호캉스] 서울 내 파티룸·공유공간	4학년	[2안] 11/27(금)~11/28(토)	정시 참석 (금요일 출발)	밤새 달리는 본격 음주 파!	에너자이저 (새벽까지 활동)
+2026. 11. 06 PM 12:54:00	전서민	참석	[힐링·자연] 2시간 내외 자연 (홍천·춘천·제천)	4학년	[2안] 11/27(금)~11/28(토)	금요일 밤 늦참 (회비 30% 감면)	밤새 달리는 본격 음주 파!	신데렐라 (자정 전후 취침·수면방)
+2026. 11. 09 AM 10:08:00	황준은	미정	[힐링·자연] 2시간 내외 자연 (홍천·춘천·제천)	3학년	[3안] 11/28(토)~11/29(일)		안주·담소 중심 무알코올 힐링 파!	신데렐라 (자정 전후 취침·수면방)
+2026. 11. 07 PM 03:48:00	박진연	참석	[익숙함·접근성] 서울 근교 1시간 (대성리·가평·양평)	1학년	[1안] 11/20(금)~11/21(토)	토요일 당일 합류 (회비 50% 감면)	안주·담소 중심 무알코올 힐링 파!	에너자이저 (새벽까지 활동)
+2026. 11. 10 AM 01:50:00	황아담	참석	[액티비티·오션뷰] 바다·레저 (영종도·대부도·강화)	1학년	[1안] 11/20(금)~11/21(토)	금요일 밤 늦참 (회비 30% 감면)	주량껏 즐기고 적당히 빠지는 조절 파!	에너자이저 (새벽까지 활동)
+2026. 11. 09 PM 03:19:00	신도아	불참		1학년				
+2026. 11. 06 PM 02:03:00	윤태지	참석	[액티비티·오션뷰] 바다·레저 (영종도·대부도·강화)	2학년	[3안] 11/28(토)~11/29(일)	정시 참석 (금요일 출발)	주량껏 즐기고 적당히 빠지는 조절 파!	빛·소음 예민 (별도 취침공간)
+2026. 11. 09 AM 03:26:00	안채찬	참석	[익숙함·접근성] 서울 근교 1시간 (대성리·가평·양평)	1학년	[2안] 11/27(금)~11/28(토)	토요일 당일 합류 (회비 50% 감면)	안주·담소 중심 무알코올 힐링 파!	온돌 단체방 OK
+2026. 11. 09 PM 06:57:00	강예민	미정	[익숙함·접근성] 서울 근교 1시간 (대성리·가평·양평)	3학년	[1안] 11/20(금)~11/21(토)		주량껏 즐기고 적당히 빠지는 조절 파!	온돌 단체방 OK
+2026. 11. 08 AM 02:52:00	최수우	미정	[익숙함·접근성] 서울 근교 1시간 (대성리·가평·양평)	1학년	[3안] 11/28(토)~11/29(일)		주량껏 즐기고 적당히 빠지는 조절 파!	온돌 단체방 OK
+2026. 11. 09 PM 04:45:00	박지율	미정	[힐링·자연] 2시간 내외 자연 (홍천·춘천·제천)	3학년	[2안] 11/27(금)~11/28(토)		주량껏 즐기고 적당히 빠지는 조절 파!	신데렐라 (자정 전후 취침·수면방)
+2026. 11. 08 AM 09:48:00	안하하	미정	[도심형·호캉스] 서울 내 파티룸·공유공간	2학년	모두 불가		안주·담소 중심 무알코올 힐링 파!	빛·소음 예민 (별도 취침공간)
+2026. 11. 06 PM 12:39:00	정채현	미정	[익숙함·접근성] 서울 근교 1시간 (대성리·가평·양평)	2학년	[3안] 11/28(토)~11/29(일)		주량껏 즐기고 적당히 빠지는 조절 파!	에너자이저 (새벽까지 활동)
+2026. 11. 07 AM 02:20:00	손예하	미정	[힐링·자연] 2시간 내외 자연 (홍천·춘천·제천)	3학년	[2안] 11/27(금)~11/28(토)		밤새 달리는 본격 음주 파!	신데렐라 (자정 전후 취침·수면방)
+2026. 11. 09 PM 02:56:00	서승연	불참		4학년				
+2026. 11. 10 AM 02:39:00	문채찬	참석	[힐링·자연] 2시간 내외 자연 (홍천·춘천·제천)	2학년	[2안] 11/27(금)~11/28(토)	정시 참석 (금요일 출발)	주량껏 즐기고 적당히 빠지는 조절 파!	신데렐라 (자정 전후 취침·수면방)
+2026. 11. 07 PM 11:37:00	김윤율	참석	[익숙함·접근성] 서울 근교 1시간 (대성리·가평·양평)	2학년	모두 불가	정시 참석 (금요일 출발)	안주·담소 중심 무알코올 힐링 파!	에너자이저 (새벽까지 활동)
+2026. 11. 10 AM 08:39:00	장유우	참석	[익숙함·접근성] 서울 근교 1시간 (대성리·가평·양평)	4학년	[3안] 11/28(토)~11/29(일)	금요일 밤 늦참 (회비 30% 감면)	안주·담소 중심 무알코올 힐링 파!	온돌 단체방 OK
+2026. 11. 06 PM 08:18:00	송연지	참석	[익숙함·접근성] 서울 근교 1시간 (대성리·가평·양평)	2학년	[2안] 11/27(금)~11/28(토)	금요일 밤 늦참 (회비 30% 감면)	밤새 달리는 본격 음주 파!	빛·소음 예민 (별도 취침공간)
+2026. 11. 06 PM 09:43:00	홍민진	불참		1학년				
+2026. 11. 10 AM 05:54:00	장현수	참석	기타	1학년	[2안] 11/27(금)~11/28(토)	토요일 당일 합류 (회비 50% 감면)	주량껏 즐기고 적당히 빠지는 조절 파!	에너자이저 (새벽까지 활동)</pre>
+      </div>
+      <div class="warn" style="background:#fdeee7;border-left:4px solid var(--terra);border-radius:0 10px 10px 0;padding:12px 16px;margin-top:14px;font-size:.92rem;color:#174ea6;">⚠️ 더미데이터의 <b>열 순서·문구가 폼 응답 시트의 열과 정확히 일치</b>해야 차트가 제대로 그려집니다. (배포용 더미데이터는 이 폼에 맞춰 제작되어 그대로 붙여넣으면 됩니다.)</div>
+    </div>
+
+    <div id="step3" class="stepcard">
+      <div class="head"><div class="num">3</div><h3>앱스 스크립트(Apps Script)로 내 데이터 창구(API) 만들기 <span class="tool-tag gas">Apps Script</span></h3></div>
+      <span class="goal">🎯 시트 데이터를 실시간으로 내보내는 공개 API 주소</span>
+      <p>💡 <b>앱스 스크립트(Apps Script)가 처음이어도 걱정 마세요.</b> 어려운 코드는 이미 다 써뒀어요 — 여러분은 <b>복사해서 붙여넣고 배포</b>만 하면 '데이터 창구(API)'가 뚝딱 생깁니다.</p>
+      <p class="substep" style="margin-top:3.2rem;">① 코드를 못 짜도 괜찮아요 — Gemini에게 코드를 받아옵니다<button type="button" class="gs-go od-go" id="odBig" aria-label="발표 화면 열기"></button></p>
+      <details class="tip">
+        <summary>📖 내용 펼쳐 보기 · 한 줄 요청 → Gemini가 써 준 프롬프트</summary>
+        <div class="tb">
+      <div class="prompt-box">
+        <div class="gh"><span class="gi">✍️</span><h4>먼저 · 이렇게 짧게만 썼어요</h4></div>
+        <p class="desc">하고 싶은 일 한 줄 + <b>"프롬프트는 네가 써 줘"</b>. 이것만으로 시작할 수 있어요.</p>
+        <div class="codewrap">
+          <button class="copy" onclick="copyPrompt(this)">📋 복사</button>
+          <pre>구글 시트에 쌓인 설문 응답을 웹 대시보드가 바로 읽을 수 있도록, JSON으로 내보내는 Apps Script를 만들고 싶어. <span style="background:#eff5fe;color:#1f2430;font-weight:700;border-radius:4px;padding:0 4px;">이 작업에 딱 맞는 프롬프트를 네가 작성해 줘.</span></pre>
+        </div>
+      </div>
+      <p style="margin:1.6rem 0 .4rem;font-weight:700;color:var(--navy);">👇 그랬더니 Gemini가 아래 프롬프트를 써 줬어요.</p>
+      <div class="prompt-box">
+        <div class="gh"><span class="gi">✨</span><h4>Gemini가 써 준 프롬프트 · 데이터 창구(API) 코드 받아오기</h4></div>
+        <p class="desc">이 프롬프트로 다시 요청하면 아래 ②의 <span class="mono">doGet</span> 코드가 만들어집니다.</p>
+        <div class="codewrap">
+          <button class="copy" onclick="copyPrompt(this)">📋 프롬프트 복사</button>
+          <pre>구글 시트에 쌓인 설문 응답을 웹 대시보드가 바로 읽을 수 있도록, <span style="color:#ff8f8f;font-weight:600;">JSON</span>으로 내보내는 Apps Script를 만들어줘.
+
+[필수 조건]
+1. <span style="color:#8ad3a4;">doGet(e)</span> 함수로 만들고, <span style="color:#8ad3a4;">웹 앱으로 배포</span>하면 주소 하나로 데이터를 받아볼 수 있게 해줘.
+2. 현재 스프레드시트의 <span style="color:#ff8f8f;font-weight:600;">첫 번째 시트</span>를 읽고, 첫 행은 헤더(항목 이름), 나머지 행은 응답 데이터로 나눠줘.
+3. 각 행을 <span style="color:#ff8f8f;font-weight:600;">헤더 이름을 키로 갖는 객체</span>로 바꿔서 전체를 JSON 배열로 반환해줘. (쉼표로 이어붙이는 CSV가 아니라 JSON이어야 해)
+4. 값이 날짜·시간이면 <span style="color:#8ad3a4;">Asia/Seoul</span> 기준 문자열로 바꿔줘.
+5. 완전히 빈 행은 결과에서 빼줘.
+6. <span style="color:#8ad3a4;">ContentService</span>로 <span style="color:#8ad3a4;">MimeType.JSON</span>을 지정해서 반환해줘.
+7. 코드 각 줄에 무슨 일을 하는지 한국어 주석을 달아줘.</pre>
+        </div>
+      </div>
+      <p>아래 코드는 <b>제가 직접 타이핑한 게 아니라, Gemini에게 시켜서 받은 것</b>입니다. 프롬프트를 그대로 붙여넣으면 <b>바로 아래 ②에 들어갈 코드</b>가 거의 완성된 형태로 나옵니다. 오늘 진짜 배울 건 코드 문법이 아니라, <b style="color:#c0392b;">필요한 자동화를 AI에게 정확히 주문하는 법</b>이에요.</p>
+      <div class="note">💡 <b>주문서에 꼭 들어가야 할 세 가지</b>예요.<br>&nbsp;&nbsp;· <b>어디서 읽을지</b> — 현재 스프레드시트의 첫 번째 시트<br>&nbsp;&nbsp;· <b>어떤 모양으로 만들지</b> — 헤더 이름을 키로 갖는 JSON 배열<br>&nbsp;&nbsp;· <b>어떻게 내보낼지</b> — doGet + 웹 앱 배포 + MimeType.JSON<br>→ 이 세 개를 빼먹으면 <b>엉뚱한 코드</b>가 나옵니다. 반대로 이 세 개만 정확하면 거의 그대로 작동하는 코드가 나와요.</div>
+      <div class="note" style="border-left-color:var(--terra);background:#eff5fe;">🔨 <b>코드가 예상과 다르게 나와도 괜찮아요.</b> 에러 메시지를 그대로 붙여넣거나 <span class="mono">이 부분이 이렇게 안 돼</span>, <span class="mono">이렇게 바꿔줘</span>처럼 <b>대화하듯 고쳐나가면</b> 됩니다. 오류를 잡는 과정도 AI와 함께 하는 거예요.<br>오늘은 시간 관계상 <b>제가 미리 받아둔 최종 코드를 아래 ②에서 다 같이</b> 붙여넣겠습니다.</div>
+        </div>
+      </details>
+
+      <p class="substep" style="margin-top:4.5rem;">② 데이터 창구 코드 붙여넣기</p>
+      <ol>
+        <li>구글 시트 상단 메뉴에서 <span class="mono">확장 프로그램 → Apps Script</span>를 클릭해 에디터를 엽니다.</li>
+        <li>에디터에 기본으로 있는 <span class="mono">function myFunction() {}</span> 코드를 <b>전부 지웁니다.</b></li>
+        <li>아래 코드를 복사해 빈 공간에 그대로 붙여넣고 <b>저장(Ctrl+S)</b>합니다.</li>
+        <li>좌측 상단의 <span class="mono">제목 없는 프로젝트</span>를 클릭해 <b style="color:#c0392b;">MT 결정 대시보드 API</b>로 이름을 바꿔 둡니다.<button type="button" onclick="navigator.clipboard.writeText('MT 결정 대시보드 API');var t=this;t.textContent='✅ 복사됨';setTimeout(function(){t.textContent='📋 이름 복사';},1500);" style="margin-left:8px;background:var(--navy);color:#fff;border:1px solid var(--navy-2);border-radius:8px;padding:3px 10px;font-size:.78rem;font-weight:600;cursor:pointer;vertical-align:middle;">📋 이름 복사</button><br><span style="color:var(--muted);font-size:.9em;">안 바꿔도 작동하지만, 나중에 내 드라이브에서 찾기 쉬워집니다.</span></li>
+      </ol>
+      <div class="prompt-box">
+        <div class="gh"><span>🧩</span><h4>Apps Script · doGet (JSON API)</h4></div>
+        <p class="desc">시트 데이터를 헤더 키가 붙은 JSON 배열로 반환합니다.</p>
+        <div class="codewrap">
+          <button class="copy" onclick="copyPrompt(this)">📋 코드 복사</button>
+          <pre style="max-height:320px;">function doGet(e) {
+  // 1. 현재 스프레드시트의 '첫 번째 시트'를 가져옵니다.
+  //    ※ 응답 시트가 맨 앞에 있어야 해요. 빈 '시트1'이 앞에 있으면
+  //    아래를 getSheetByName('설문지 응답 시트1') 로 바꿔주세요.
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+
+  // 2. 데이터가 있는 전체 범위를 2차원 배열로 가져옵니다.
+  const data = sheet.getDataRange().getValues();
+
+  // 3. 첫 행은 헤더, 나머지는 응답 데이터로 분리합니다.
+  const headers = data[0];
+  const rows = data.slice(1);
+
+  // 4. 각 행을 '헤더 이름을 키로' 갖는 JSON 객체로 변환합니다.
+  const result = rows
+    .filter(row => row.join('').trim() !== '') // 빈 행 제외
+    .map(row => {
+      let obj = {};
+      headers.forEach((header, index) => {
+        if (row[index] instanceof Date) {
+          obj[header] = row[index].toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+        } else {
+          obj[header] = row[index];
+        }
+      });
+      return obj;
+    });
+
+  // 5. JSON 형식으로 웹에 반환합니다.
+  return ContentService.createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}</pre>
+        </div>
+      </div>
+      <div class="note">💡 이 코드는 <b>구글이 내 시트 안에서 실행하는 내 코드</b>예요. 외부에 데이터를 보내는 게 아니라, 내 시트를 읽어 JSON으로 보여줄 뿐이라 안전합니다.</div>
+
+      <p class="substep" style="margin-top:4.5rem;">③ 웹 앱으로 배포해서 API 주소 받기</p>
+      <ol>
+        <li>앱스 스크립트(Apps Script) 화면 우측 상단 파란색 <b>[배포]</b> → <b>[새 배포]</b>를 클릭합니다.</li>
+        <li>톱니바퀴(설정) 아이콘을 눌러 유형을 <b>[웹 앱]</b>으로 선택합니다.</li>
+        <li><b style="color:#c0392b;">가장 중요!</b> '액세스 권한이 있는 사용자'를 반드시 <b style="color:#c0392b;">'모든 사용자(Anyone)'</b>로 변경합니다. (이걸 안 하면 대시보드가 데이터를 못 읽어요.)</li>
+        <li>파란색 <b>[배포]</b>를 누릅니다.</li>
+        <li>최종 화면의 <b>'웹 앱 URL'</b>을 복사해 <b>아래 칸에 붙여넣습니다.</b></li>
+      </ol>
+      <div class="urlbox appbox">
+        <label>🔗 여기에 내 웹 앱 URL 붙여넣기 (…/exec 로 끝나는 주소)</label>
+        <div class="urlrow"><input class="appUrl" type="text" placeholder="https://script.google.com/…/exec" autocomplete="off" spellcheck="false"></div>
+        <div class="ok">✅ 저장됐어요! 5단계에서 프롬프트에 바로 넣을 수 있어요.</div>
+      </div>
+      <div class="warn">⚠️ 최초 배포 시 <b>'액세스 승인'</b> 창이 뜨고, "이 앱은 확인되지 않았습니다"라는 경고가 나올 수 있어요. 이건 <b>내가 방금 만든 스크립트</b>라서 뜨는 정상 안내예요. <b>고급 → (프로젝트 이름)(으)로 이동 → 허용</b>을 누르면 됩니다.</div>
+      <div class="warn" style="background:#e6f8ef;border-left-color:var(--teal);color:var(--navy-2);">📌 주소는 반드시 <span class="mono">script.google.com/…/exec</span> 형태로 끝나야 해요. 브라우저 위쪽의 구글 시트 주소(<span class="mono">docs.google.com…</span>)와 <b>헷갈리지 마세요!</b></div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div id="step4" class="stepcard">
+      <div class="head"><div class="num">4</div><h3>Gemini Canvas로 'MT 결정 대시보드' 만들기 <span class="tool-tag gem">Gemini Canvas</span></h3></div>
+      <span class="goal">🎯 KPI + 차트가 살아있는 예쁜 단일 페이지 대시보드</span>
+      <ol>
+        <li>제미나이 창을 열고 <b>Canvas</b>를 켭니다.</li>
+        <li>아래 프롬프트를 복사하되, <span class="mono" style="color:#c0392b;">[웹 앱 URL]</span> 부분만 4단계에서 메모한 <b>내 주소</b>로 바꿉니다. (아래 박스에 붙여넣고 <b>버튼</b>을 누르면 자동으로 들어가요!)</li>
+        <li>붙여넣고 실행합니다.</li>
+      </ol>
+      <div class="urlbox appbox">
+        <label>🔗 내 웹 앱 URL (4단계에서 복사한 …/exec 주소)</label>
+        <div class="urlrow"><input class="appUrl" type="text" placeholder="https://script.google.com/…/exec" autocomplete="off" spellcheck="false"><button id="appUrlPasteBtn" type="button">📎 프롬프트에 넣기</button></div>
+        <div class="ok">✅ 아래 프롬프트의 [웹 앱 URL] 자리에 들어갔어요.</div>
+      </div>
+      <div class="prompt-box">
+        <div class="gh"><span>🗣️</span><h4>프롬프트 · MT 결정 대시보드 만들기</h4></div>
+        <p class="desc"><b style="color:#c0392b;">🔴 숫자가 정확하게</b> — 항목 이름 그대로, 정확히 같은 값끼리만 세기<br><b style="color:#1f9d57;">🟢 진짜 데이터로, 실시간으로</b> — 지어내지 않기, 30초마다 새로고침, 실패하면 솔직하게 빨간 박스<br><b style="color:#2b6cb0;">🔵 보이는 모습</b> — 마음대로 바꿔도 OK</p>
+        <p class="desc" style="background:#eff5fe;border-radius:10px;padding:10px 14px;margin-top:10px;">💡 <b>왜 이렇게 길까요?</b> AI는 모르면 그럴듯하게 지어내요. 빨강·초록은 <b>가짜 숫자를 막는 안전장치</b>예요. 결정에 쓸 숫자는 틀리면 안 되니까요.</p>
+        <div class="codewrap">
+          <button class="copy" onclick="copyPrompt(this)">📋 프롬프트 복사</button>
+          <pre>나는 구글 폼 응답을 앱스 스크립트(Apps Script)로 JSON API로 배포했어. API 주소는 '<span id="appUrlSlot" style="background:#eff5fe;color:#1f2430;font-weight:700;border-radius:4px;padding:1px 6px;">[웹 앱 URL]</span>' 이야.
+이 API를 fetch로 불러와, 과대표·총무가 'MT 장소와 날짜'를 데이터로 결정하는 실시간 대시보드를 <b>HTML/CSS/JS 단일 파일</b>로 만들어줘.
+
+<span style="color:#7ee0a0;">[데이터 · 실시간 규칙 — 반드시 지킬 것]</span>
+<span style="color:#7ee0a0;">- API 주소 끝에 '?t='+Date.now() 를 붙여 fetch 해서 브라우저 캐시를 피하고, 30초마다 다시 불러와 KPI·차트를 갱신해줘.</span>
+<span style="color:#7ee0a0;">- 응답은 이미 [{헤더: 값}] JSON 배열이야. 각 값을 '원문 그대로' 쓰고, 임의로 만들거나 줄이거나 바꾸지 마. 하드코딩·샘플 데이터 금지.</span>
+<span style="color:#7ee0a0;">- '참석 여부'가 '불참'인 행은 총 응답에는 포함하되, 장소·일정·학년·성향 차트 집계에서는 제외해. 빈 값은 세지 마.</span>
+<span style="color:#7ee0a0;">- 불러오기에 실패하면 예시 차트를 그리지 말고, 빨간 오류 박스로 이유(주소·배포 권한 확인)를 보여줘.</span>
+
+<span style="color:#ff8f8f;">[열 매칭 · 집계 규칙 — 반드시 지킬 것]</span>
+<span style="color:#ff8f8f;">- 각 항목은 아래 헤더(키) 이름으로 정확히 읽어줘: 이름 / 참석 여부 / MT 희망 장소 / 학년 / MT 희망 일정 / MT 참불 및 늦참 여부 / 음주 성향 / 체력·숙소 성향</span>
+<span style="color:#ff8f8f;">- 총 응답 수는 '이름'이 비어있지 않은 행만 세줘.</span>
+<span style="color:#ff8f8f;">- '정시 참석 인원'은 'MT 참불 및 늦참 여부' 값이 정확히 '정시 참석 (금요일 출발)'인 행만 세줘.</span>
+<span style="color:#ff8f8f;">- 카테고리는 값이 정확히 일치하는 것끼리만 묶어줘. 부분 매칭·임의 축약 금지.</span>
+
+<span style="color:#7ee0a0;">[검증 표시] 상단 상태 영역에 [총 응답 수 / 참석·미정·불참 수 / 차트 집계 대상 수 / 마지막 새로고침 시각]을 보여줘. 차트 그리기 전에 console.log로 [전체 rows, 집계 대상 rows, 장소별 집계, 참석/미정/불참 집계]도 출력해줘.</span>
+
+[상단 KPI 카드]
+① 총 응답 수(참석/미정/불참 분리) ② 1위 희망 장소 ③ 다 되는 날(최다 일정) ④ 정시 참석 인원
+
+[차트 — Chart.js, 값/퍼센트 라벨과 범례 포함]
+1. 인기 희망 장소 순위 <span style="color:#7fb8ff;">(가로 막대, 인원 라벨)</span>
+2. 일정별 가능 인원 <span style="color:#7fb8ff;">(세로 막대)</span>
+3. 학년별 참석 분포 <span style="color:#7fb8ff;">(도넛)</span>
+4. 음주 성향별 인원 <span style="color:#7fb8ff;">(파이)</span>
+
+[인사이트] 각 차트 아래에 '과대표가 이 데이터로 무슨 결정을 내리는지' 한 줄씩. 맨 아래에 1위 장소 + 다 되는 날 + 정시/늦참 인원을 조합한 '데이터 기반 최종 추천' 카드.
+
+<b style="color:#7fb8ff;">[디자인]</b> <span style="color:#7fb8ff;">딥네이비 배경에 시안·민트·코랄 포인트의 밝고 화사한 카드형 대시보드로 만들어줘. 그라데이션 헤더, 둥근 카드, 부드러운 그림자, KPI 숫자는 크게, 이모지 포인트. 상단에 'LIVE 동기화 중 · 다음 새로고침 N초' 상태 바. 모바일에서는 KPI·차트가 1열로 자연스럽게 쌓이게. 긴 장소명도 가로 막대에서 다 보이도록 여백을 충분히 줘.</span></pre>
+        </div>
+      </div>
+
+      <div class="note" style="margin-top:1.4rem;">📱 대시보드가 나오면, <b>본인이 만든 구글 폼 응답자 링크</b>에 접속해서 응답을 하나 입력해 보세요. <b>데이터가 잘 반영되는지</b> 확인해 보아요.</div>
+
+      <p class="substep" style="margin-top:2.6rem;">🔍 심화 · 추가 프롬프트 하나씩 — 붙일 때마다 바뀝니다</p>
+      <p>기본 대시보드가 나왔으면, 아래 <b>추가 프롬프트</b>를 <b>하나씩</b> 같은 채팅창에 이어 붙여넣어 보세요. <b>한 줄 추가할 때마다 대시보드가 어떻게 바뀌는지</b> 직접 느낄 수 있어요.</p>
+      <div class="prompt-box">
+        <div class="gh"><span class="gi">🎨</span><h4>추가 프롬프트 ① · 내가 원하는 디자인으로</h4></div>
+        <p class="desc">'[○○]' 자리에 원하는 테마를 넣으세요. 데이터·차트는 그대로, '스타일'만 확 바뀝니다.</p>
+        <div class="codewrap"><button class="copy" onclick="copyPrompt(this)">📋 복사</button><pre>대시보드 디자인을 '[○○]' 테마로 바꿔줘. 색감·폰트·배경·카드 모양까지 그 분위기에 맞춰 통일감 있게 만들어줘. 데이터와 차트 내용은 그대로 두고 '보이는 스타일'만 바꿔줘.</pre></div>
+        <div class="note">🎨 [○○]에 넣어볼 예시 (MT·대학생 감성) — <b>대학 과잠(과 점퍼) 스포티</b> / <b>캠퍼스 축제 포스터</b> / <b>MT 현수막·플래카드</b> / <b>청춘 필름카메라 감성</b> / <b>우드·캠핑 펜션 감성</b> / <b>인스타 스토리·릴스풍</b> / <b>손글씨 노트·포스트잇</b> / <b>빈티지 여권·항공권</b> / <b>우리 과 대표색</b>(예: 파랑·흰색 <b>또는 색상코드 #2E5AAC 처럼 직접 지정</b>)</div>
+      </div>
+      <div class="prompt-box">
+        <div class="gh"><span class="gi">🖱️</span><h4>추가 프롬프트 ② · 막대 클릭 → 그 학생들 이름</h4></div>
+        <div class="codewrap"><button class="copy" onclick="copyPrompt(this)">📋 복사</button><pre>방금 만든 대시보드에서, 각 차트의 막대/조각을 클릭하면 그 항목을 고른 학생들의 '이름' 목록을 아래에 표로 보여줘. 새 데이터는 지어내지 말고 이미 불러온 데이터만 그대로 써.</pre></div>
+      </div>
+      <div class="prompt-box">
+        <div class="gh"><span class="gi">🔎</span><h4>추가 프롬프트 ③ · 이름으로 검색</h4></div>
+        <div class="codewrap"><button class="copy" onclick="copyPrompt(this)">📋 복사</button><pre>하단에 검색창을 추가해줘. 이름을 입력하면 그 학생의 모든 응답(장소·일정·학년·성향 등)을 카드로 보여줘.</pre></div>
+      </div>
+      <div class="prompt-box">
+        <div class="gh"><span class="gi">🎛️</span><h4>추가 프롬프트 ④ · 조건으로 필터</h4></div>
+        <div class="codewrap"><button class="copy" onclick="copyPrompt(this)">📋 복사</button><pre>필터를 추가해줘. 각 열(장소·일정·학년·참불·음주·체력·숙소)의 드롭다운 항목은 반드시 '데이터에 실제로 존재하는 값'만 코드에서 자동 추출(unique)해서 채워줘 — 데이터에 없는 옵션은 넣지 마(임의 생성 금지). 여러 필터를 동시에 걸면 교집합(AND)으로 학생 표가 필터링되게 해줘. 보기 텍스트는 데이터 값을 그대로(줄이지 말고) 표기하고, 표·카드는 깔끔하고 모던하게, 모바일에서도 잘 보이게.</pre></div>
+      </div>
+      <div class="prompt-box">
+        <div class="gh"><span class="gi">🎲</span><h4>추가 프롬프트 ⑤ · 페르소나로 강조점 바꾸기</h4></div>
+        <p class="desc">"내가 과대표라면 뭘 제일 크게 볼까?"에 따라 강조 지점이 달라져요. 아래를 붙여넣고 <b>'가성비 총무'를 '빡센 일정파'·'힐링 동아리'로</b> 바꿔가며 비교해 보세요.</p>
+        <div class="codewrap"><button class="copy" onclick="copyPrompt(this)">📋 복사</button><pre>지금 대시보드를 '가성비 총무' 관점으로 다시 강조해줘. 회비·정산(정시/늦참/당일 인원)과 인원수 KPI를 가장 크게, 맨 위에 배치하고, 나머지 차트는 작게 정리해줘. 데이터는 이미 불러온 것만 그대로 써.</pre></div>
+        <div class="note">🚀 손이 빠른 학생은 지도·필터·다크모드 추가를 요청해 보세요. "같은 데이터인데 결과가 모두 다르다"가 핵심입니다.</div>
+      </div>
+
+      <p class="substep" style="margin-top:5rem;">🖼️ 이렇게 다양하게 나와요 — 디자인 갤러리 (이미지 클릭 → 실제 대시보드)</p>
+      <div class="gallery">
+        <a href="https://share.gemini.google/JMZJAchDX56i" target="_blank" rel="noopener">
+          <img src="design1.png" alt="① 디자인 예시" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="imgph" style="display:none;">🖼️ ① 이미지 삽입<br><small style="font-weight:400;">design1.png 저장 필요</small></div>
+          <div class="cap"><span>① 실시간 연동판</span><span class="go">열기 ↗</span></div>
+        </a>
+        <a href="https://share.gemini.google/U4HYprtDYgRU" target="_blank" rel="noopener">
+          <img src="design2.png" alt="② 디자인 예시" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="imgph" style="display:none;">🖼️ ② 이미지 삽입<br><small style="font-weight:400;">design2.png 저장 필요</small></div>
+          <div class="cap"><span>② '가성비 총무' 관점 강조 (⑤)</span><span class="go">열기 ↗</span></div>
+        </a>
+        <a href="https://share.gemini.google/UBsSiWKYy5au" target="_blank" rel="noopener">
+          <img src="design3.png" alt="③ 디자인 예시" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="imgph" style="display:none;">🖼️ ③ 이미지 삽입<br><small style="font-weight:400;">design3.png 저장 필요</small></div>
+          <div class="cap"><span>③ 필름·아날로그 감성</span><span class="go">열기 ↗</span></div>
+        </a>
+        <a href="https://gemini.google.com/share/0b1946e19ba7?skid=df3d803d-3720-42c0-9aea-1a7d9bf35423" target="_blank" rel="noopener">
+          <img src="design4.png" alt="④ 디자인 예시" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="imgph" style="display:none;">🖼️ ④ 이미지 삽입<br><small style="font-weight:400;">design4.png 저장 필요</small></div>
+          <div class="cap"><span>④ 차트 스타일 변화 (도넛)</span><span class="go">열기 ↗</span></div>
+        </a>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div id="step5" class="stepcard">
+      <div class="head"><div class="num">5</div><h3>실시간 동기화 테스트 &amp; 베스트 메이커 <span class="tool-tag gem">Live</span></h3></div>
+      <span class="goal">🎯 새 응답이 차트에 즉시 차오르는 순간</span>
+      <ol>
+        <li>제미나이가 캔버스(우측)에 대시보드를 띄워줍니다. KPI·차트에 내 시트 데이터가 정확히 나오는지 확인합니다.</li>
+        <li>스마트폰이나 PC로 <b>내 구글 폼에 접속</b>해 새로운 가짜 응답을 <b>1~2개</b> 제출합니다.</li>
+        <li>대시보드를 <b>새로고침</b>(또는 30초 자동 갱신 대기)하면, 방금 제출한 데이터가 <b>차트에 즉시 반영</b>되는 것을 확인합니다. 🎉</li>
+      </ol>
+      <div class="note">💡 숫자가 안 바뀌면? ① 30초 자동 새로고침을 기다리거나 ② 프롬프트에 "캐시 피하려고 주소 끝에 ?t=타임스탬프 붙여줘"가 반영됐는지 확인 ③ 웹 앱 권한이 '모든 사용자'인지 확인.</div>
+
+      <p class="substep" style="margin-top:2.6rem;">🏆 베스트 메이커 — 서로의 대시보드 자랑하기</p>
+      <span class="goal">🎯 공유·발표 · 10분</span>
+      <p>각자 만든 Canvas 대시보드를 <b>패들릿(Padlet)</b>에 올리고 서로의 결과물을 둘러봅니다.</p>
+      <details class="sharebox">
+        <summary>🔗 Canvas 결과물 공유하기 <span>— 개인 계정과 학교 계정이 달라요</span></summary>
+        <div class="sb-body">
+          <div class="sb-acc">
+            <h5>👤 개인 계정 (gmail.com)</h5>
+            <p>Canvas 오른쪽 위 <b>공유 아이콘</b>을 눌러 링크를 만들고 복사하면 끝이에요. 링크만 있으면 누구나 로그인 없이 볼 수 있어요.</p>
+          </div>
+          <div class="sb-acc">
+            <h5>🏫 학교·기관 계정</h5>
+            <p>공개 링크 대신 <b>구글 드라이브</b>로 공유해요. 세 단계만 따라 하세요.</p>
+            <ol class="sb-steps">
+              <li><b>① 공유 아이콘 → Drive를 통해 공유</b><img src="share-school-1.png" alt="공유 아이콘을 누르고 Drive를 통해 공유 선택" loading="lazy"></li>
+              <li><b>② Google Drive에 연결 → 계속</b><span class="sb-tip">내 드라이브에 저장될 뿐, 아직 다른 사람에게 공개되는 건 아니에요.</span><img src="share-school-2.png" alt="Google Drive에 연결 창에서 계속 누르기" loading="lazy"></li>
+              <li><b>③ 일반 액세스 → 링크가 있는 모든 사용자 → 링크 복사 → 완료</b><span class="sb-tip">왼쪽 아래 🔗 버튼이 링크 복사예요.</span><img src="share-school-3.png" alt="일반 액세스를 링크가 있는 모든 사용자로 바꾸고 완료" loading="lazy"></li>
+            </ol>
+          </div>
+          <div class="sb-acc sb-alt">
+            <h5>🙅 '링크가 있는 모든 사용자'가 목록에 없다면</h5>
+            <p>학교가 외부 공유를 막아둔 경우예요. Canvas 오른쪽 위 <b>⬇️ 다운로드</b>를 눌러 <b>HTML 파일</b>로 받은 뒤, 그 파일을 패들렛에 올려주세요.</p>
+          </div>
+          <p class="sb-cap">📸 어느 방법이든 <b>화면 캡처를 함께</b> 올려주세요. 링크가 안 열리는 사람도 결과물을 바로 볼 수 있어요.</p>
+        </div>
+      </details>
+      <a class="cta-btn teal" href="https://padlet.com/JA_Korea/2026-gemini-academy-b764lse6h0ho7u3g" target="_blank" rel="noopener">💙 결과물 올리러 가기 (Padlet 열기)</a>
+        <p style="margin:10px 0 0;font-size:.9rem;color:var(--navy-2);background:#e8f0fe;border-radius:10px;padding:9px 14px;display:table;">📌 패들렛의 <b>📊 실시간 의사결정 대시보드</b> 칸에 올려주세요.</p>
+      <div style="margin-top:14px;border:0;border-radius:22px;overflow:hidden;box-shadow:0 6px 18px rgba(36,53,81,.08);background:#F4F4F4;">
+        <iframe src="https://padlet.com/embed/b764lse6h0ho7u3g" frameborder="0" allow="camera;microphone;geolocation;clipboard-write;encrypted-media;fullscreen" style="width:100%;height:600px;display:block;border:0;" title="결과물 패들렛 보드"></iframe>
+      </div>
+      <div class="note">💡 위 보드에 각자 만든 대시보드 <b>캡처 이미지</b>나 <b>Canvas 공유 링크</b>를 올려주세요. 화면이 안 보이면 위 <b>Padlet 열기</b> 버튼으로 새 창에서 바로 작성할 수 있어요.</div>
+      <div class="note">💡 '예쁜 화면'에서 끝내지 말고 <b>데이터 → 실제 결정(어디로·언제·얼마)</b>으로 이어지는 가치를 각인하며 마무리합니다. "감으로 정하면 절반은 시큰둥, 데이터로 정하면 다 만족하는 MT가 됩니다."</div>
+    </div>
+
+    <div class="warn" style="background:#e6f8ef;border-left-color:var(--teal);color:var(--navy-2);">🚀 <b>다음은?</b> 오늘 만든 앱스 스크립트(Apps Script)는 데이터를 <b>'읽어서 내보내는 창구(API)'</b>였어요. 같은 앱스 스크립트(Apps Script)로 <b>'폼 제출에 반응해 자동으로 일하는 로봇(트리거)'</b>도 만들 수 있습니다. 같은 도구, 다른 초능력! 🤖</div>
+  </div>
+</section>
+
+<section id="close">
+  <div class="wrap">
+    <div class="closing">
+      <h2>결정, 완료! 🧭</h2>
+      <p>흩어진 의견을 데이터로 모아 한 화면에서 결정하는 경험을 했습니다. 이제 MT 장소도, 날짜도 '감'이 아니라 '숫자'로 정합니다.</p>
+      <div class="ach-row">
+        <div class="ach"><div class="n">📄</div>데이터 시트<br>사본 확보</div>
+        <div class="ach"><div class="n">🔗</div>앱스 스크립트(Apps Script)<br>JSON API</div>
+        <div class="ach"><div class="n">📊</div>Canvas로<br>결정 대시보드</div>
+        <div class="ach"><div class="n">🧭</div>데이터 기반<br>의사결정</div>
+      </div>
+      <p style="opacity:.9;font-size:.95rem;">데이터를 '보는 것'을 넘어, 데이터로 '결정하는' 눈을 가졌습니다.</p>
+    </div>
+  </div>
+</section>
+
+<footer>구글 대학생 연수 · 모듈 3 결정 대시보드 (앱스 스크립트(Apps Script)판) &nbsp;|&nbsp; Google Sheets · Apps Script(JSON API) · Gemini Canvas</footer>
+
+<script>
+function copyPrompt(btn){
+  var pre = btn.parentElement.querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(function(){
+    var o = btn.innerHTML; btn.innerHTML = '✅ 복사됨!';
+    setTimeout(function(){ btn.innerHTML = o; }, 1600);
+  }).catch(function(){ btn.innerHTML = '⚠️ 복사 실패'; });
+}
+(function(){
+  var b = document.querySelector('.s1btn');
+  if(b){ var c = b.closest('.stepcard'); b.addEventListener('click', function(){ var col = c.classList.toggle('s1collapsed'); b.textContent = col ? '펼치기 ▸' : '접기 ▾'; b.setAttribute('aria-expanded', col ? 'false' : 'true'); }); }
+})();
+(function(){
+  var inputs = Array.prototype.slice.call(document.querySelectorAll('.sheetUrl')),
+      boxes  = Array.prototype.slice.call(document.querySelectorAll('.sheetbox')),
+      previews = Array.prototype.slice.call(document.querySelectorAll('.convprev')),
+      copyBtns = Array.prototype.slice.call(document.querySelectorAll('.copyUrlBtn')),
+      pasteBtn = document.getElementById('pasteAddrBtn'),
+      slot   = document.getElementById('sheetSlot');
+  if(!inputs.length || !slot) return;
+  var KEY = 'm3_sheeturl', SKEY = 'm3_slotset', DEF = '여기에 3단계 시트 주소(gviz 또는 pub?output=csv) 붙여넣기';
+  var lastConv = '';
+  function toCsv(u){
+    u = (u || '').trim();
+    if(!u) return '';
+    if(/pub\?|output=csv|format=csv|gviz\/tq/.test(u)) return u;   // 이미 CSV 주소면 그대로
+    var m = u.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+    if(!m) return u;
+    var gid = '0', g = u.match(/[#&?]gid=(\d+)/);
+    if(g) gid = g[1];
+    return 'https://docs.google.com/spreadsheets/d/' + m[1] + '/gviz/tq?tqx=out:csv&gid=' + gid;
+  }
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function hiDiff(url){
+    var h = esc(url), mk = '<span style="color:#ff8f8f;font-weight:600;background:rgba(255,143,143,.14);border-radius:4px;padding:0 3px;">';
+    h = h.replace('gviz/tq?tqx=out:csv', mk + 'gviz/tq?tqx=out:csv</span>');
+    h = h.replace('pub?output=csv', mk + 'pub?output=csv</span>');
+    return h;
+  }
+  function onInput(val, save){
+    inputs.forEach(function(i){ if(i.value !== val) i.value = val; });   // 두 칸 값 동기화
+    var raw = (val || '').trim();
+    lastConv = toCsv(raw);
+    boxes.forEach(function(b){ b.classList.toggle('filled', !!raw); });
+    previews.forEach(function(p){
+      if(!lastConv){ p.style.display = 'none'; p.innerHTML = ''; }
+      else {
+        p.style.display = 'block';
+        p.innerHTML = '<div style="font-size:.82rem;font-weight:600;color:var(--navy);margin-bottom:5px;">🔁 변환된 주소 <span style="font-weight:400;color:var(--muted);">— 빨간 부분이 바뀐 명령이에요</span></div>' +
+          '<div style="background:#1f2d44;color:#e6edf3;border-radius:10px;padding:10px 13px;font-family:Consolas,Menlo,monospace;font-size:.78rem;word-break:break-all;line-height:1.6;">' + hiDiff(lastConv) + '</div>';
+      }
+    });
+    if(save !== false){ try { localStorage.setItem(KEY, val); } catch(e) {} }
+  }
+  try { var s = localStorage.getItem(KEY); if(s){ onInput(s, false); } } catch(e) {}
+  try { var ss = localStorage.getItem(SKEY); if(ss){ slot.textContent = ss; } } catch(e) {}
+  inputs.forEach(function(i){ i.addEventListener('input', function(){ onInput(i.value); }); });
+  if(pasteBtn){
+    pasteBtn.addEventListener('click', function(){
+      if(!lastConv){
+        var o0 = pasteBtn.textContent; pasteBtn.textContent = '⚠️ 먼저 위 3단계에 주소를 넣어주세요';
+        setTimeout(function(){ pasteBtn.textContent = o0; }, 1900); return;
+      }
+      slot.textContent = lastConv;
+      try { localStorage.setItem(SKEY, lastConv); } catch(e) {}
+      var o1 = pasteBtn.textContent; pasteBtn.textContent = '✅ 프롬프트에 넣었어요!';
+      setTimeout(function(){ pasteBtn.textContent = o1; }, 1900);
+    });
+  }
+  copyBtns.forEach(function(cbtn){
+    cbtn.addEventListener('click', function(){
+      var v = ''; inputs.forEach(function(i){ if(i.value.trim()) v = i.value.trim(); });
+      if(!v){ if(inputs[0]) inputs[0].focus(); return; }
+      navigator.clipboard.writeText(v).then(function(){
+        var o = cbtn.textContent; cbtn.textContent = '✅ 복사됨!';
+        setTimeout(function(){ cbtn.textContent = o; }, 1400);
+      });
+    });
+  });
+})();
+(function(){
+  // 폴백 프롬프트에 2단계 가상 데이터(42명)를 자동으로 심어줌
+  var slot = document.getElementById('dataSlot2');
+  var src = document.querySelector('.datablock');
+  if(slot && src) slot.textContent = src.innerText.replace(/\s+$/, '');
+})();
+(function(){
+  var steps = document.querySelectorAll('#hands .stepcard');
+  var KEY = 'mission_done_m3', done = {};
+  try { done = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch(e) {}
+  steps.forEach(function(card, idx){
+    card.classList.add('collapsible');
+    var head = card.querySelector('.head');
+    if(!head) return;
+    var body = document.createElement('div'); body.className = 'm-body';
+    while(head.nextSibling){ body.appendChild(head.nextSibling); }
+    card.appendChild(body);
+    var db = document.createElement('button'); db.type='button'; db.className='donebtn'; db.textContent='완료';
+    head.appendChild(db);
+    var ch = document.createElement('span'); ch.className='chev'; ch.textContent='▾';
+    head.appendChild(ch);
+    head.addEventListener('click', function(){ card.classList.toggle('collapsed'); });
+    db.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      card.classList.toggle('done');
+      var on = card.classList.contains('done');
+      db.textContent = on ? '✓ 완료' : '완료';
+      try { done[idx] = on; localStorage.setItem(KEY, JSON.stringify(done)); } catch(e) {}
+    });
+    if(done[idx]){ card.classList.add('done'); db.textContent='✓ 완료'; }
+    if(idx !== 0) card.classList.add('collapsed');
+  });
+})();
+</script>
+<script>
+(function(){
+  var inputs = Array.prototype.slice.call(document.querySelectorAll('.appUrl')),
+      boxes  = Array.prototype.slice.call(document.querySelectorAll('.appbox')),
+      slot   = document.getElementById('appUrlSlot'),
+      btn    = document.getElementById('appUrlPasteBtn');
+  if(!inputs.length) return;
+  var KEY = 'm3app_url';
+  function sync(val){
+    inputs.forEach(function(i){ if(i.value !== val) i.value = val; });
+    boxes.forEach(function(b){ b.classList.toggle('filled', !!(val || '').trim()); });
+    try { localStorage.setItem(KEY, val); } catch(e) {}
+  }
+  try { var s = localStorage.getItem(KEY); if(s) sync(s); } catch(e) {}
+  inputs.forEach(function(i){ i.addEventListener('input', function(){ sync(i.value); }); });
+  if(btn && slot){
+    btn.addEventListener('click', function(){
+      var v = ''; inputs.forEach(function(i){ if(i.value.trim()) v = i.value.trim(); });
+      if(!v){ if(inputs[0]) inputs[0].focus(); return; }
+      slot.textContent = v;
+      var o = btn.textContent; btn.textContent = '✅ 넣었어요!';
+      setTimeout(function(){ btn.textContent = o; }, 1600);
+    });
+  }
+})();
+
+/* 🏆 5단계 체인 자동화 시연 — 클릭할 때 한 번만 실행 (자동 반복 없음) */
+(function(){
+  var wrap = document.getElementById('gasChain'),
+      btn  = document.getElementById('gasRunBtn'),
+      msg  = document.getElementById('gasRunMsg');
+  if(!wrap || !btn || !msg) return;
+  var chips  = Array.prototype.slice.call(wrap.querySelectorAll('i')),
+      arrows = Array.prototype.slice.call(wrap.querySelectorAll('em')),
+      fx     = document.getElementById('gasFx'),
+      cf     = fx && fx.querySelector('.imgwrap'),
+      proc   = fx && fx.querySelector('.proc'),
+      badge  = fx && fx.querySelector('.fxbadge'),
+      timers = [], reduce = false;
+  try{ reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+  var DONE = '\u2709\ufe0f 완료 \u2014 사람 손은 한 번도 안 닿았습니다';
+  function reset(){
+    timers.forEach(clearTimeout); timers = [];
+    chips.forEach(function(c){ c.classList.remove('on','now'); });
+    arrows.forEach(function(a){ a.classList.remove('on'); });
+    msg.className = 'gasrun-msg';
+    if(cf){ cf.classList.remove('done'); proc.classList.remove('on'); badge.classList.remove('on'); }
+  }
+  function finish(){
+    chips.forEach(function(c){ c.classList.remove('now'); });
+    if(cf){ proc.classList.remove('on'); cf.classList.add('done'); badge.classList.add('on'); }
+    msg.className = 'gasrun-msg done'; msg.textContent = DONE;
+    btn.disabled = false; btn.textContent = '\u21bb 다시 보기';
+  }
+  function run(){
+    reset(); btn.disabled = true;
+    if(reduce){
+      chips.forEach(function(c){ c.classList.add('on'); });
+      arrows.forEach(function(a){ a.classList.add('on'); });
+      finish(); return;
+    }
+    var STEP = 1400;
+    chips.forEach(function(c, i){
+      timers.push(setTimeout(function(){
+        chips.forEach(function(x){ x.classList.remove('now'); });
+        c.classList.add('on','now');
+        if(i > 0) arrows[i-1].classList.add('on');
+        msg.className = 'gasrun-msg live';
+        msg.textContent = (i+1) + '/5 \u00b7 ' + c.getAttribute('data-msg');
+        if(cf){
+          if(i === 2) proc.classList.add('on');
+          if(i === 4){ proc.classList.remove('on'); cf.classList.add('done'); badge.classList.add('on'); }
+        }
+      }, 140 + i * STEP));
+    });
+    timers.push(setTimeout(finish, 140 + chips.length * STEP + 500));
+  }
+  btn.addEventListener('click', run);
+})();
+</script>
+
+
+<div class="dxm" id="gsModal" hidden role="dialog" aria-modal="true" aria-label="앱스 스크립트 설명 발표 화면">
+  <div class="dxm-card" id="gsCard">
+    <div class="dxm-top"><span class="dxm-kicker">⚙️ 앱스 스크립트(Apps Script)란?</span><button type="button" class="dxm-x" id="gsX" aria-label="닫기">✕</button></div>
+    <h2 class="dxm-title" id="gsTitle"></h2>
+    <div class="dxm-stage" id="gsStage"></div>
+    <p class="dxm-msg" id="gsMsg"></p>
+    <div class="dxm-foot"><button type="button" class="dxm-nav" id="gsPrev" aria-label="이전">‹</button><button type="button" class="dxm-nav" id="gsNext" aria-label="다음">›</button><div class="dxm-bar"><i id="gsBar"></i></div><span class="dxm-page" id="gsPage"></span><span class="dxm-keys"><button type="button" class="dxm-k" data-go="-1">← 이전</button><button type="button" class="dxm-k" data-go="1">다음 →</button><span>Esc 닫기</span></span></div>
+  </div>
+</div>
+<script>
+(function(){
+  function pt(n,h,p,ic){ return '<div class="gs-pt"><div class="gs-num">'+n+'</div><div class="gs-ic">'+ic+'</div><h3>'+h+'</h3><p>'+p+'</p></div>'; }
+  var S=[
+    {t:'앱스 스크립트(Apps Script)란?', h:'<div class="gs-hero"><img src="apps-script-logo.png" alt="Google Apps Script"><p class="big">구글 안에 들어 있는 <b>자동화 도구</b></p><div class="gs-chips"><span>설치 없음</span><span>구글 계정만 있으면 됨</span><span>무료</span><span>코드는 교안에 준비됨</span></div></div>', m:'구글 시트·폼·슬라이드·드라이브·Gmail을 <b>코드로 연결해서 대신 일하게</b> 만드는 도구예요.'},
+    {t:'① 구글 안에 들어 있어요', h:pt(1,'구글 안에 들어있는 자동화 도구','따로 설치하지 않아요. 구글 <b>시트·폼·문서·슬라이드 안에</b> 이미 들어 있고,<br>구글 계정만 있으면 바로 열려요.','🧩'), m:'시트에서 <b>확장 프로그램 → Apps Script</b> 메뉴로 바로 열 수 있어요.'},
+    {t:'② 구글 앱들을 대신 조작해요', h:pt(2,'구글 앱들을 대신 조작합니다','시트를 읽고, 문서를 만들고, 드라이브에 저장하고,<br><b>메일까지 보내요.</b> 사람이 손으로 하던 일을 <b>내가 넣은 코드가 대신해요.</b>','🤖'), m:'반복되는 일을 코드 몇 줄로 맡길 수 있어요.'},
+    {t:'③ 알아서 실행돼요', h:pt(3,'알아서 실행됩니다','내가 버튼을 누를 때는 물론,<br><b>폼에 응답이 들어오는 순간</b>이나 <b>매일 정해진 시간</b>에<br>저절로 실행되게 걸어둘 수 있어요.','⏰'), m:'이걸 <b>트리거</b>라고 불러요. → 모듈 4에서 써요.'},
+    {t:'④ 내 데이터에 주소를 붙여줘요', h:pt(4,'내 데이터에 주소를 붙여줍니다','<b>웹 앱으로 배포</b>하면 <b>주소 하나</b>가 생겨요.<br>대시보드는 그 주소로 찾아와 데이터를 가져가요.<br>이 주소를 <b>API</b>라고 불러요.','🔗'), m:'→ 오늘 <b>모듈 3</b>에서 바로 이걸 만들어요.'},
+    {t:'모듈 3 · 이 주소(API)가 왜 필요할까요?', h:'<div class="gs-api"><div class="gs-flow"><span>📋 구글 시트<small>폼 응답이 쌓인 곳</small></span><em>→</em><span class="k">🔗 API 주소<small>앱스 스크립트 웹 앱</small></span><em>→</em><span>📊 대시보드<small>Gemini Canvas</small></span></div><p><b>API</b> <small>Application Programming Interface</small> = <b>프로그램끼리 데이터를 주고받는 통로</b></p></div>', m:'대시보드가 시트를 읽으려면 <b>읽을 수 있는 주소</b>가 하나 있어야 해요. 새 응답이 들어오면 <b>대시보드 숫자도 바로</b> 바뀌어요.'},
+    {t:'같은 도구, 다른 초능력', h:'<div class="gs-cmp gs-vs"><div class="good"><b>모듈 3 · 실시간 의사결정 대시보드 <em>웹 앱 · API</em></b><p>시트 데이터를 <b>읽어서 주소로 내보내요.</b><br>대시보드가 그 주소로 데이터를 가져가요.</p></div><div class="m4"><b>모듈 4 · MT 추억 엽서 자동화 <em>트리거</em></b><p>폼 제출에 <b>자동으로 반응해 일해요.</b><br>엽서 만들고, 저장하고, 메일까지.</p></div></div>', m:'💡 코드는 <b>Gemini가 써 줘요.</b> 우리는 붙여넣고 배포만 하면 돼요.'},
+    {t:'모듈 4 · 자동화의 완성형: MT 추억 엽서', h:'<div class="gs-steps"><div><i>📝</i><b>폼 제출</b><small>이름·소감·사진</small></div><em>→</em><div><i>📋</i><b>시트 저장</b><small>응모번호 #001 부여</small></div><em>→</em><div><i>🖼️</i><b>엽서 만들기</b><small>슬라이드 템플릿에 채움</small></div><em>→</em><div><i>📁</i><b>PDF 저장</b><small>드라이브</small></div><em>→</em><div><i>✉️</i><b>메일 발송</b><small>Gmail</small></div></div>', m:'<b>폼 제출 트리거</b> 하나로 도구 다섯 개가 이어져요. 사람 손은 <b>한 번도</b> 안 닿아요.'},
+    {t:'🙋 이럴 때도 씁니다', h:'<div class="gs-use"><div><i>🔒</i><b>선착순 자동 마감</b><p>정원이 차면 폼을 닫고 확정 메일 발송</p></div><div><i>👥</i><b>조 편성 자동 배정</b><p>버튼 한 번에 조를 나누고 조장에게 명단</p></div><div><i>📮</i><b>사람마다 다른 파일</b><p>신청 즉시 엽서를 PDF로 만들어 발송</p></div><div><i>💸</i><b>회비 안 낸 사람에게만</b><p>매일 미납자만 표시하고 그 사람에게만 메일</p></div></div>', m:'진짜 핵심은 코딩 실력이 아니라 <b>"이 반복은 자동화할 수 있다"는 눈</b>이에요.'}
+  ];
+  var modal=document.getElementById('gsModal'); if(!modal) return;
+  var card=document.getElementById('gsCard'), st=document.getElementById('gsStage'), tt=document.getElementById('gsTitle'), mm=document.getElementById('gsMsg'),
+      pg=document.getElementById('gsPage'), bar=document.getElementById('gsBar'), n=0, N=S.length, last=null;
+  function fit(){
+    var base=Math.min(innerWidth/100, innerHeight*0.0175), lo=0.6, hi=2.2, k=1;
+    function ok(v){ card.style.setProperty('--u',(base*v).toFixed(2)+'px'); return card.scrollHeight<=card.clientHeight+1 && card.scrollHeight<=innerHeight*0.96; }
+    for(var i=0;i<14;i++){ var m=(lo+hi)/2; if(ok(m)){ k=m; lo=m; } else { hi=m; } }
+    card.style.setProperty('--u',(base*k*0.97).toFixed(2)+'px');
+  }
+  function show(k){
+    n=Math.max(0,Math.min(N-1,k));
+    tt.textContent=S[n].t; st.innerHTML=S[n].h; mm.innerHTML=S[n].m;
+    pg.textContent=(n+1)+' / '+N; bar.style.width=((n+1)/N*100)+'%';
+    document.getElementById('gsPrev').disabled=n===0; document.getElementById('gsNext').disabled=n===N-1;
+    st.classList.remove('flip'); void st.offsetWidth; st.classList.add('flip');
+    [].forEach.call(st.querySelectorAll('img'),function(im){ if(!im.complete) im.onload=fit; });
+    fit();
+  }
+  function open(){ last=document.activeElement; modal.hidden=false; document.documentElement.style.overflow='hidden';
+    requestAnimationFrame(function(){ modal.classList.add('open'); }); show(0); document.getElementById('gsX').focus(); }
+  function close(){ modal.classList.remove('open'); document.documentElement.style.overflow='';
+    setTimeout(function(){ modal.hidden=true; },220); if(last) try{ last.focus(); }catch(e){} }
+  document.getElementById('gsBig').addEventListener('click',function(e){ e.preventDefault(); e.stopPropagation(); open(); });
+  document.getElementById('gsX').addEventListener('click',function(e){ e.stopPropagation(); close(); });
+  document.getElementById('gsPrev').addEventListener('click',function(e){ e.stopPropagation(); show(n-1); });
+  document.getElementById('gsNext').addEventListener('click',function(e){ e.stopPropagation(); show(n+1); });
+  modal.addEventListener('click',function(e){
+    if(e.target===modal){ close(); return; }
+    var g=e.target.closest('[data-go]'); if(g){ show(n+(+g.dataset.go)); return; }
+    if(e.target.closest('.dxm-foot')||e.target.closest('.dxm-top')) return;
+    var rc=card.getBoundingClientRect(); show(e.clientX < rc.left + rc.width*0.25 ? n-1 : n+1);
+  });
+  document.addEventListener('keydown',function(e){
+    if(modal.hidden) return;
+    if(e.key==='Escape'){ e.preventDefault(); close(); }
+    else if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'||e.key==='Enter'){ e.preventDefault(); show(n+1); }
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='Backspace'){ e.preventDefault(); show(n-1); }
+    else if(e.key==='Home'){ e.preventDefault(); show(0); }
+  }, true);
+  window.addEventListener('resize',function(){ if(!modal.hidden) fit(); });
+})();
+</script>
+<div class="dxm" id="odModal" hidden role="dialog" aria-modal="true" aria-label="코드 받아오기 설명 발표 화면">
+  <div class="dxm-card" id="odCard">
+    <div class="dxm-top"><span class="dxm-kicker">✨ 코드는 받아오는 것 · 한 줄로 시작하기</span><button type="button" class="dxm-x" id="odX" aria-label="닫기">✕</button></div>
+    <h2 class="dxm-title" id="odTitle"></h2>
+    <div class="dxm-stage" id="odStage"></div>
+    <p class="dxm-msg" id="odMsg"></p>
+    <div class="dxm-foot"><button type="button" class="dxm-nav" id="odPrev" aria-label="이전">‹</button><button type="button" class="dxm-nav" id="odNext" aria-label="다음">›</button><div class="dxm-bar"><i id="odBar"></i></div><span class="dxm-page" id="odPage"></span><span class="dxm-keys"><button type="button" class="dxm-k" data-go="-1">← 이전</button><button type="button" class="dxm-k" data-go="1">다음 →</button><span>Esc 닫기</span></span></div>
+  </div>
+</div>
+<script>
+(function(){
+  var S=[
+    {t:'코드를 못 짜도 괜찮아요', h:'<div class="gs-hero"><p class="big">코드는 <b>짜는</b> 게 아니라<br><b>받아오는</b> 것</p><div class="gs-chips"><span>문법 몰라도 OK</span><span>코드는 Gemini가 작성</span><span>나는 요청만</span></div></div>', m:'오늘 붙여넣을 코드도 <b>제가 직접 쓴 게 아니라, Gemini에게 받은 것</b>이에요.'},
+    {t:'한 줄이면 시작돼요', h:'<pre class="od-pr" style="font-size:max(1rem,calc(var(--u)*1.9));line-height:1.8;"><span style="color:#ff8f8f;font-weight:700;">구글 시트에 쌓인 설문 응답을 웹 대시보드가 바로 읽을 수 있도록,</span> JSON으로 내보내는 <span style="color:#ff8f8f;font-weight:700;">Apps Script를 만들고 싶어.</span>\n<mark class="y">이 작업에 딱 맞는 프롬프트를 네가 작성해 줘.</mark></pre>', m:'하고 싶은 일 한 줄 + <b>“프롬프트는 네가 써 줘”</b>. 모듈 2에서 배운 <b>리버스 프롬프팅</b> 기억나죠?'},
+    {t:'Gemini가 주문서를 대신 써 줘요', h:'<div class="od-loop"><div><i>✍️</i><b>한 줄 요청</b><small>하고 싶은 일만</small></div><em>→</em><div><i>🤖</i><b>긴 프롬프트</b><small>Gemini가 작성</small></div><em>→</em><div><i>📋</i><b>그대로 다시 요청</b><small>복사 · 붙여넣기</small></div><em>→</em><div class="hot"><i>🧩</i><b>코드 완성</b><small>②에 붙여넣을 코드</small></div></div>', m:'긴 프롬프트는 <b>외우는 게 아니라 AI에게 받아내는 것</b>이에요.'},
+    {t:'에러가 나도 괜찮아요', h:'<div class="od-loop"><div class="hot"><i>⚠️</i><b>빨간 글씨가 떠요</b><small>저장·실행할 때 편집기 화면에</small></div><em>→</em><div><i>📋</i><b>통째로 복사</b><small>캡처해도 OK</small></div><em>→</em><div><i>💬</i><b>Gemini에게 붙여넣기</b><small>“이거 고쳐 줘”</small></div><em>→</em><div><i>✅</i><b>고친 코드로 다시</b><small>저장 · 실행</small></div></div><p class="od-back">↺ 될 때까지 대화로 고쳐요</p>', m:'코드를 몰라도 괜찮아요. 오류를 잡는 과정도 <b>AI와 함께</b> 해요.'},
+    {t:'오늘은 이렇게 해요', h:'<div class="gs-hero"><p class="big">미리 받아둔 <b>최종 코드</b>로<br>다 같이 붙여넣어요</p><div class="gs-chips"><span>① 요청하는 법 ✔</span><span>② 코드 붙여넣기</span><span>③ 웹 앱으로 배포</span></div></div>', m:'시간 관계상 <b>제가 받아둔 코드</b>를 쓰지만, 집에서는 <b>위의 한 줄 프롬프트로 직접</b> 받아 보세요.'}
+  ];
+  var modal=document.getElementById('odModal'); if(!modal) return;
+  var card=document.getElementById('odCard'), st=document.getElementById('odStage'), tt=document.getElementById('odTitle'), mm=document.getElementById('odMsg'),
+      pg=document.getElementById('odPage'), bar=document.getElementById('odBar'), n=0, N=S.length, last=null;
+  function fit(){
+    var base=Math.min(innerWidth/100, innerHeight*0.0175), lo=0.6, hi=2.2, k=1;
+    function ok(v){ card.style.setProperty('--u',(base*v).toFixed(2)+'px'); return card.scrollHeight<=card.clientHeight+1 && card.scrollHeight<=innerHeight*0.96; }
+    for(var i=0;i<14;i++){ var m=(lo+hi)/2; if(ok(m)){ k=m; lo=m; } else { hi=m; } }
+    card.style.setProperty('--u',(base*k*0.97).toFixed(2)+'px');
+  }
+  function show(k){
+    n=Math.max(0,Math.min(N-1,k));
+    tt.textContent=S[n].t; st.innerHTML=S[n].h; mm.innerHTML=S[n].m;
+    pg.textContent=(n+1)+' / '+N; bar.style.width=((n+1)/N*100)+'%';
+    document.getElementById('odPrev').disabled=n===0; document.getElementById('odNext').disabled=n===N-1;
+    st.classList.remove('flip'); void st.offsetWidth; st.classList.add('flip');
+    fit();
+  }
+  function open(){ last=document.activeElement; modal.hidden=false; document.documentElement.style.overflow='hidden';
+    requestAnimationFrame(function(){ modal.classList.add('open'); }); show(0); document.getElementById('odX').focus(); }
+  function close(){ modal.classList.remove('open'); document.documentElement.style.overflow='';
+    setTimeout(function(){ modal.hidden=true; },220); if(last) try{ last.focus(); }catch(e){} }
+  document.getElementById('odBig').addEventListener('click',function(e){ e.preventDefault(); e.stopPropagation(); open(); });
+  document.getElementById('odX').addEventListener('click',function(e){ e.stopPropagation(); close(); });
+  document.getElementById('odPrev').addEventListener('click',function(e){ e.stopPropagation(); show(n-1); });
+  document.getElementById('odNext').addEventListener('click',function(e){ e.stopPropagation(); show(n+1); });
+  modal.addEventListener('click',function(e){
+    if(e.target===modal){ close(); return; }
+    var g=e.target.closest('[data-go]'); if(g){ show(n+(+g.dataset.go)); return; }
+    if(e.target.closest('.dxm-foot')||e.target.closest('.dxm-top')) return;
+    var rc=card.getBoundingClientRect(); show(e.clientX < rc.left + rc.width*0.25 ? n-1 : n+1);
+  });
+  document.addEventListener('keydown',function(e){
+    if(modal.hidden) return;
+    if(e.key==='Escape'){ e.preventDefault(); close(); }
+    else if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'||e.key==='Enter'){ e.preventDefault(); show(n+1); }
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='Backspace'){ e.preventDefault(); show(n-1); }
+    else if(e.key==='Home'){ e.preventDefault(); show(0); }
+  }, true);
+  window.addEventListener('resize',function(){ if(!modal.hidden) fit(); });
+})();
+</script>
+<script>
+/* 통합 보기(index.html) 안에서 열릴 때: 위 번호를 '🏠 홈' 버튼 왼쪽 끝선에서 시작 */
+(function(){
+  var links=document.querySelector('nav .nav-links'), brand=document.querySelector('nav .brand'), L=null;
+  if(!links) return;
+  function reset(){ links.style.position=''; links.style.left=''; links.style.top=''; links.style.transform=''; links.style.marginLeft=''; }
+  function align(){
+    if(window.parent===window || L===null || innerWidth<=620) return reset();
+    var br=brand?brand.getBoundingClientRect().right:0;
+    if(L < br+16 || L+links.offsetWidth > innerWidth-8) return reset();
+    links.style.position='absolute'; links.style.left=L+'px'; links.style.top='50%'; links.style.transform='translateY(-50%)'; links.style.marginLeft='0';
+  }
+  window.addEventListener('message',function(ev){ if(ev.data && ev.data.type==='mt-navalign'){ L=ev.data.left; align(); } });
+  window.addEventListener('resize',align);
+  try{ if(window.parent!==window) window.parent.postMessage({type:'mt-navalign-req'},'*'); }catch(e){}
+})();
+</script>
+</body>
+</html>

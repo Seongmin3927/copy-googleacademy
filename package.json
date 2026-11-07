@@ -1,0 +1,20 @@
+{
+  "name": "gemini-academy-guide",
+  "version": "1.0.0",
+  "description": "Google Gemini Academy National University Training Interactive Web Guide - Cloudflare Pages Edition",
+  "scripts": {
+    "start": "npx serve . -p 8788",
+    "dev": "wrangler pages dev . --port 8788",
+    "deploy": "wrangler pages deploy ."
+  },
+  "keywords": [
+    "cloudflare-pages",
+    "gemini-academy",
+    "reverse-engineered"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.114.0"
+  }
+}

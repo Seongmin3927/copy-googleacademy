@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>연수 전 준비사항 · Gemini Academy</title>
+<link rel="stylesheet" href="fonts/pretendard.css">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" as="style" crossorigin
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+  :root{
+    --blue:#1a73e8; --blue-d:#174ea6; --blue-s:#e8f0fe;
+    --red:#d93025;  --red-s:#fce8e6;
+    --yellow:#4a90e8; --yellow-s:#eff5fe;
+    --green:#1e8e3e; --green-s:#e6f4ea;
+    --purple:#9334e6;
+    --ink:#202124; --ink-2:#3c4043; --gray:#5f6368; --gray-2:#80868b;
+    --line:#e8eaed; --surface:#f8f9fa; --white:#fff;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0; background:var(--surface); color:var(--ink);
+    font-family:"Pretendard Variable","Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.65;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:0 16px 56px;}
+
+  /* ── 헤더 ───────────────────────────── */
+  .hero{padding:52px 0 30px; text-align:center;}
+  .spark{width:62px; height:62px; margin:0 auto 20px; display:block;}
+  .hero h1{
+    margin:0; font-size:clamp(1.9rem,6.4vw,2.7rem); font-weight:700;
+    letter-spacing:-.028em; line-height:1.24;
+    background:linear-gradient(92deg,#4a90e8 0%,#4aa8f5 42%,#ac87eb 78%,#ee4d5d 100%);
+    -webkit-background-clip:text; background-clip:text;
+    -webkit-text-fill-color:transparent; color:#4a90e8;
+    padding-bottom:.08em;
+  }
+  .hero .lead{margin:14px auto 0; max-width:29em; font-size:clamp(.96rem,2.6vw,1.06rem);
+    color:var(--gray); line-height:1.72;}
+  .meta{margin-top:22px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;}
+  .meta span{background:var(--white); border:1px solid var(--line); border-radius:999px;
+    padding:8px 17px; font-size:.88rem; font-weight:600; color:var(--ink-2);
+    box-shadow:0 1px 2px rgba(60,64,67,.07);}
+  .meta span b{color:var(--blue); font-weight:700;}
+
+  /* ── 카드 ───────────────────────────── */
+  .list{display:flex; flex-direction:column; gap:14px; margin-top:34px;}
+  .card{background:var(--white); border:1px solid var(--line); border-radius:22px;
+    padding:24px 24px 26px; display:flex; gap:18px; align-items:flex-start;
+    box-shadow:0 1px 3px rgba(60,64,67,.08);}
+  .card .no{flex:none; width:36px; height:36px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:.98rem; font-weight:700; color:var(--white); margin-top:1px;}
+  .c1 .no{background:#4a90e8;} .c2 .no{background:#ea4335;}
+  .c3 .no{background:#4aa8f5; color:#3c4043;} .c4 .no{background:#34a853;}
+  .c5 .no{background:#1e8e3e;} .c6 .no{background:#4a90e8;} .c7 .no{background:#ea4335;}
+  .card .bd{flex:1; min-width:0;}
+  .card h2{margin:0; font-size:clamp(1.06rem,3.3vw,1.22rem); font-weight:700;
+    letter-spacing:-.02em; line-height:1.42; display:flex; align-items:center;
+    gap:9px; flex-wrap:wrap;}
+  .card p{margin:8px 0 0; font-size:clamp(.92rem,2.5vw,.99rem); color:var(--ink-2);}
+  .card p b{font-weight:700; color:var(--ink);}
+  .pill{font-size:.72rem; font-weight:700; letter-spacing:.01em; padding:4px 11px;
+    border-radius:999px; background:var(--blue-s); color:var(--blue-d); white-space:nowrap;}
+  .pill.warn{background:var(--red-s); color:var(--red);}
+
+  /* 카드 안 회색 박스 */
+  .tip{margin-top:14px; background:var(--surface); border-radius:14px;
+    padding:14px 16px; font-size:clamp(.86rem,2.35vw,.93rem); color:var(--gray);
+    line-height:1.68;}
+  .tip b{color:var(--ink-2); font-weight:700;}
+  .tip.blue{background:var(--blue-s); color:var(--blue-d);}
+  .tip.blue b{color:var(--blue-d);}
+  .tip.red{background:var(--red-s); color:#a50e0e;}
+  .tip.red b{color:#a50e0e;}
+
+  /* 링크 칩 */
+  .link{display:inline-block; margin-top:13px; background:var(--white);
+    border:1px solid var(--line); border-radius:999px; padding:8px 16px;
+    font-size:.86rem; font-weight:600; color:var(--blue); text-decoration:none;
+    word-break:break-all;}
+  .link:hover{background:var(--blue-s); border-color:#d2e3fc;}
+  .link + .link{margin-left:8px;}
+
+  /* O/X 목록 */
+  .ox{list-style:none; margin:14px 0 0; padding:0; display:flex;
+    flex-direction:column; gap:9px;}
+  .ox li{display:flex; gap:11px; align-items:flex-start;
+    font-size:clamp(.89rem,2.4vw,.96rem); color:var(--ink-2); line-height:1.55;}
+  .ox li b{color:var(--ink);}
+  .ox li i{flex:none; width:19px; height:19px; border-radius:50%; margin-top:2px;
+    display:flex; align-items:center; justify-content:center;
+    font-style:normal; font-size:.66rem; font-weight:700; color:var(--white);
+    background:var(--green);}
+  .ox li.x i{background:var(--red);}
+  .ox li.x{color:var(--gray);}
+
+  /* 강조 카드 */
+  .card.key{border-color:#d2e3fc; background:linear-gradient(180deg,#f7faff,#fff 58%);}
+  .card.alert{border-color:#f7c8c3; background:linear-gradient(180deg,#fff8f7,#fff 58%);}
+
+  /* ── 푸터 ───────────────────────────── */
+  .foot{margin-top:26px; border-radius:26px; padding:34px 28px; text-align:center;
+    background:linear-gradient(120deg,#4a90e8 0%,#4aa8f5 52%,#ac87eb 100%);
+    color:var(--white); box-shadow:0 3px 12px rgba(66,133,244,.2);}
+  .foot h3{margin:0; font-size:clamp(1.06rem,3.3vw,1.28rem); font-weight:700;
+    letter-spacing:-.02em; line-height:1.5;}
+  .foot p{margin:11px 0 0; font-size:clamp(.88rem,2.4vw,.94rem);
+    color:rgba(255,255,255,.9); line-height:1.7;}
+  .foot .badge{display:inline-block; margin-top:18px; background:rgba(255,255,255,.18);
+    border:1px solid rgba(255,255,255,.34); border-radius:999px;
+    padding:8px 18px; font-size:.84rem; font-weight:600;}
+
+  @media (max-width:520px){
+    .hero{padding:40px 0 24px;}
+    .card{padding:20px 18px 22px; gap:14px; border-radius:20px;}
+    .card .no{width:32px; height:32px; font-size:.9rem;}
+    .foot{padding:30px 20px; border-radius:22px;}
+  }
+  @media print{
+    body{background:#fff;} .card,.foot{box-shadow:none;} .wrap{padding-bottom:0;}
+  }
+
+  body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:3px;z-index:9999;pointer-events:none;background:linear-gradient(90deg,#3186ff 0%,#3186ff 24%,#2b8ee7 33%,#1fa1ad 41%,#12b572 50%,#91c52b 58%,#ffae0e 66%,#ff6c2e 75%,#c85774 84%,#4380ee 93%,#3186ff 100%);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <svg class="spark" viewBox="0 0 64 64" aria-hidden="true">
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#4a90e8"/><stop offset=".45" stop-color="#4aa8f5"/>
+          <stop offset="1" stop-color="#ac87eb"/>
+        </linearGradient>
+      </defs>
+      <path fill="url(#g)" d="M32 2c1.6 11.7 5.6 18.7 12.4 22.6C51 28.3 56.6 30 62 32c-11.7 1.6-18.7 5.6-22.6 12.4C35.7 51 34 56.6 32 62c-1.6-11.7-5.6-18.7-12.4-22.6C13 35.7 7.4 34 2 32c11.7-1.6 18.7-5.6 22.6-12.4C28.3 13 30 7.4 32 2z"/>
+    </svg>
+    <h1>연수 전, 딱 7가지만<br>준비해 오세요</h1>
+    <p class="lead">노트북으로 직접 만들어보는 실습 연수입니다.<br>아래만 챙기면 준비 끝이에요.</p>
+    <div class="meta">
+      <span><b>9/21(월)</b></span>
+      <span>Gemini Academy</span>
+      <span>고용노동부 × Google</span>
+    </div>
+  </header>
+
+  <main class="list">
+
+    <section class="card c1">
+      <div class="no">1</div>
+      <div class="bd">
+        <h2>충전이 된 노트북</h2>
+        <p>실습 중심 연수라 노트북이 꼭 필요합니다. <b>미리 충전해서</b> 와 주세요.</p>
+      </div>
+    </section>
+    <section class="card c2">
+      <div class="no">2</div>
+      <div class="bd">
+        <h2>구글 크롬 설치</h2>
+        <p><b>크롬 브라우저에서 진행합니다.</b> 미리 설치해 오세요.</p>
+        <a class="link" href="https://www.google.com/chrome/" target="_blank" rel="noopener">google.com/chrome</a>
+      </div>
+    </section>
+    <section class="card c3">
+      <div class="no">3</div>
+      <div class="bd">
+        <h2>구글 계정 2개 — 학교 계정 + 개인 Gmail</h2>
+        <p><b>학교 계정의 경우, 학교마다 보안 설정이 달라 중간에 승인이 한 번 더 필요할 수</b> 있어요. <b>두 계정 다 준비해 주시면 감사하겠습니다.</b></p>
+        <a class="link" href="https://accounts.google.com/signup" target="_blank" rel="noopener">계정 만들기 → accounts.google.com/signup</a>
+      </div>
+    </section>
+    <section class="card c4">
+      <div class="no">4</div>
+      <div class="bd">
+        <h2>구글 드라이브 여유 공간 확보</h2>
+        <p><b>'저장 공간이 부족합니다'</b> 알림이 떠 있으면 미리 정리해 오세요. 실습에서 폼 · 시트 · 스크립트 파일이 내 드라이브에 만들어집니다.</p>
+        <a class="link" href="https://one.google.com/storage" target="_blank" rel="noopener">내 저장용량 확인 → one.google.com/storage</a>
+        <div class="tip">📸 <b>구글 포토 사진 동기화 때문에 꽉 찬 경우가 가장 많아요.</b> 이때는 드라이브를 비워도 소용없고, <b>구글 포토에서 사진을 지워야</b> 용량이 확보됩니다. 드라이브 · 포토 · Gmail이 저장 공간을 함께 쓰기 때문이에요.</div>
+        <a class="link" href="https://photos.google.com" target="_blank" rel="noopener">사진 정리하기 → photos.google.com</a>
+      </div>
+    </section>
+    <section class="card c5 key">
+      <div class="no">5</div>
+      <div class="bd">
+        <h2>크롬에 로그인된 계정 확인 <span class="pill">가장 중요</span></h2>
+        <p>여러 계정이 로그인돼 있으면 <b>실습 파일이 엉뚱한 계정에 만들어집니다.</b></p>
+        <div class="tip blue">크롬 오른쪽 위 <b>프로필 아이콘</b>을 눌러, 실습에 쓸 계정으로 로그인된 상태인지 미리 확인해 주세요.</div>
+      </div>
+    </section>
+    <section class="card c6 key">
+      <div class="no">6</div>
+      <div class="bd">
+        <h2>내 사진 1장을 컴퓨터에 저장 <span class="pill">가장 중요</span></h2>
+        <p>AI로 <b>나만의 MT 캐릭터</b>를 만드는 실습이 있어요. 아래 조건으로 준비해 주세요.</p>
+        <ul class="ox">
+          <li><i>O</i><span>얼굴이 <b>정면으로 또렷하게</b> 보이는, 혼자 나온 사진</span></li>
+          <li><i>O</i><span><b>내 컴퓨터 폴더에 파일로</b> 저장 (카톡 · 인스타 안에 있으면 안 돼요)</span></li>
+          <li class="x"><i>X</i><span>여러 명이 함께 나온 단체사진</span></li>
+        </ul>
+      </div>
+    </section>
+    <section class="card c7 alert">
+      <div class="no">7</div>
+      <div class="bd">
+        <h2>연수 전날부터 제미나이 아껴두기 <span class="pill warn">주의</span></h2>
+        <p>무료 사용 한도가 <b>하루 단위</b>입니다. 이미지 생성뿐 아니라 <b>대화도 같은 한도를 씁니다.</b> 미리 써 버리면 실습 도중 <b>한도 초과로 막힐 수 있어요.</b></p>
+        <div class="tip red">연수 <b>24시간 전부터는 제미나이를 쓰지 말고</b> 와 주세요. <b>실습에서 처음 켜는 것</b>이 가장 안전합니다.</div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <h3>준비하고 오시면<br>MT 하나를 통째로 만들어 갑니다</h3>
+    <p>수요조사 폼부터 실시간 결정 대시보드까지,<br>오늘 만든 건 전부 내 구글 계정에 남습니다.</p>
+    <span class="badge">궁금한 점은 미리 남겨주세요</span>
+  </footer>
+
+</div>
+</body>
+</html>

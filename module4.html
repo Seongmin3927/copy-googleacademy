@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MT 추억 아카이빙 · 엽서 자동 발송 교안</title>
+<link rel="stylesheet" href="fonts/pretendard.css">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" as="style" crossorigin
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+  :root{
+    --cream:#ffffff;
+    --cream-2:#f1f3f4;
+    --paper:#ffffff;
+    --navy:#243551;
+    --navy-2:#34496b;
+    --teal:#1e8e3e;
+    --terra:#1967d2;
+    --gold:#4a90e8;
+    --ink:#2f2a24;
+    --muted:#7a7064;
+    --line:#e8eaed;
+    --shadow:0 14px 40px rgba(36,53,81,.14);
+    --green:#3d8c5a;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;font-size:21px;}
+  body{
+    margin:0;
+    font-family:"Pretendard Variable","Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 80% -10%,#f8f9fa 0%,transparent 60%),
+      radial-gradient(900px 500px at -10% 20%,#ffffff 0%,transparent 55%),
+      var(--cream);
+    line-height:1.72;
+  }
+
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(8px);background:var(--navy);border-bottom:1px solid rgba(255,255,255,.12);}
+  .nav-inner{max-width:1240px;margin:0 auto;padding:12px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+  .brand{font-weight:600;color:#fff;display:flex;align-items:center;gap:8px;font-size:1.02rem;}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--terra);box-shadow:0 0 0 4px rgba(25,103,210,.18);}
+  .nav-links{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;}
+  .nav-links a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.86rem;font-weight:600;padding:6px 11px;border-radius:999px;transition:.18s;}
+  .nav-links a:hover{background:rgba(255,255,255,.18);color:#fff;}
+  .nav-links a{width:32px;height:32px;padding:0;display:grid;place-items:center;border-radius:10px;background:linear-gradient(135deg,#4a90e8,#4aa8f5);color:#fff;font-weight:600;font-size:.95rem;box-shadow:0 3px 10px rgba(25,103,210,.35);}
+  .nav-links a{animation:navGlow 3.6s ease-in-out infinite;}
+  .nav-links a:nth-child(2){animation-delay:.3s;} .nav-links a:nth-child(3){animation-delay:.6s;} .nav-links a:nth-child(4){animation-delay:.9s;} .nav-links a:nth-child(5){animation-delay:1.2s;} .nav-links a:nth-child(6){animation-delay:1.5s;}
+  @keyframes navGlow{0%,100%{box-shadow:0 3px 10px rgba(25,103,210,.35),0 0 8px rgba(66,133,244,.35);}50%{box-shadow:0 3px 12px rgba(25,103,210,.45),0 0 20px rgba(110,168,255,.75);}}
+  @media (prefers-reduced-motion:reduce){.nav-links a{animation:none;}}
+  .nav-links a:hover{background:linear-gradient(135deg,#5a95f6,#ab85d6);color:#fff;transform:translateY(-1px);}
+  .stepcard{scroll-margin-top:74px;}
+
+  .wrap{max-width:1240px;margin:0 auto;padding:0 22px;}
+  section{padding:62px 0;border-bottom:1px dashed var(--line);}
+  section:last-of-type{border-bottom:none;}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#80868b;margin-bottom:14px;}
+  .eyebrow::before{content:"⛺";font-size:1rem;}
+  h2.sec{font-size:1.9rem;margin:0 0 10px;color:var(--navy);font-weight:600;letter-spacing:-.01em;}
+  .lead{font-size:1.06rem;color:var(--muted);max-width:760px;margin:0 0 26px;}
+
+  /* HERO */
+  .hero{position:relative;overflow:hidden;padding:74px 0 64px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(36,53,81,.04),transparent 40%);}
+  .hero .wrap{position:relative;z-index:2;}
+  .tent-path{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.35;}
+  .stamp-badge{display:inline-flex;align-items:center;gap:9px;border:1px solid #dadce0;color:#5f6368;padding:6px 14px;border-radius:999px;font-weight:600;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;background:rgba(255,255,255,.5);}
+  .hero h1{font-size:clamp(2rem,3.4vw,3rem);line-height:1.12;margin:20px 0 14px;color:var(--navy);font-weight:600;letter-spacing:-.035em;}
+  .hero h1 .hl{background:linear-gradient(100deg,#4a90e8,#4aa8f5 40%,#ac87eb 72%,#ee4d5d);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .hero p.sub{font-size:1.15rem;color:var(--navy-2);max-width:680px;margin:0 0 26px;}
+  .meta-row{display:flex;gap:12px;flex-wrap:wrap;}
+  .chip{background:var(--paper);border:0;border-radius:22px;padding:10px 15px;font-size:.9rem;color:var(--navy-2);font-weight:600;box-shadow:0 4px 14px rgba(36,53,81,.05);}
+  .chip b{color:var(--terra);}
+
+  /* CARDS */
+  .grid{display:grid;gap:18px;}
+  .grid-3{grid-template-columns:repeat(3,1fr);}
+  .grid-2{grid-template-columns:repeat(2,1fr);}
+  .card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 10px 28px rgba(36,53,81,.12), 0 2px 6px rgba(36,53,81,.06);}
+  .card h3{margin:0 0 8px;color:var(--navy);font-size:1.12rem;}
+  .card p{margin:0;color:var(--muted);font-size:.95rem;}
+  .card .ico{font-size:1.6rem;margin-bottom:6px;display:block;}
+
+  .why-box{background:linear-gradient(135deg,var(--navy),var(--navy-2));color:#f1f3f4;border-radius:20px;padding:34px 32px;box-shadow:var(--shadow);}
+  .why-box h3{color:#fff;margin:0 0 12px;font-size:1.35rem;}
+  .why-box p{color:#d9e0ec;margin:0 0 14px;}
+
+  /* POSTCARD MOCK */
+  .postcard-wrap{max-width:800px;margin:0 auto;}
+  /* ── 자동화 전→후 크로스페이드 데모 (스타일 A) ── */
+  #autofx .stage{position:relative;}
+  #autofx .imgwrap{position:relative;width:100%;border-radius:14px;overflow:hidden;border:1px solid var(--line);box-shadow:0 10px 30px rgba(36,53,81,.14);background:#243551;aspect-ratio:1630/924;cursor:pointer;}
+  #autofx .imgwrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+  #autofx .fxph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;text-align:center;font-size:.92rem;padding:20px;line-height:1.6;}
+  #autofx .cf .after{opacity:0;transition:opacity .9s ease;}
+  #autofx .cf.done .after{opacity:1;}
+  #autofx .proc{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;z-index:4;}
+  #autofx .proc.on{opacity:1;}
+  #autofx .shimmer{position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);transform:translateX(-100%);}
+  #autofx .proc.on .shimmer{animation:fxsh 1s linear infinite;}
+  @keyframes fxsh{to{transform:translateX(100%);}}
+  #autofx .procbox{position:relative;z-index:2;background:rgba(36,53,81,.85);color:#fff;padding:16px 22px;border-radius:14px;text-align:center;min-width:230px;}
+  #autofx .procbox span{font-weight:600;font-size:.95rem;}
+  #autofx .bar{height:7px;background:rgba(255,255,255,.25);border-radius:99px;margin-top:11px;overflow:hidden;}
+  #autofx .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--terra),#4a90e8);border-radius:99px;transition:width 1s linear;}
+  #autofx .spin{width:26px;height:26px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;margin:0 auto 8px;animation:fxsp .7s linear infinite;}
+  @keyframes fxsp{to{transform:rotate(360deg);}}
+  #autofx .fxbadge{position:absolute;top:12px;right:12px;background:var(--teal);color:#fff;font-weight:600;padding:7px 14px;border-radius:99px;box-shadow:0 6px 16px rgba(30,142,62,.4);opacity:0;transform:translateY(-6px);transition:.3s;z-index:5;}
+  #autofx .fxbadge.on{opacity:1;transform:none;}
+  #autofx .controls{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;}
+  #autofx .run{background:#243551;color:#fff;border:none;font-weight:600;font-size:1rem;padding:13px 24px;border-radius:14px;cursor:pointer;box-shadow:0 4px 14px rgba(60,64,67,.16);animation:revpulse 1.6s ease-in-out infinite;}
+  #autofx .run:disabled{opacity:.5;animation:none;cursor:default;}
+  #autofx .reset{background:var(--paper);border:1px solid var(--line);color:var(--navy);font-weight:600;padding:11px 18px;border-radius:14px;cursor:pointer;}
+  #autofx .hint{color:var(--muted);font-size:.85rem;}
+  /* ── 봉투 발송 피날레 (인트로에서 이식) ── */
+  #autofx .imgwrap.sending .before,#autofx .imgwrap.sending .after{animation:m4cardIn 1.6s ease forwards;}
+  @keyframes m4cardIn{0%{transform:scale(1);opacity:1;}22%{transform:scale(.4);opacity:1;}30%,100%{transform:scale(0);opacity:0;}}
+  #autofx .fxenv{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(5rem,28vw,13rem);line-height:1;z-index:6;opacity:0;transform:scale(0);pointer-events:none;filter:drop-shadow(0 10px 22px rgba(0,0,0,.4));}
+  #autofx .imgwrap.sending .fxenv{animation:m4envFly 1.6s ease forwards;}
+  @keyframes m4envFly{0%,28%{transform:scale(0);opacity:0;}36%{opacity:1;}56%{transform:scale(1);opacity:1;}64%{transform:scale(1.08);}72%{transform:scale(.97);}100%{transform:translate(55%,-120%) scale(.45) rotate(14deg);opacity:0;}}
+  #autofx .fxsent{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);z-index:7;background:rgba(30,142,62,.95);color:#fff;font-weight:700;font-size:1rem;padding:9px 18px;border-radius:999px;white-space:nowrap;opacity:0;transition:.3s cubic-bezier(.2,.9,.3,1);box-shadow:0 6px 18px rgba(30,142,62,.4);}
+  #autofx .imgwrap.sent .fxsent{opacity:1;transform:translate(-50%,-50%) scale(1);}
+  #autofx .imgwrap.sending .fxbadge{opacity:0;transition:opacity .3s;}
+  #autofx .imgwrap.sending .fxph,#autofx .imgwrap.sent .fxph{opacity:0;transition:opacity .2s;}
+  @media (prefers-reduced-motion: reduce){ #autofx .imgwrap.sending .before,#autofx .imgwrap.sending .after{animation:none;} #autofx .imgwrap.sending .fxenv{display:none;} }
+  .postcard-demo{
+    background:#fcfcfd;border:0;border-radius:24px;
+    overflow:hidden;box-shadow:var(--shadow);aspect-ratio:16/9;
+    display:grid;grid-template-columns:1fr 1fr;
+  }
+  .pc-photo{background:linear-gradient(135deg,#d4e8d0,#a8c5a0);display:flex;align-items:center;justify-content:center;position:relative;}
+  .pc-photo .ph-label{color:rgba(255,255,255,.7);font-size:.8rem;font-weight:600;text-align:center;}
+  .pc-photo .ph-icon{font-size:3rem;display:block;margin-bottom:8px;}
+  .pc-photo .stamp-mt{position:absolute;top:14px;right:14px;width:56px;height:56px;border:3px solid rgba(255,255,255,.6);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(25,103,210,.75);color:#fff;font-size:.52rem;font-weight:600;text-align:center;line-height:1.3;}
+  .pc-right{padding:24px;display:flex;flex-direction:column;gap:12px;border-left:1px solid var(--line);}
+  .pc-to{font-size:.7rem;font-weight:600;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;}
+  .pc-name{font-size:1.5rem;font-weight:600;color:var(--navy);}
+  .pc-entry{display:inline-block;background:var(--terra);color:#fff;font-weight:600;font-size:1.1rem;padding:5px 14px;border-radius:8px;}
+  .pc-memory{font-size:.85rem;color:var(--navy-2);line-height:1.6;background:var(--cream);border-radius:10px;padding:10px 12px;margin:0;}
+  .pc-lines{display:flex;flex-direction:column;gap:5px;margin-top:auto;}
+  .pc-lines span{display:block;height:1px;background:var(--line);}
+  .pc-lines span:nth-child(2){width:60%;}
+  .reveal-controls{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center;}
+  .run-btn{background:#1967d2;color:#fff;border:none;font-weight:600;font-size:1.02rem;padding:14px 26px;border-radius:14px;cursor:pointer;box-shadow:0 4px 14px rgba(60,64,67,.16);animation:revpulse 1.6s ease-in-out infinite;}
+  @keyframes revpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.04);}}
+  .before-state,.after-state{display:none;}
+  .before-state.on,.after-state.on{display:block;}
+  .entry-demo{text-align:center;padding:40px;background:var(--paper);border:0;border-radius:24px;box-shadow:var(--shadow);}
+  .entry-demo .e-num{font-size:4rem;font-weight:700;color:var(--terra);line-height:1;}
+  .entry-demo .e-label{color:var(--muted);font-size:.9rem;margin-top:8px;}
+
+  /* FLOW */
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;justify-content:center;}
+  .flow .step{flex:1 1 130px;min-width:120px;background:#fff;border:1px solid var(--line);border-radius:22px;padding:18px 14px;text-align:center;box-shadow:0 10px 28px rgba(36,53,81,.12), 0 2px 6px rgba(36,53,81,.06);position:relative;}
+  .flow .step .n{width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;margin:0 auto 8px;font-size:.85rem;}
+  .flow .step .ico{font-size:1.7rem;display:block;margin-bottom:6px;}
+  .flow .step h4{margin:0 0 4px;font-size:.95rem;color:var(--navy);}
+  .flow .step p{margin:0;font-size:.78rem;color:var(--muted);}
+  /* 흐르는 펄스 — 데이터가 폼→시트→…→메일로 자동으로 흘러가는 느낌 */
+  @media (prefers-reduced-motion: no-preference){
+    #auto-flow .step{animation:flowStep 5s ease-in-out infinite;}
+    #auto-flow .arr{animation:flowArr 5s ease-in-out infinite;}
+    #auto-flow > *:nth-child(1){animation-delay:0s;}
+    #auto-flow > *:nth-child(2){animation-delay:.42s;}
+    #auto-flow > *:nth-child(3){animation-delay:.84s;}
+    #auto-flow > *:nth-child(4){animation-delay:1.26s;}
+    #auto-flow > *:nth-child(5){animation-delay:1.68s;}
+    #auto-flow > *:nth-child(6){animation-delay:2.10s;}
+    #auto-flow > *:nth-child(7){animation-delay:2.52s;}
+    #auto-flow > *:nth-child(8){animation-delay:2.94s;}
+    #auto-flow > *:nth-child(9){animation-delay:3.36s;}
+    #auto-flow > *:nth-child(10){animation-delay:3.78s;}
+    #auto-flow > *:nth-child(11){animation-delay:4.20s;}
+  }
+  @keyframes flowStep{
+    0%,4%,24%,100%{border-color:var(--line);box-shadow:0 10px 28px rgba(36,53,81,.12),0 2px 6px rgba(36,53,81,.06);transform:translateY(0);}
+    12%{border-color:rgba(25,103,210,.55);box-shadow:0 16px 36px rgba(25,103,210,.30),0 0 0 2px rgba(25,103,210,.38);transform:translateY(-3px);}
+  }
+  @keyframes flowArr{
+    0%,4%,24%,100%{color:var(--muted);opacity:.8;transform:translateX(0) scale(1);}
+    12%{color:#1967d2;opacity:1;transform:translateX(3px) scale(1.22);}
+  }
+  .flow .arr{display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:1.5rem;padding:0 6px;}
+  @media(max-width:760px){.flow .arr{transform:rotate(90deg);padding:6px 0;}.flow{flex-direction:column;}}
+
+  /* SCALE MOCK */
+  .scale-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media(max-width:820px){.scale-grid{grid-template-columns:1fr;}}
+  .mock{background:#fff;border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 10px 28px rgba(36,53,81,.12), 0 2px 6px rgba(36,53,81,.06);}
+  .mock-head{background:var(--navy);color:#fff;font-weight:600;font-size:.9rem;padding:11px 14px;}
+  .mock-sheet{font-size:.76rem;}
+  .mock-sheet .r{display:grid;grid-template-columns:1.4fr 1fr 1.4fr .7fr;border-bottom:1px solid #eceff1;}
+  .mock-sheet .r>div{padding:7px 10px;border-right:1px solid #f1f3f4;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+  .mock-sheet .r.h{background:#e8f0ef;font-weight:600;color:var(--navy);}
+  .mock-sheet .r.new{animation:rowin .6s ease;}
+  @keyframes rowin{from{background:#fef9e7;}to{background:transparent;}}
+  .mock-counter{text-align:center;color:var(--teal);font-weight:600;padding:9px;font-size:.82rem;border-top:1px solid #eceff1;background:#fcfcfd;}
+  .mock-drive{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px;}
+  .mock-drive .pdf{border:1px solid var(--line);border-radius:10px;padding:12px 6px;text-align:center;background:#fcfcfd;font-size:.7rem;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+  .mock-drive .pdf .ic{font-size:1.5rem;display:block;margin-bottom:4px;}
+  .mock-drive .pdf.new{animation:rowin .6s ease;}
+
+  /* STEP CARDS */
+  .stepcard{background:var(--paper);border:0;border-radius:24px;padding:26px 28px;margin-bottom:20px;box-shadow:0 6px 20px rgba(36,53,81,.05);}
+  #hands .stepcard{margin-bottom:4.5rem;}
+  /* 모듈3과 같은 푸른 빛 단계 카드 */
+  .stepcard[id^="step"]{box-shadow:0 6px 20px rgba(36,53,81,.05),0 0 22px rgba(25,103,210,.16);animation:cardGlow 3.6s ease-in-out infinite;transition:box-shadow .25s;}
+  .stepcard[id^="step"]:hover{box-shadow:0 10px 28px rgba(36,53,81,.10),0 0 40px rgba(25,103,210,.40);}
+  @keyframes cardGlow{0%,100%{box-shadow:0 6px 20px rgba(36,53,81,.06),0 0 18px rgba(25,103,210,.14);}50%{box-shadow:0 8px 26px rgba(36,53,81,.09),0 0 40px rgba(25,103,210,.34);}}
+  #step2.stepcard{animation-delay:.5s;} #step3.stepcard{animation-delay:1s;} #step4.stepcard{animation-delay:1.5s;} #step5.stepcard{animation-delay:2s;} #step6.stepcard{animation-delay:2.5s;}
+  @media (prefers-reduced-motion:reduce){.stepcard[id^="step"]{animation:none;}}
+  .stepcard .head{display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+  .stepcard .num{flex:none;width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#4a90e8,#4aa8f5);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:1.15rem;box-shadow:0 5px 14px rgba(25,103,210,.35);}
+  .stepcard .head h3{margin:0;color:var(--navy);font-size:1.2rem;}
+  .stepcard ol,.stepcard ul{margin:8px 0 0;padding-left:20px;color:var(--ink);}
+  .stepcard li{margin-bottom:7px;}
+  .stepcard .note{background:#f8f9fa;border-left:4px solid #4a90e8;border-radius:0 10px 10px 0;padding:12px 16px;margin-top:14px;font-size:.92rem;color:var(--navy-2);}
+  .stepcard .warn{background:#fff1f0;border-left:4px solid #e05555;border-radius:0 10px 10px 0;padding:12px 16px;margin-top:14px;font-size:.92rem;color:#7a2020;}
+
+  /* COLLAPSIBLE */
+  #hands .stepcard.collapsible{padding-top:0;padding-bottom:0;}
+  #hands .stepcard.collapsible .head{cursor:pointer;padding:22px 0;margin-bottom:0;user-select:none;}
+  #hands .stepcard.collapsible .head:hover h3{color:var(--terra);}
+  #hands .stepcard .donebtn{flex:none;margin-left:auto;border:1px solid var(--line);background:var(--cream-2);color:var(--muted);border-radius:999px;padding:5px 13px;font-size:.78rem;font-weight:600;cursor:pointer;transition:.15s;}
+  #hands .stepcard .donebtn:hover{border-color:var(--teal);color:var(--teal);}
+  #hands .stepcard.done .donebtn{background:#1e8e3e;color:#fff;border-color:#1e8e3e;}
+  #hands .stepcard.done .num{background:linear-gradient(135deg,#1e8e3e,#1e8e3e);box-shadow:0 2px 8px rgba(60,64,67,.14);}
+  #hands .stepcard.done .head h3{color:var(--muted);}
+  #hands .stepcard .chev{flex:none;margin-left:12px;color:var(--terra);font-size:1.05rem;transition:transform .2s;}
+  #hands .stepcard.collapsed .chev{transform:rotate(-90deg);}
+  #hands .stepcard .m-body{padding:0 0 24px;animation:missionfade .25s ease;}
+  #hands .stepcard.collapsed .m-body{display:none;}
+  @keyframes missionfade{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
+
+  /* GEMINI BOX */
+  .gemini-box{background:linear-gradient(135deg,#e9f2ff,#e6f8ef);border:2px dashed #4a90e8;border-radius:18px;padding:24px 26px;margin:16px 0;box-shadow:0 6px 20px rgba(66,133,244,.1);}
+  .gemini-box .gh{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+  .gemini-box .gi{flex:none;width:42px;height:42px;border-radius:14px;background:#1967d2;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 5px 14px rgba(66,133,244,.35);}
+  .gemini-box h3{margin:0;color:var(--navy);font-size:1.18rem;}
+  .gemini-box p{color:var(--navy-2);margin:0 0 12px;}
+  .prompt-box{background:#fff;border:1px solid #d4e2ff;border-radius:14px;padding:16px 18px;font-size:.9rem;color:var(--ink);line-height:1.7;white-space:pre-wrap;font-family:inherit;position:relative;}
+
+  /* CODE */
+  .codewrap{position:relative;margin-top:16px;}
+  .codewrap .copy{position:absolute;top:12px;right:12px;z-index:2;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:6px 12px;font-size:.78rem;font-weight:600;cursor:pointer;transition:.15s;}
+  .codewrap .copy:hover{background:rgba(255,255,255,.22);}
+  .codewrap .copy.ok{background:rgba(30,142,62,.8);border-color:#1e8e3e;}
+  pre{background:#1f2d44;color:#e6edf3;border-radius:14px;padding:22px 20px 22px 20px;overflow:auto;font-family:"SFMono-Regular",Consolas,Menlo,monospace;font-size:.82rem;line-height:1.6;margin:0;box-shadow:var(--shadow);}
+  pre .c{color:#8aa0bd;}
+  pre .k{color:#4a90e8;}
+  pre .s{color:#a5d6a7;}
+  pre .n{color:#79c0ff;}
+  .mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;background:var(--cream-2);padding:1px 6px;border-radius:5px;font-size:.86rem;color:var(--terra);}
+  .kbd{background:var(--cream-2);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:.85rem;font-weight:600;color:var(--navy);font-family:inherit;}
+  .substep{font-weight:600;color:var(--navy);margin:18px 0 4px;font-size:1.05rem;}
+  details.tip{margin-top:16px;background:#f8f9fa;border:1px solid #c6dafc;border-radius:14px;padding:2px 18px;}
+  details.tip summary{cursor:pointer;font-weight:600;color:var(--navy);padding:12px 0;list-style:none;}
+  details.tip summary::-webkit-details-marker{display:none;}
+  details.tip summary::before{content:"▸  ";color:var(--terra);font-weight:600;}
+  details.tip[open] summary::before{content:"▾  ";}
+  details.tip .tip-body{padding:0 0 14px;color:var(--navy-2);font-size:.95rem;}
+
+  /* CLOSING */
+  .closing{background:linear-gradient(120deg,#2f7fe6,#2f97ec 40%,#a27fe0 72%,#e5566a);color:#fff;border-radius:22px;padding:44px 38px;text-align:center;box-shadow:0 14px 36px rgba(47,127,230,.26);}
+  .closing h2{color:#fff;font-size:1.75rem;margin:0 0 12px;}
+  .closing p{color:#eef3fb;max-width:660px;margin:0 auto;font-size:1.03rem;}
+  .closing .ach-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:24px 0;}
+  .closing .ach{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.26);border-radius:14px;padding:14px 18px;min-width:150px;font-weight:600;font-size:.93rem;line-height:1.45;color:#fff;}
+  .closing .ach .n{font-size:1.7rem;margin-bottom:5px;}
+  .closing .ach span{display:block;font-weight:400;opacity:.85;font-size:.8rem;margin-top:2px;}
+
+  footer{padding:40px 0 60px;text-align:center;color:var(--muted);font-size:.85rem;}
+
+  /* PROGRESS BAR */
+  #progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--terra),var(--teal));width:0%;z-index:999;transition:width .1s;}
+
+  @media(max-width:820px){.grid-3,.grid-2{grid-template-columns:1fr;}.postcard-demo{grid-template-columns:1fr;aspect-ratio:auto;}}
+
+  body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:3px;z-index:9999;pointer-events:none;background:linear-gradient(90deg,#3186ff 0%,#3186ff 24%,#2b8ee7 33%,#1fa1ad 41%,#12b572 50%,#91c52b 58%,#ffae0e 66%,#ff6c2e 75%,#c85774 84%,#4380ee 93%,#3186ff 100%);}
+
+  .hero{position:relative;}
+  .hero::before{content:"";position:absolute;inset:-40px 0 -10px;z-index:0;pointer-events:none;
+    background:radial-gradient(620px 360px at 22% 30%, rgba(233,242,255,.95) 0%, rgba(233,242,255,0) 70%),radial-gradient(560px 340px at 68% 22%, rgba(238,226,248,.85) 0%, rgba(238,226,248,0) 70%),radial-gradient(600px 360px at 82% 62%, rgba(224,236,252,.8) 0%, rgba(224,236,252,0) 70%),radial-gradient(620px 380px at 38% 78%, rgba(224,240,255,.9) 0%, rgba(224,240,255,0) 70%);}
+  .hero > *{position:relative;z-index:1;}
+  .hero > .tent-path{position:absolute;inset:0;width:100%;height:100%;z-index:1;}
+
+  .cta-btn.teal{background:#243551;}
+  .cta-btn:hover,.run:hover,.gasrun-btn:hover{filter:brightness(1.25);}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <div class="nav-inner">
+    <div class="brand"><span class="dot"></span>MT 추억 아카이빙</div>
+    <div class="nav-links">
+      <a href="#step1" title="실습 1" aria-label="실습 1">1</a>
+      <a href="#step2" title="실습 2" aria-label="실습 2">2</a>
+      <a href="#step3" title="실습 3" aria-label="실습 3">3</a>
+      <a href="#step4" title="실습 4" aria-label="실습 4">4</a>
+      <a href="#step5" title="실습 5" aria-label="실습 5">5</a>
+      <a href="#step6" title="실습 6" aria-label="실습 6">6</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <svg class="tent-path" viewBox="0 0 1080 360" preserveAspectRatio="none">
+    <path d="M-20,300 C200,200 400,320 600,180 800,60 1000,160 1120,100"
+          fill="none" stroke="#1967d2" stroke-width="2" stroke-dasharray="3 9" stroke-linecap="round"/>
+    <path d="M100,360 L280,180 L460,360" fill="none" stroke="#1e8e3e" stroke-width="1.5" stroke-dasharray="4 8" opacity=".5"/>
+    <path d="M650,340 L820,170 L990,340" fill="none" stroke="#1e8e3e" stroke-width="1.5" stroke-dasharray="4 8" opacity=".4"/>
+  </svg>
+  <div class="wrap">
+    <span class="stamp-badge">Module 4 · Postcard Automation</span>
+    <h1>과대표도, 총무도, 기획부장도<br><span class="hl">자동화 로봇</span>을 만듭니다<span style="display:block;font-size:.46em;font-weight:600;color:var(--navy-2);margin-top:12px;letter-spacing:0;line-height:1.4;">— MT 추억 엽서 + 추첨 응모번호, 한 명씩 손으로 보낼 필요 없습니다 —</span></h1>
+    <p class="sub">폼에 이름·소감·사진을 올리면 — 아무도 건드리지 않아도 — 맞춤 엽서가 자동으로 만들어져 메일로 도착합니다. Apps Script로 <b>사람 없이 돌아가는 자동화 시스템</b>을 직접 만들어 봅니다.</p>
+    <div class="meta-row">
+      <div class="chip">역할 · <b>과대표 / 동아리 기획부장</b></div>
+      <div class="chip">역량 · <b>업무 자동화 (Gemini 활용)</b></div>
+      <div class="chip">대상 · <b>대학생 연수 참가자</b></div>
+      <div class="chip">도구 · <b>구글 폼 · 시트 · 슬라이드 · Apps Script</b></div>
+    </div>
+  </div>
+</header>
+
+<!-- ── 개요 ── -->
+<section id="overview">
+  <div class="wrap">
+    <span class="eyebrow">한눈에 보기</span>
+    <h2 class="sec">무엇을 · 왜 · 어떻게</h2>
+    <p class="lead">코드를 외우지 않아도 됩니다. Gemini에게 코드를 만들어달라고 시키고, 그 코드를 붙여 넣으면 끝입니다. "내가 만든 로봇이 실제로 일하는 모습"을 눈으로 확인하는 것 — 그 경험이 오늘의 목표입니다.</p>
+    <div style="background:#e6f8ef;border-left:4px solid var(--teal);border-radius:0 12px 12px 0;padding:14px 18px;margin:0 0 22px;color:var(--navy-2);font-size:.96rem;">💡 <b>모듈 3에서 만난 앱스 스크립트(Apps Script), 기억나죠?</b> 그땐 데이터를 <b>'읽어서 내보내는(API)'</b> 용도였고, 이번엔 폼 제출에 <b>자동으로 반응해 일하는(트리거)</b> 용도예요. <b>같은 도구, 다른 초능력!</b> 🤖</div>
+    <div class="grid grid-3">
+      <div class="card">
+        <span class="ico">🎯</span>
+        <h3>무엇을 (What)</h3>
+        <p>MT 폼 응답 → 맞춤 추억 엽서 PDF 자동 생성 → 신청자 이메일 자동 발송 → 추첨 응모번호 자동 부여. 사람 손 없이 한 번에.</p>
+      </div>
+      <div class="card">
+        <span class="ico">💡</span>
+        <h3>왜 (Why)</h3>
+        <p>50명 MT가 끝난 뒤 한 명 한 명 메일 보내기, 응모번호 관리하기 — 이 반복 작업을 AI·자동화에게 맡기는 첫 성공 경험을 만들기 위해서.</p>
+      </div>
+      <div class="card">
+        <span class="ico">🔧</span>
+        <h3>어떻게 (How)</h3>
+        <p>구글 워크스페이스 안에서 Apps Script 한 벌과 트리거 하나로. 설치·결제 없이 누구나 따라 할 수 있게. Gemini가 코드를 써줍니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 왜 자동화 ── -->
+<section id="why">
+  <div class="wrap">
+    <span class="eyebrow">메시지</span>
+    <h2 class="sec">왜 지금 "자동화"인가</h2>
+    <p class="lead">MT 뒤처리는 사실 거창한 일이 아닙니다. 그런데 이 작은 반복 업무가 가장 먼저 자동화되어야 할 것들입니다.</p>
+    <div class="why-box">
+      <h3>과대표·총무가 MT 후에 하는 일을 떠올려 보세요</h3>
+      <p>참가자 50명 명단 확인 → 각자 이름 불러서 메일 초안 작성 → 첨부파일 붙이기 → 한 명씩 발송 → 응모번호 엑셀 관리 → 추첨까지.</p>
+      <p>사람이 하면 지치고 실수하지만, 한 번 자동화해두면 <b>24시간, 실수 없이, 똑같이</b> 일합니다. 심지어 여러 명이 동시에 제출해도 응모번호가 겹치지 않습니다.</p>
+      <p>오늘 여러분은 이 시스템을 <b>직접 손으로 한 번 만들어</b> 봅니다. 완성 후엔 동아리 신입 모집, 행사 응모, 방명록 — 어디든 그대로 가져다 쓸 수 있습니다. 진짜 핵심은 코딩 실력이 아니라 <b>"이 반복은 자동화할 수 있다"는 눈</b>이에요.</p>
+    </div>
+
+    <div style="margin-top:24px;background:#fff;border:1px solid var(--line);border-radius:24px;padding:28px 30px;box-shadow:0 10px 28px rgba(36,53,81,.12), 0 2px 6px rgba(36,53,81,.06);">
+      <h3 style="margin:0 0 12px;color:var(--navy);font-size:1.2rem;">왜 지금, '자동화'가 가장 강력한 무기일까</h3>
+      <p style="color:var(--navy-2);margin:0 0 16px;">작은 반복부터 AI 에이전트에게 맡겨본 경험이 쌓이면, 더 큰 업무 흐름도 스스로 설계하게 돼요. 그래서 요즘 <b>기업이 채용에서 보는 'AI 활용 능력'</b>의 핵심이 바로 이것 — <b>반복을 스스로 자동화하는 힘</b>입니다. 일을 빨리 하는 사람보다 <b>'사람 없이 돌아가는 시스템'을 만드는 사람</b>이 앞서가는 시대예요.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <span style="background:var(--cream-2);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:.88rem;font-weight:600;color:var(--navy-2);">⏱ 반복 업무 시간 절약</span>
+        <span style="background:var(--cream-2);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:.88rem;font-weight:600;color:var(--navy-2);">🎯 사람의 실수 제거</span>
+        <span style="background:var(--cream-2);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:.88rem;font-weight:600;color:var(--navy-2);">💼 채용이 보는 'AI 활용 역량'</span>
+        <span style="background:var(--cream-2);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:.88rem;font-weight:600;color:var(--navy-2);">🤖 AI 에이전트 시대</span>
+        <span style="background:var(--cream-2);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:.88rem;font-weight:600;color:var(--navy-2);">⚙️ 반복을 시스템으로</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 완성 모습 ── -->
+<section id="result">
+  <div class="wrap">
+    <span class="eyebrow">완성 모습</span>
+    <h2 class="sec">자동화 전 → 후, 이렇게 바뀝니다</h2>
+    <p class="lead">아래 빈 엽서에서 <b>자동화 실행하기</b>를 눌러 보세요! 참가자가 폼을 제출하면,<br>사진과 이름·MT 소감·<b>추첨 응모번호</b>가 채워진 엽서가 이렇게 자동으로 완성되어 메일로 도착합니다.</p>
+
+    <div id="autofx" class="postcard-wrap">
+      <div class="stage">
+        <div class="imgwrap cf">
+          <div class="fxph">🖼️ <b>엽서_before.png</b> · <b>엽서_after.png</b> 두 이미지를 <br>연수교안_통합 폴더에 저장하면 여기에 표시돼요</div>
+          <img class="before" src="postcard-before.jpg" alt="빈 엽서 (자동화 전)" onerror="this.style.display='none';">
+          <img class="after" src="postcard-after.jpg" alt="완성 엽서 (자동화 후)" onerror="this.style.display='none';">
+          <div class="proc"><div class="shimmer"></div>
+            <div class="procbox"><div class="spin"></div><span>자동화 처리 중&#8230;</span><div class="bar"><i></i></div></div>
+          </div>
+          <div class="fxbadge">완성! ✨</div>
+          <div class="fxenv" aria-hidden="true">✉️</div>
+          <div class="fxsent">✉️ 메일로 발송 완료!</div>
+        </div>
+        <div class="controls">
+          <button class="run" type="button">▶ 자동화 실행하기 (폼 제출!)</button>
+          <button class="reset" type="button" style="display:none;">↻ 다시 보기</button>
+        </div>
+      </div>
+    </div>
+    <p style="text-align:center;max-width:700px;margin:26px auto 0;color:var(--navy-2);font-weight:600;">그리고 이건 한 명이 아니라, 폼에 참여한 <b>모든 사람에게 똑같이 — 사람 손 없이 —</b> 자동으로 일어납니다.</p>
+  </div>
+</section>
+
+<!-- ── 자동화 흐름 ── -->
+<section id="flow">
+  <div class="wrap">
+    <span class="eyebrow">자동화 흐름</span>
+    <h2 class="sec">폼에서 메일까지 — 자동으로 일어나는 일</h2>
+    <p class="lead">참가자는 폼을 제출하기만 하면 됩니다. 그 뒤의 모든 단계는 Apps Script가 자동으로 처리해요 — <b>사람 손이 닿는 곳은 '폼 제출' 단 하나</b>, 기록·생성·발송·보관은 전부 무인 자동입니다.</p>
+    <div class="flow" id="auto-flow">
+      <div class="step">
+        <div class="n">1</div>
+        <span class="ico">📋</span>
+        <h4>구글 폼</h4>
+        <p>이름·소감·사진·이메일 입력 후 제출</p>
+      </div>
+      <div class="arr">→</div>
+      <div class="step">
+        <div class="n">2</div>
+        <span class="ico">📊</span>
+        <h4>구글 시트</h4>
+        <p>응답이 자동으로 기록됨. 행 번호 = 응모번호</p>
+      </div>
+      <div class="arr">→</div>
+      <div class="step">
+        <div class="n">3</div>
+        <span class="ico">⚡</span>
+        <h4>트리거 발동</h4>
+        <p>onFormSubmit이 실행되어 Apps Script 시작</p>
+      </div>
+      <div class="arr">→</div>
+      <div class="step">
+        <div class="n">4</div>
+        <span class="ico">🖼️</span>
+        <h4>슬라이드 복사</h4>
+        <p>템플릿을 복사해 이름·소감·사진·응모번호 자동 삽입</p>
+      </div>
+      <div class="arr">→</div>
+      <div class="step">
+        <div class="n">5</div>
+        <span class="ico">📄</span>
+        <h4>PDF 변환</h4>
+        <p>완성된 슬라이드를 PDF로 변환 후 드라이브에 저장</p>
+      </div>
+      <div class="arr">→</div>
+      <div class="step">
+        <div class="n">6</div>
+        <span class="ico">📧</span>
+        <h4>메일 발송</h4>
+        <p>신청자 이메일로 엽서 PDF + 응모번호 자동 발송</p>
+      </div>
+    </div>
+
+    <div style="margin-top:28px;" class="card">
+      <h3>🔑 핵심 기술 한 줄 설명</h3>
+      <ul style="margin:8px 0;padding-left:20px;color:var(--ink);font-size:.95rem;">
+        <li><b>텍스트 치환</b> — 슬라이드 안의 <span class="mono">{{이름}}</span>, <span class="mono">{{소감}}</span>, <span class="mono">{{응모번호}}</span>를 찾아 실제 값으로 바꿔치기</li>
+        <li><b>사진 치환</b> — 대체 텍스트가 <span class="mono">사진자리</span>인 도형을 업로드한 사진으로 교체 (글자가 아닌 도형이라 별도 처리)</li>
+        <li><b>응모번호 생성</b> — <span class="mono">e.range.getRow()</span>로 행 번호를 읽어 자동 계산</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ── 무인 운영 ── -->
+<section id="scale">
+  <div class="wrap">
+    <span class="eyebrow">무인 운영</span>
+    <h2 class="sec">시스템이 알아서 처리하는 모습</h2>
+    <p class="lead">한 번 만들어두면 제출이 들어올 때마다 자동으로 응모번호를 매기고 엽서를 만들어 메일을 보냅니다. 과대표는 아무것도 안 해도 됩니다.</p>
+    <div class="scale-grid">
+      <div class="mock">
+        <div class="mock-head">📊 구글 시트 — 응답 자동 기록</div>
+        <div class="mock-sheet">
+          <div class="r h"><div>이름</div><div>응모번호</div><div>이메일</div><div>상태</div></div>
+          <div class="r"><div>김민준</div><div>#001</div><div>minj***</div><div>✅발송</div></div>
+        </div>
+        <div class="mock-counter" id="sheet-count">총 1명 · 응모번호 #001 자동 부여</div>
+      </div>
+      <div class="mock">
+        <div class="mock-head">📁 구글 드라이브 — 엽서 PDF 자동 저장</div>
+        <div class="mock-drive" id="drive-files">
+          <div class="pdf"><span class="ic">📄</span>MT추억엽서_김민준_001</div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:18px;">
+      <button onclick="replaySim()" id="sim-btn" class="run-btn" style="display:none;animation:none;font-size:.95rem;padding:12px 22px;">↻ 처음부터 다시 보기</button>
+    </div>
+  </div>
+</section>
+
+<!-- ── 직접 체험 ── -->
+<section id="try">
+  <div class="wrap">
+    <span class="eyebrow">직접 체험</span>
+    <h2 class="sec">먼저, 내 엽서를 직접 받아보기</h2>
+    <p class="lead">시스템을 만들기 전에, 여러분이 먼저 <b>'참여자'</b>가 되어 봅니다. 체험 폼에 <b>MT 소감</b>을 적고 사진을 올려 신청하면 잠시 후 메일함에 <b>내 이름·사진·추첨 응모번호가 박힌 추억 엽서</b>가 도착해요. 이걸 경험한 뒤, 아래 실습에서 직접 이 시스템을 만듭니다.</p>
+    <div class="stepcard" style="border:2px solid var(--teal);max-width:820px;">
+      <div class="head">
+        <div class="num" style="background:#1967d2;box-shadow:0 2px 8px rgba(60,64,67,.14);">✈</div>
+        <h3>체험 순서</h3>
+      </div>
+      <ol>
+        <li>아래 <b>체험 폼 열기</b> 버튼을 누릅니다.</li>
+        <li><b>메일 주소 · 이름 · MT 소감</b>을 입력하고, 사진 한 장을 첨부한 뒤 제출합니다.</li>
+        <li>잠시 후 <b>메일함을 확인</b>합니다 — 엽서가 도착했나요?</li>
+        <li>받은 엽서에 <b>내 이름·사진·추첨 응모번호</b>가 잘 들어갔는지 확인합니다.</li>
+      </ol>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSeqpVepQTnv-9_PQtIl4pQD21HcTBptpd8q1mb0MB3Dhzyg6w/viewform?usp=header" target="_blank" rel="noopener" style="display:inline-block;margin-top:16px;background:#1967d2;color:#fff;text-decoration:none;font-weight:600;font-size:1rem;padding:12px 24px;border-radius:14px;box-shadow:0 4px 14px rgba(60,64,67,.16);">✈ 체험 폼 열기</a>
+      <p style="margin-top:16px;font-weight:600;color:var(--navy);">제출하면 이렇게 완성 엽서가 메일로 도착해요</p>
+      <img src="postcard-mail.png" alt="신청자에게 도착한 완성 엽서 메일" style="display:block;width:100%;max-width:560px;margin:8px 0 0;border:0;border-radius:22px;box-shadow:0 8px 22px rgba(36,53,81,.1);" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <div style="display:none;align-items:center;justify-content:center;border:2px dashed var(--terra);border-radius:14px;background:rgba(25,103,210,.06);color:var(--terra);font-weight:600;font-size:.92rem;padding:18px;text-align:center;max-width:560px;">🖼️ 완성 엽서 메일 캡처 (파일명: postcard-mail.png)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 실습 6단계 ── -->
+<section id="hands">
+  <div class="wrap">
+    <span class="eyebrow">따라하기</span>
+    <h2 class="sec">실습 — 6단계로 시스템 만들기</h2>
+    <p class="lead">각 단계를 완료하면 ✅ 버튼을 눌러 체크하세요. 순서대로 따라오면 자동화 시스템이 완성됩니다.</p>
+
+    <!-- STEP 1 -->
+    <div class="stepcard collapsible" id="step1">
+      <div class="head" onclick="toggleStep('step1')">
+        <div class="num">1</div>
+        <h3>슬라이드 엽서 템플릿 만들기</h3>
+        <button class="donebtn" onclick="doneStep(event,'step1')">✅ 완료</button>
+        <span class="chev">▾</span>
+      </div>
+      <div class="m-body">
+        <p>엽서 디자인 배경 위에 텍스트박스와 사진 도형을 올려 템플릿을 만듭니다. <b>시간이 부족하면 아래 '사본 만들기'로 완성 템플릿을 내 드라이브에 복사</b>해서 바로 쓰면 됩니다.</p>
+        <a href="https://docs.google.com/presentation/d/1upH9NKxjFhDNGc_tT6ManIgGDNNKpoaDU_OijLz9ads/copy" target="_blank" rel="noopener" style="display:inline-block;margin:8px 0 6px;background:#1967d2;color:#fff;text-decoration:none;font-weight:600;font-size:1rem;padding:12px 22px;border-radius:14px;box-shadow:0 8px 20px rgba(30,142,62,.3);">📑 엽서 템플릿 사본 만들기</a>
+        <details class="tip">
+          <summary>📖 직접 만드는 방법 (열어보기)</summary>
+          <div class="tb">
+            <ol>
+              <li><a href="https://slides.google.com" target="_blank">slides.google.com</a>에서 새 프레젠테이션 열기</li>
+              <li>슬라이드 오른쪽 클릭 → <b>배경 변경</b> → 이미지 → 준비된 엽서 PNG 업로드</li>
+              <li>텍스트박스 3개 삽입 (삽입 → 텍스트박스). <b>정확히 아래 문자열</b>로 입력:</li>
+            </ol>
+            <div style="background:#fef9e7;border-left:4px solid #4a90e8;border-radius:0 12px 12px 0;padding:14px 18px;margin:12px 0;font-size:.95rem;">
+              <div style="font-weight:600;margin-bottom:8px;color:var(--navy);">필수 텍스트 표식 (이 문자열 그대로 — 띄어쓰기 포함)</div>
+              <span class="mono" style="font-size:1rem;">{{이름}}</span> &nbsp; <span class="mono" style="font-size:1rem;">{{소감}}</span> &nbsp; <span class="mono" style="font-size:1rem;">{{응모번호}}</span>
+            </div>
+            <ol start="4">
+              <li>사진 자리 도형 삽입 → <b>삽입 → 도형 → 직사각형</b> (사진이 들어갈 크기로)</li>
+              <li>주소창에서 <b>TEMPLATE_ID</b> 복사</li>
+            </ol>
+          </div>
+        </details>
+        <div class="note" style="font-size:1.05rem;line-height:1.8;">
+          📌 주소창 형식: <span class="mono" style="font-size:1rem;">https://docs.google.com/presentation/d/<b style="color:#e5484d;">[TEMPLATE_ID]</b>/edit</span><br>
+          <span class="mono">/d/</span> 뒤 ~ <span class="mono">/edit</span> 앞 문자열이 TEMPLATE_ID입니다.
+        </div>
+        <div style="margin-top:2.4rem;background:#fdecec;border:2px solid #e5484d;border-radius:14px;padding:14px 16px;">
+          <label style="display:block;font-weight:600;color:#c0392b;font-size:.92rem;margin-bottom:8px;">🔗 여기에 슬라이드 주소를 붙여넣으면 TEMPLATE_ID만 뽑아드려요 (자동 저장)</label>
+          <input class="idurl" data-kind="template" data-key="m4_template" type="text" placeholder="https://docs.google.com/presentation/d/..../edit" autocomplete="off" spellcheck="false" style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:9px;font-size:.9rem;font-family:inherit;color:var(--ink);background:#fff;box-sizing:border-box;">
+          <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span style="font-size:.85rem;color:var(--muted);font-weight:600;">추출된 TEMPLATE_ID:</span>
+            <span class="idval" style="font-family:Consolas,Menlo,monospace;font-weight:600;color:#e5484d;word-break:break-all;">—</span>
+            <button class="idcopy" type="button" style="background:var(--navy);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:.8rem;font-weight:600;cursor:pointer;">📋 복사</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="stepcard collapsible collapsed" id="step2">
+      <div class="head" onclick="toggleStep('step2')">
+        <div class="num">2</div>
+        <h3>드라이브 폴더 만들기 &amp; FOLDER_ID 추출</h3>
+        <button class="donebtn" onclick="doneStep(event,'step2')">✅ 완료</button>
+        <span class="chev">▾</span>
+      </div>
+      <div class="m-body">
+        <ol>
+          <li><a href="https://drive.google.com" target="_blank">drive.google.com</a> → + 신규 → 새 폴더</li>
+          <li>이름: <span class="mono">MT엽서_결과물</span> (또는 원하는 이름)</li>
+          <li>폴더 열기 → 주소창에서 <b>FOLDER_ID</b> 복사</li>
+        </ol>
+        <div class="note" style="font-size:1.05rem;line-height:1.8;">
+          📌 주소창 형식: <span class="mono" style="font-size:1rem;">https://drive.google.com/drive/folders/<b style="color:#e5484d;">[FOLDER_ID]</b></span><br>
+          <span class="mono">/folders/</span> 뒤 문자열이 FOLDER_ID입니다.
+        </div>
+        <div style="margin-top:2.4rem;background:#fdecec;border:2px solid #e5484d;border-radius:14px;padding:14px 16px;">
+          <label style="display:block;font-weight:600;color:#c0392b;font-size:.92rem;margin-bottom:8px;">🔗 여기에 폴더 주소를 붙여넣으면 FOLDER_ID만 뽑아드려요 (자동 저장)</label>
+          <input class="idurl" data-kind="folder" data-key="m4_folder" type="text" placeholder="https://drive.google.com/drive/folders/...." autocomplete="off" spellcheck="false" style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:9px;font-size:.9rem;font-family:inherit;color:var(--ink);background:#fff;box-sizing:border-box;">
+          <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span style="font-size:.85rem;color:var(--muted);font-weight:600;">추출된 FOLDER_ID:</span>
+            <span class="idval" style="font-family:Consolas,Menlo,monospace;font-weight:600;color:#e5484d;word-break:break-all;">—</span>
+            <button class="idcopy" type="button" style="background:var(--navy);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:.8rem;font-weight:600;cursor:pointer;">📋 복사</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="stepcard collapsible collapsed" id="step3">
+      <div class="head" onclick="toggleStep('step3')">
+        <div class="num">3</div>
+        <h3>구글 폼 만들기 &amp; 시트 연결</h3>
+        <button class="donebtn" onclick="doneStep(event,'step3')">✅ 완료</button>
+        <span class="chev">▾</span>
+      </div>
+      <div class="m-body">
+        <p>MT 소감·사진을 담을 응답 폼이에요. <b>시간이 부족하면 아래 '폼 사본 만들기'로 완성된 폼을 내 드라이브에 복사</b>해서 바로 쓰면 됩니다. (질문 4개가 코드와 정확히 일치하게 미리 세팅돼 있어요.)</p>
+        <a href="https://docs.google.com/forms/d/1Xy9MV5yr4PLaK4cIUI6bzZpQscoDLc8SPxl_oyRBFsA/copy" target="_blank" rel="noopener" style="display:inline-block;margin:8px 0 6px;background:#1967d2;color:#fff;text-decoration:none;font-weight:600;font-size:1rem;padding:12px 22px;border-radius:14px;box-shadow:0 8px 20px rgba(30,142,62,.3);">📋 MT 체험 폼 사본 만들기</a>
+        <details class="tip">
+          <summary>📖 직접 만드는 방법 (질문 4개 추가)</summary>
+          <div class="tb">
+            <ol>
+              <li><a href="https://forms.google.com" target="_blank">forms.google.com</a>에서 새 양식 만들기</li>
+              <li>아래 질문 4개 추가 — <b>이름이 코드와 완전히 일치해야 합니다</b></li>
+            </ol>
+            <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:.92rem;">
+              <tr style="background:#e8f0ef;font-weight:600;color:var(--navy);">
+                <td style="padding:8px 12px;border:1px solid var(--line);">질문명</td>
+                <td style="padding:8px 12px;border:1px solid var(--line);">질문 유형</td>
+                <td style="padding:8px 12px;border:1px solid var(--line);">비고</td>
+              </tr>
+              <tr><td style="padding:8px 12px;border:1px solid var(--line);font-weight:600;color:#c04040;">이메일</td><td style="padding:8px 12px;border:1px solid var(--line);">단답형</td><td style="padding:8px 12px;border:1px solid var(--line);color:var(--muted);">필수 항목</td></tr>
+              <tr style="background:#fcfcfd;"><td style="padding:8px 12px;border:1px solid var(--line);font-weight:600;color:#c04040;">이름</td><td style="padding:8px 12px;border:1px solid var(--line);">단답형</td><td style="padding:8px 12px;border:1px solid var(--line);color:var(--muted);">필수 항목</td></tr>
+              <tr><td style="padding:8px 12px;border:1px solid var(--line);font-weight:600;color:#c04040;">소감</td><td style="padding:8px 12px;border:1px solid var(--line);">장문형</td><td style="padding:8px 12px;border:1px solid var(--line);color:var(--muted);">MT 추억 한 줄</td></tr>
+              <tr style="background:#fcfcfd;"><td style="padding:8px 12px;border:1px solid var(--line);font-weight:600;color:#c04040;">사진</td><td style="padding:8px 12px;border:1px solid var(--line);">파일 업로드</td><td style="padding:8px 12px;border:1px solid var(--line);color:var(--muted);">이미지 파일 허용 권장</td></tr>
+            </table>
+            <div class="warn">⚠️ 가장 흔한 오류 — 질문명 불일치<br>코드 속 '이메일', '이름', '소감', '사진'과 폼 질문 이름이 <b>띄어쓰기·맞춤법까지 완전히 같아야</b> 합니다. 다르면 빈 엽서가 발송됩니다.</div>
+          </div>
+        </details>
+        <p style="margin-top:16px;"><b>폼이 준비되면 — 게시하고 응답 시트에 연결하세요:</b></p>
+        <ol>
+          <li>상단 <b>게시</b> 버튼 클릭</li>
+          <li>응답 탭 → 초록 스프레드시트 아이콘 → <b>새 스프레드시트 만들기</b></li>
+        </ol>
+        <details class="tip">
+          <summary>📂 제출하면 어디에 저장되나요?</summary>
+          <div class="tb">
+            제출 데이터는 세 곳에 나뉘어 저장돼요 👇<br><br>
+            • <b>답변(텍스트) → 응답 시트</b> — 이메일·이름·소감이 방금 연결한 <b>구글 시트에 한 행씩</b> 쌓여요. (폼 '응답' 탭에서도 볼 수 있어요.)<br>
+            • <b>업로드한 사진 → 내 드라이브</b> — 시트엔 '파일 링크'만 들어가고, 실제 사진은 <b>내 드라이브에 자동 생성되는 <span class="mono">[폼 제목] (파일 응답)</span> 폴더</b>에 저장돼요. (그래서 슬라이드를 공유 안 해도 스크립트가 사진을 바로 읽어요.)<br>
+            • <b>완성 엽서 PDF → 내 출력 폴더</b> — 제출 순간 트리거가 코드를 실행해 엽서 PDF를 <b>2단계에서 만든 결과물 폴더(FOLDER_ID)</b>에 저장하고, 동시에 신청자 이메일로 보내요.
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- STEP 4 : GEMINI -->
+    <div class="gemini-box" id="step4-gemini">
+      <div class="gh">
+        <div class="gi">✨</div>
+        <h3>코드를 못 짜도 괜찮아요 — Gemini로 코드 만들기</h3>
+      </div>
+      <p>아래 프롬프트를 <a href="https://gemini.google.com" target="_blank" style="color:#4a90e8;font-weight:600;">Gemini</a>에 <b>그대로 붙여넣으면</b>, <b>4단계에 들어갈 Apps Script 코드</b>를 거의 완성된 형태로 만들어 줍니다. "AI에게 시켜서 자동화 코드를 받아오는" 경험 그 자체예요.</p>
+      <div class="prompt-box" id="gemini-prompt" style="margin-top:2.4em;">구글 폼이 제출되면 슬라이드 템플릿을 복사해 {{이름}}과 {{소감}} 항목을 채우고, 대체 텍스트(제목 또는 설명)가 '사진자리'인 도형을 사용자가 업로드한 사진 파일로 바꾼 뒤, PDF로 변환하여 신청자에게 메일로 자동 발송하는 Apps Script를 만들어줘.
+
+[필수 조건]
+1. 구글 시트에 데이터가 들어오는 순서대로 고유한 세 자리 응모번호(예: 001, 002...)를 코드가 스스로 계산해서 자동 생성하게 해줘. 동시에 여러 명이 제출해도 번호가 겹치지 않도록 e.range.getRow()를 사용해줘.
+2. 그 생성된 응모번호를 슬라이드 템플릿에 있는 {{응모번호}} 표식 자리에 매핑해서 글자가 치환되도록 짜줘.
+3. 구글 폼의 질문 명칭은 이메일, 이름, 소감, 사진이며, TEMPLATE_ID와 FOLDER_ID는 코드 상단 변수에서 쉽게 바꿀 수 있게 전역 변수로 분리해줘.</div>
+      <button onclick="copyPrompt()" id="copy-prompt-btn" style="margin-top:12px;background:#1967d2;color:#fff;border:none;font-weight:600;padding:10px 20px;border-radius:10px;cursor:pointer;font-size:.9rem;">📋 프롬프트 복사</button>
+      <span id="copy-prompt-ok" style="display:none;margin-left:10px;color:#1e8e3e;font-weight:600;">✅ 복사됨!</span>
+      <div style="margin-top:2.4em;background:rgba(255,255,255,.6);border-radius:14px;padding:12px 16px;color:var(--navy-2);font-size:.93rem;line-height:1.7;">💡 <b>핵심</b>은 ① 폼 질문 이름(<b>이메일·이름·소감·사진</b>) ② 약속된 표식(<span class="mono">{{이름}}</span>·<span class="mono">{{소감}}</span>·<span class="mono">{{응모번호}}</span>·대체 텍스트 <span class="mono">사진자리</span>) ③ 최종 결과물(<b>PDF → 메일 + 추첨 응모번호</b>)을 빠짐없이 적는 것. 그러면 거의 정확한 코드가 나와요.</div>
+      <div style="margin-top:10px;background:rgba(255,255,255,.6);border-radius:14px;padding:12px 16px;color:var(--navy-2);font-size:.93rem;line-height:1.7;">🔨 코드가 예상과 다르게 나와도 괜찮아요. 그땐 에러 메시지나 "이 부분이 이렇게 안 돼", "이렇게 바꿔줘"처럼 원하는 바를 AI에게 다시 알려주며 <b>대화하듯 고쳐나가면</b> 됩니다. <b>오류를 잡는 디버깅 과정도 AI와 함께</b> 하는 거예요. 오늘은 시간 관계상, 미리 완성해 둔 <b>최종 코드를 다음 단계(4단계)에서 다 같이</b> 넣어보겠습니다!</div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="stepcard collapsible collapsed" id="step4" style="margin-top:3em;">
+      <div class="head" onclick="toggleStep('step4')">
+        <div class="num">4</div>
+        <h3>Apps Script에 코드 넣기</h3>
+        <button class="donebtn" onclick="doneStep(event,'step4')">✅ 완료</button>
+        <span class="chev">▾</span>
+      </div>
+      <div class="m-body">
+        <ol>
+          <li style="margin:0 0 14px;line-height:1.65;">구글 시트 열기 → 상단 <b>확장 프로그램 → Apps Script</b></li>
+          <li style="margin:0 0 14px;line-height:1.65;">왼쪽 위 <b>'제목 없는 프로젝트'</b>를 눌러 <b>'MT 추억 엽서 + 응모번호 자동 발송 시스템'</b>으로 이름 변경 <span style="color:var(--muted);">(나중에 찾기 쉬워요)</span></li>
+          <li style="margin:0 0 14px;line-height:1.65;">가운데 <b><span class="mono">Code.gs</span></b> 편집창에서 기존 코드 전부 선택 <span class="kbd">Ctrl+A</span> → 삭제
+            <details class="tip" style="margin-top:6px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:0 12px;">
+              <summary style="font-size:.85rem;padding:8px 0;">💡 <span class="mono">Code.gs</span>가 뭐예요?</summary>
+              <div class="tb" style="font-size:.86rem;padding-bottom:10px;">Apps Script를 열면 가운데에 자동으로 뜨는 <b>기본 코드 파일</b>이에요. 바로 이 <span class="mono">Code.gs</span> 안에 자동화 코드를 넣으면, 구글이 그 코드를 대신 실행해 줍니다. (<span class="mono">.gs</span>는 <b>G</b>oogle Apps <b>S</b>cript 파일의 확장자예요.)</div>
+            </details>
+          </li>
+          <li style="margin:0 0 14px;line-height:1.65;">아래 박스의 <b>'아래 코드에 ID 적용'</b> 버튼을 눌러 내 <span class="mono">TEMPLATE_ID</span>·<span class="mono">FOLDER_ID</span>를 코드에 채우기 <span style="color:var(--muted);">(또는 코드 맨 위 두 줄에 직접 입력)</span></li>
+          <li style="margin:0 0 20px;line-height:1.65;">완성된 코드(Gemini 생성 코드 또는 ID가 채워진 예시 코드)를 <b><span class="mono">Code.gs</span></b>에 붙여넣기 → <span class="kbd">Ctrl+S</span> <span style="color:var(--muted);">(또는 상단 💾 저장 아이콘)</span>으로 저장</li>
+        </ol>
+        <div style="background:#fdecec;border:2px solid #e5484d;border-radius:14px;padding:14px 16px;margin:12px 0;">
+          <div style="font-weight:600;color:#c0392b;margin-bottom:8px;">🔑 1·2단계에서 저장한 내 ID (아래 예시 코드에 넣을 값)</div>
+          <div class="mono" style="font-size:.92rem;margin:4px 0;">TEMPLATE_ID = <span id="apply-template" style="color:#e5484d;font-weight:600;">— (1단계에서 추출하면 자동 표시)</span></div>
+          <div class="mono" style="font-size:.92rem;margin:4px 0;">FOLDER_ID = <span id="apply-folder" style="color:#e5484d;font-weight:600;">— (2단계에서 추출하면 자동 표시)</span></div>
+          <button id="apply-ids-btn" type="button" style="margin-top:10px;background:var(--terra);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-weight:600;font-size:.9rem;cursor:pointer;">⬇ 아래 코드에 ID 적용</button>
+        </div>
+        <p style="font-weight:600;color:var(--navy);font-size:1.05rem;margin:18px 0 8px;">📄 예시 앱스 스크립트(Apps Script) 코드</p>
+        <div class="codewrap">
+          <button class="copy" onclick="copyCode('backup-code',this)">복사</button>
+              <pre id="backup-code"><span class="c">// =============================================</span>
+<span class="c">// ✅ MT 추억 엽서 + 응모번호 자동 발송 시스템</span>
+<span class="c">// =============================================</span>
+<span class="c">// [사용 전 필수] 아래 두 값을 본인 것으로 교체</span>
+<span class="k">const</span> <span class="n">TEMPLATE_ID</span> = <span class="s" id="code-template-id">'YOUR_TEMPLATE_SLIDE_ID'</span>;
+<span class="k">const</span> <span class="n">FOLDER_ID</span>   = <span class="s" id="code-folder-id">'YOUR_OUTPUT_FOLDER_ID'</span>;
+
+<span class="k">function</span> <span class="n">onFormSubmit</span>(e) {
+
+  <span class="c">// 1. 응모번호 생성 (동시 제출 안전)</span>
+  <span class="c">// e.range.getRow() = 이 제출이 기록된 행 번호</span>
+  <span class="c">// 구글이 행을 확정한 뒤 트리거를 실행하므로 절대 겹치지 않음</span>
+  <span class="k">const</span> row      = e.range.getRow();
+  <span class="k">const</span> entryNum = String(row - 1).padStart(3, <span class="s">'0'</span>);
+
+  <span class="c">// 2. 폼 응답 추출 (질문명이 폼과 정확히 일치해야 함)</span>
+  <span class="k">const</span> responses = e.namedValues;
+  <span class="k">const</span> email     = responses[<span class="s">'이메일'</span>][0].trim();
+  <span class="k">const</span> name      = responses[<span class="s">'이름'</span>][0].trim();
+  <span class="k">const</span> memory    = responses[<span class="s">'소감'</span>][0].trim();
+  <span class="k">const</span> photoUrls = responses[<span class="s">'사진'</span>];
+
+  <span class="c">// 3. 슬라이드 템플릿 복사</span>
+  <span class="k">const</span> templateFile = DriveApp.getFileById(TEMPLATE_ID);
+  <span class="k">const</span> outputFolder  = DriveApp.getFolderById(FOLDER_ID);
+  <span class="k">const</span> copiedFile    = templateFile.makeCopy(`MT추억엽서_${name}_${entryNum}`, outputFolder);
+  <span class="k">const</span> presentation  = SlidesApp.openById(copiedFile.getId());
+  <span class="k">const</span> slide         = presentation.getSlides()[0];
+
+  <span class="c">// 4. 텍스트 치환</span>
+  presentation.replaceAllText(<span class="s">'{{이름}}'</span>,    name);
+  presentation.replaceAllText(<span class="s">'{{소감}}'</span>,    memory);
+  presentation.replaceAllText(<span class="s">'{{응모번호}}'</span>, `#${entryNum}`);
+
+  <span class="c">// 5. 사진 치환 (대체 텍스트 '사진자리' 도형을 이미지로 교체)</span>
+  <span class="k">if</span> (photoUrls && photoUrls[0] && photoUrls[0].trim() !== '') {
+    <span class="k">try</span> {
+      <span class="k">const</span> photoUrl     = photoUrls[0].trim();
+      <span class="k">const</span> photoIdMatch = photoUrl.match(<span class="s">/id=([a-zA-Z0-9_-]+)/</span>) ||
+                            photoUrl.match(<span class="s">/\/d\/([a-zA-Z0-9_-]+)/</span>);
+      <span class="k">const</span> photoBlob    = DriveApp.getFileById(photoIdMatch[1]).getBlob();
+      <span class="k">const</span> elements     = slide.getPageElements();
+      <span class="k">for</span> (<span class="k">const</span> el <span class="k">of</span> elements) {
+        <span class="k">if</span> (el.getTitle() === <span class="s">'사진자리'</span> || el.getDescription() === <span class="s">'사진자리'</span>) {
+          <span class="k">const</span> type = el.getPageElementType();
+          <span class="k">if</span> (type === SlidesApp.PageElementType.SHAPE)
+            el.asShape().replaceWithImage(photoBlob);
+          <span class="k">else if</span> (type === SlidesApp.PageElementType.IMAGE)
+            el.asImage().replace(photoBlob, <span class="k">true</span>);
+          <span class="k">break</span>;
+        }
+      }
+    } <span class="k">catch</span> (err) {
+      console.error(<span class="s">'사진 로드 실패:'</span>, err.message);
+    }
+  }
+  presentation.saveAndClose();
+
+  <span class="c">// 6. PDF 변환 및 메일 발송</span>
+  <span class="k">const</span> pdfBlob = DriveApp.getFileById(copiedFile.getId())
+    .getAs(<span class="s">'application/pdf'</span>)
+    .setName(`MT추억엽서_${name}_${entryNum}.pdf`);
+
+  GmailApp.sendEmail(email,
+    `[MT 추억 엽서] ${name}님의 추첨 응모번호: #${entryNum}`,
+    `${name}님, 우리 MT 추억 엽서를 보내드립니다!\n\n` +
+    `추첨 응모번호: #${entryNum}\n\n` +
+    `추첨 결과는 추후 안내드릴게요. 첨부파일을 확인해 주세요.`,
+    { attachments: [pdfBlob] }
+  );
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="stepcard collapsible collapsed" id="step5">
+      <div class="head" onclick="toggleStep('step5')">
+        <div class="num">5</div>
+        <h3>트리거 설정 &amp; 보안 권한 승인</h3>
+        <button class="donebtn" onclick="doneStep(event,'step5')">✅ 완료</button>
+        <span class="chev">▾</span>
+      </div>
+      <div class="m-body">
+        <ol>
+          <li>Apps Script 화면 왼쪽 <b>시계 아이콘(트리거)</b> 클릭</li>
+          <li>오른쪽 하단 <b>+ 트리거 추가</b> 클릭</li>
+          <li>아래 설정값 선택</li>
+        </ol>
+        <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:.92rem;">
+          <tr><td style="padding:8px 12px;border:1px solid var(--line);background:#e8f0ef;font-weight:600;color:var(--navy);width:40%;">실행할 함수</td><td style="padding:8px 12px;border:1px solid var(--line);font-weight:600;color:var(--terra);">onFormSubmit</td></tr>
+          <tr><td style="padding:8px 12px;border:1px solid var(--line);background:#e8f0ef;font-weight:600;color:var(--navy);">이벤트 소스</td><td style="padding:8px 12px;border:1px solid var(--line);font-weight:600;color:var(--terra);">스프레드시트에서</td></tr>
+          <tr><td style="padding:8px 12px;border:1px solid var(--line);background:#e8f0ef;font-weight:600;color:var(--navy);">이벤트 유형</td><td style="padding:8px 12px;border:1px solid var(--line);font-weight:600;color:var(--terra);">양식 제출 시</td></tr>
+          <tr><td style="padding:8px 12px;border:1px solid var(--line);background:#e8f0ef;font-weight:600;color:var(--navy);">실패 알림 설정</td><td style="padding:8px 12px;border:1px solid var(--line);font-weight:600;color:var(--terra);">즉시 알림 <span style="color:var(--muted);font-weight:400;">(연수 당일 추천)</span></td></tr>
+        </table>
+        <div class="note">💡 <b>'실패 알림 설정'</b>은 트리거(코드)가 오류로 멈추면 <b>운영자 메일로만</b> 알려주는 옵션이에요. <b>연수·행사 당일엔 '즉시 알림'</b>으로 두면 문제를 바로 알아채 고칠 수 있어요. (동시 제출로 메일이 많이 오는 게 부담되면 '매시간', 평상시 운영은 '매일'도 괜찮아요.)</div>
+        <ol start="4"><li>저장 클릭</li></ol>
+        <div class="note">
+          <b>보안 경고 팝업 처리 순서 (영어 / 한국어 버전 함께):</b><br>
+          ① 위에서 <b>저장(Save)</b>을 누르면 <b>"Google hasn't verified this app"</b> <span style="color:var(--muted);">(이 앱은 Google에서 확인하지 않았습니다)</span> 경고가 떠요.<br>
+          ② 왼쪽 아래 <b>Advanced</b> <span style="color:var(--muted);">(고급)</span> 클릭<br>
+          ③ <b>Go to [프로젝트 이름] (unsafe)</b> <span style="color:var(--muted);">((안전하지 않음) 프로젝트로 이동)</span> 클릭<br>
+          ④ 권한 화면에서 <b>모든 옵션에 체크</b> <span style="color:var(--muted);">(Select all / 모두 선택)</span><br>
+          ⑤ <b>Continue</b> <span style="color:var(--muted);">(계속)</span> 클릭 → 완료!<br><br>
+          → 이후 Google로부터 <b>'Access granted / 계정 액세스 권한 부여됨'</b> 알림 메일 1회 (정상입니다! 학생들에게는 뜨지 않아요)
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 6 -->
+    <div class="stepcard collapsible collapsed" id="step6">
+      <div class="head" onclick="toggleStep('step6')">
+        <div class="num">6</div>
+        <h3>테스트 제출 &amp; 완성 확인 🎉</h3>
+        <button class="donebtn" onclick="doneStep(event,'step6')">✅ 완료</button>
+        <span class="chev">▾</span>
+      </div>
+      <div class="m-body">
+        <ol>
+          <li>구글 폼을 <b>게시(공개)</b>한 뒤, 폼의 <b>보내기 → 링크(응답자 링크)</b>를 열기 <span style="color:var(--muted);">(눈 아이콘 '미리보기'로는 실제 제출이 안 될 수 있어요)</span></li>
+          <li>본인 이메일, 이름, MT 소감 한 줄, 사진 업로드 후 제출</li>
+          <li>메일함 확인 (1분 이내 도착)</li>
+          <li>엽서 PDF 확인 — 내 이름 / 내 소감 / 응모번호 / 내 사진이 들어갔는지 ✅</li>
+        </ol>
+        <div class="note">💡 <b>본인 계정·본인 이메일로 테스트해도 정상</b>이에요 — 트리거는 누가 제출하든 똑같이 작동하고, 엽서는 폼 '이메일' 칸에 적은 주소로 도착합니다. (별도 계정 필요 없어요.)</div>
+        <div style="background:#e8f4ec;border-left:4px solid #3d8c5a;border-radius:0 12px 12px 0;padding:14px 18px;margin-top:14px;color:#1a4a2a;font-size:.95rem;">
+          🎉 <b>메일이 도착했다면 시스템 완성입니다!</b><br>
+          이 시스템은 앞으로 몇 명이 제출해도 자동으로 돌아갑니다. <b style="color:#c0392b;">동아리 신입 모집, 행사 응모, 축제 부스 방명록</b> — 어디든 그대로 가져다 쓸 수 있어요.
+        </div>
+        <details class="tip" style="margin-top:16px;">
+          <summary>🔧 문제 해결 — 메일이 안 오거나 엽서가 이상할 때</summary>
+          <div class="tip-body">
+            <table style="width:100%;border-collapse:collapse;font-size:.88rem;margin-top:8px;">
+              <tr style="background:#e8f0ef;font-weight:600;color:var(--navy);"><td style="padding:7px 10px;border:1px solid var(--line);">증상</td><td style="padding:7px 10px;border:1px solid var(--line);">원인</td><td style="padding:7px 10px;border:1px solid var(--line);">해결</td></tr>
+              <tr><td style="padding:7px 10px;border:1px solid var(--line);">메일이 안 옴</td><td style="padding:7px 10px;border:1px solid var(--line);">트리거 미설정</td><td style="padding:7px 10px;border:1px solid var(--line);">트리거 목록 확인 후 재추가</td></tr>
+              <tr style="background:#fcfcfd;"><td style="padding:7px 10px;border:1px solid var(--line);">{{이름}} 그대로 나옴</td><td style="padding:7px 10px;border:1px solid var(--line);">질문명 불일치</td><td style="padding:7px 10px;border:1px solid var(--line);">폼 질문명과 코드 키값 대조</td></tr>
+              <tr><td style="padding:7px 10px;border:1px solid var(--line);">사진이 안 들어감</td><td style="padding:7px 10px;border:1px solid var(--line);">대체 텍스트 미설정</td><td style="padding:7px 10px;border:1px solid var(--line);">도형 → 대체 텍스트 → '사진자리'</td></tr>
+              <tr style="background:#fcfcfd;"><td style="padding:7px 10px;border:1px solid var(--line);">응모번호 #000</td><td style="padding:7px 10px;border:1px solid var(--line);">행 계산 오류</td><td style="padding:7px 10px;border:1px solid var(--line);">헤더 행 1개 확인, row-1 점검</td></tr>
+              <tr><td style="padding:7px 10px;border:1px solid var(--line);">트리거 실행 안 됨</td><td style="padding:7px 10px;border:1px solid var(--line);">폼에서 Apps Script 열었음</td><td style="padding:7px 10px;border:1px solid var(--line);">반드시 시트 → 확장 프로그램으로 열기</td></tr>
+            </table>
+          </div>
+        </details>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── 클로징 ── -->
+<section style="padding:62px 0;">
+  <div class="wrap">
+    <div class="closing">
+      <div style="font-size:2.5rem;margin-bottom:16px;">🎉</div>
+      <h2>오늘 만든 것을 기억하세요</h2>
+      <p>코드를 외우지 않았습니다. Gemini에게 시켰고, 원리를 이해했고, 직접 동작을 확인했습니다. 그것으로 충분합니다.</p>
+      <div class="ach-row">
+        <div class="ach"><div class="n">⚡</div>트리거<span>이벤트 기반 자동 실행</span></div>
+        <div class="ach"><div class="n">🔄</div>텍스트 치환<span>{{ }} 표식 자동 교체</span></div>
+        <div class="ach"><div class="n">🖼️</div>사진 교체<span>도형을 이미지로</span></div>
+        <div class="ach"><div class="n">🔢</div>응모번호<span>동시 제출 안전</span></div>
+        <div class="ach"><div class="n">📧</div>자동 발송<span>사람 손 없이</span></div>
+      </div>
+      <div style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:14px;padding:14px 22px;display:inline-block;font-weight:600;font-size:1.05rem;margin-top:4px;">
+        "이 반복은 자동화할 수 있다" — 그 눈이 생긴 것이 오늘의 진짜 성과입니다.
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">MT 추억 아카이빙 · 엽서 자동 발송 교안 &nbsp;·&nbsp; Gemini AI 연수</div>
+</footer>
+
+<script>
+// ── 진행도 바 ──────────────────────────────────────────────────────────────
+window.addEventListener('scroll',()=>{
+  const el = document.documentElement;
+  const pct = el.scrollTop/(el.scrollHeight-el.clientHeight)*100;
+  document.getElementById('progress-bar').style.width = pct+'%';
+});
+
+// ── 단계 접기/펴기 ─────────────────────────────────────────────────────────
+function toggleStep(id){
+  const el = document.getElementById(id);
+  el.classList.toggle('collapsed');
+}
+
+// ── 완료 체크 ──────────────────────────────────────────────────────────────
+function doneStep(e, id){
+  e.stopPropagation();
+  const el = document.getElementById(id);
+  el.classList.toggle('done');
+  const btn = el.querySelector('.donebtn');
+  if(el.classList.contains('done')){
+    btn.textContent='✅ 완료!';
+    // 다음 스텝 자동 열기
+    const allSteps=['step1','step2','step3','step4','step5','step6'];
+    const idx = allSteps.indexOf(id);
+    if(idx>=0 && idx<allSteps.length-1){
+      const next = document.getElementById(allSteps[idx+1]);
+      if(next && next.classList.contains('collapsed'))
+        next.classList.remove('collapsed');
+    }
+  } else {
+    btn.textContent='✅ 완료';
+  }
+}
+
+// ── 시연 카드 ──────────────────────────────────────────────────────────────
+const demos = [
+  {name:'김민준', entry:'#007', memory:'"처음엔 긴장했는데 새벽에 다 같이 라면 끓여 먹던 거 아직도 웃겨요 ㅋㅋ 다음 MT도 기대됩니다 🍜"', email:'minj7@gmail.com'},
+  {name:'이서연', entry:'#008', memory:'"강가에서 찍은 단체 사진이 제일 좋았어요! 다들 너무 웃겨서ㅋㅋ 소중한 추억 감사해요 🌊"', email:'lsy2025@naver.com'},
+  {name:'박지호', entry:'#009', memory:'"MT 버킷리스트 다 달성🎯 특히 새벽 4시 하늘 기억에 남는다. 내년에 또 가자!"', email:'jh.park@gmail.com'},
+];
+let demoIdx = 0;
+
+function revealCard(){
+  document.getElementById('pc-before').style.display='none';
+  const d = demos[demoIdx % demos.length];
+  document.getElementById('demo-name').textContent = d.name;
+  document.getElementById('demo-entry').textContent = d.entry;
+  document.getElementById('demo-entry2').textContent = d.entry;
+  document.getElementById('demo-memory').textContent = d.memory;
+  document.getElementById('demo-email').textContent = d.email;
+  document.getElementById('pc-after').style.display='block';
+}
+
+function resetCard(){
+  document.getElementById('pc-after').style.display='none';
+  document.getElementById('pc-before').style.display='block';
+}
+
+function nextDemo(){
+  demoIdx++;
+  const d = demos[demoIdx % demos.length];
+  document.getElementById('demo-name').textContent = d.name;
+  document.getElementById('demo-entry').textContent = d.entry;
+  document.getElementById('demo-entry2').textContent = d.entry;
+  document.getElementById('demo-memory').textContent = d.memory;
+  document.getElementById('demo-email').textContent = d.email;
+}
+
+// ── 시트 시뮬레이션 ────────────────────────────────────────────────────────
+let simCount = 1;
+const SIM_NAMES=['이서연','박지호','최유나','정태양','한소희','임도현','조예린'];
+const SIM_EMAILS=['lsy***','pjh***','cyn***','jty***','hsh***','ldh***','jyr***'];
+let simTimer=null;
+function addSubmission(){
+  if(simCount >= 8) return false;
+  simCount++;
+  const ni = simCount-2;
+  const name = SIM_NAMES[ni] || '참가자'+simCount;
+  const email = SIM_EMAILS[ni] || 'user***';
+  const entry = '#'+String(simCount).padStart(3,'0');
+  const sheet = document.querySelector('.mock-sheet');
+  const row = document.createElement('div');
+  row.className = 'r new';
+  row.innerHTML = `<div>${name}</div><div>${entry}</div><div>${email}</div><div>⏳발송중</div>`;
+  sheet.appendChild(row);
+  document.getElementById('sheet-count').textContent = `총 ${simCount}명 · 응모번호 #001~${entry} 자동 부여`;
+  const drive = document.getElementById('drive-files');
+  const pdf = document.createElement('div');
+  pdf.className = 'pdf new';
+  pdf.innerHTML = `<span class="ic">📄</span>MT추억엽서_${name}_${String(simCount).padStart(3,'0')}`;
+  drive.appendChild(pdf);
+  setTimeout(()=>{ const c=row.querySelector('div:last-child'); if(c) c.textContent='✅발송'; },1100);
+  return true;
+}
+function startSim(){
+  clearInterval(simTimer);
+  const btn=document.getElementById('sim-btn'); if(btn) btn.style.display='none';
+  simTimer=setInterval(function(){
+    if(!addSubmission()){ clearInterval(simTimer); if(btn) btn.style.display=''; }
+  }, 1500);
+}
+function replaySim(){
+  const sheet=document.querySelector('.mock-sheet');
+  sheet.querySelectorAll('.r').forEach(function(r,i){ if(!r.classList.contains('h') && i>1) r.remove(); });
+  const drive=document.getElementById('drive-files');
+  Array.prototype.slice.call(drive.children).forEach(function(c,i){ if(i>=1) c.remove(); });
+  document.getElementById('sheet-count').textContent='총 1명 · 응모번호 #001 자동 부여';
+  simCount=1;
+  startSim();
+}
+
+// ── Gemini 프롬프트 복사 ───────────────────────────────────────────────────
+function copyPrompt(){
+  const text = document.getElementById('gemini-prompt').textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.getElementById('copy-prompt-btn');
+    const ok = document.getElementById('copy-prompt-ok');
+    btn.textContent = '✅ 복사됨!';
+    ok.style.display = 'inline';
+    setTimeout(()=>{ btn.textContent='📋 프롬프트 복사'; ok.style.display='none'; }, 2500);
+  });
+}
+
+// ── 코드 복사 ──────────────────────────────────────────────────────────────
+function copyCode(id, btn){
+  const el = document.getElementById(id);
+  const text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const orig = btn.textContent;
+    btn.textContent='✅ 복사됨!';
+    btn.classList.add('ok');
+    setTimeout(()=>{ btn.textContent=orig; btn.classList.remove('ok'); }, 2500);
+  });
+}
+
+// ── ID 추출기 (슬라이드/폴더 주소 → ID) ──
+(function(){
+  function extract(kind, url){
+    url = (url || '').trim();
+    if(!url) return '';
+    var m;
+    if(kind === 'folder'){ m = url.match(/\/folders\/([a-zA-Z0-9_-]+)/); }
+    else { m = url.match(/\/presentation\/d\/([a-zA-Z0-9_-]+)/); }
+    if(m) return m[1];
+    m = url.match(/\/d\/([a-zA-Z0-9_-]+)/); if(m) return m[1];
+    if(/^[a-zA-Z0-9_-]{20,}$/.test(url)) return url;
+    return '';
+  }
+  document.querySelectorAll('.idurl').forEach(function(inp){
+    var box = inp.parentElement;
+    var val = box.querySelector('.idval');
+    var btn = box.querySelector('.idcopy');
+    var key = inp.getAttribute('data-key');
+    try { var s = localStorage.getItem(key); if(s) inp.value = s; } catch(e){}
+    function sync(){
+      var id = extract(inp.getAttribute('data-kind'), inp.value);
+      val.textContent = id || '—';
+      try { localStorage.setItem(key, inp.value); } catch(e){}
+    }
+    sync();
+    inp.addEventListener('input', sync);
+    if(btn) btn.addEventListener('click', function(){
+      var t = val.textContent;
+      if(!t || t === '—'){ inp.focus(); return; }
+      navigator.clipboard.writeText(t).then(function(){
+        var o = btn.textContent; btn.textContent = '✅ 복사됨!';
+        setTimeout(function(){ btn.textContent = o; }, 1400);
+      });
+    });
+  });
+})();
+
+// ── 저장한 ID를 STEP4에 표시 + 예시 코드에 적용 ──
+(function(){
+  function extractId(kind, url){
+    url = (url || '').trim(); if(!url) return '';
+    var m;
+    if(kind === 'folder'){ m = url.match(/\/folders\/([a-zA-Z0-9_-]+)/); }
+    else { m = url.match(/\/presentation\/d\/([a-zA-Z0-9_-]+)/); }
+    if(m) return m[1];
+    m = url.match(/\/d\/([a-zA-Z0-9_-]+)/); if(m) return m[1];
+    if(/^[a-zA-Z0-9_-]{20,}$/.test(url)) return url;
+    return '';
+  }
+  function read(){
+    var t = '', f = '';
+    try { t = extractId('template', localStorage.getItem('m4_template')); } catch(e){}
+    try { f = extractId('folder', localStorage.getItem('m4_folder')); } catch(e){}
+    return { t: t, f: f };
+  }
+  function show(){
+    var ids = read();
+    var ts = document.getElementById('apply-template');
+    var fs = document.getElementById('apply-folder');
+    if(ts) ts.textContent = ids.t || '— (1단계에서 추출하면 자동 표시)';
+    if(fs) fs.textContent = ids.f || '— (2단계에서 추출하면 자동 표시)';
+    return ids;
+  }
+  show();
+  var btn = document.getElementById('apply-ids-btn');
+  if(btn) btn.addEventListener('click', function(){
+    var ids = show();
+    var ct = document.getElementById('code-template-id');
+    var cf = document.getElementById('code-folder-id');
+    var done = false;
+    if(ids.t && ct){ ct.textContent = "'" + ids.t + "'"; done = true; }
+    if(ids.f && cf){ cf.textContent = "'" + ids.f + "'"; done = true; }
+    var d = ct ? ct.closest('details') : null; if(d) d.open = true;
+    var o = btn.textContent;
+    btn.textContent = done ? '✅ 코드에 적용됨! (예시 코드 확인)' : '⚠️ 먼저 1·2단계에서 ID를 추출하세요';
+    setTimeout(function(){ btn.textContent = o; }, 2200);
+  });
+})();
+
+// ── 자동화 전→후 크로스페이드 데모 (스타일 A) ──
+(function(){
+  var s = document.getElementById('autofx'); if(!s) return;
+  var wrap = s.querySelector('.imgwrap'), proc = s.querySelector('.proc'),
+      bar = s.querySelector('.bar i'), badge = s.querySelector('.fxbadge'),
+      run = s.querySelector('.run'), reset = s.querySelector('.reset');
+  var busy = false;
+  function play(){
+    if(busy || wrap.classList.contains('done')) return;
+    busy = true; run.disabled = true;
+    proc.classList.add('on');
+    bar.style.width = '0';
+    requestAnimationFrame(function(){ bar.style.width = '100%'; });
+    setTimeout(function(){
+      proc.classList.remove('on'); wrap.classList.add('done');
+      setTimeout(function(){
+        badge.classList.add('on'); run.style.display = 'none';
+        setTimeout(function(){
+          wrap.classList.add('sending');
+          setTimeout(function(){
+            wrap.classList.add('sent'); reset.style.display = ''; busy = false;
+          }, 1600);
+        }, 950);
+      }, 500);
+    }, 1100);
+  }
+  function rst(){
+    wrap.classList.remove('done','sending','sent'); badge.classList.remove('on');
+    reset.style.display = 'none'; run.style.display = ''; run.disabled = false; busy = false;
+  }
+  run.onclick = play; wrap.onclick = play; reset.onclick = rst;
+})();
+
+// ── 무인 운영 목업: 버튼 없이 스스로 제출이 쌓이게 자동 재생 ──
+(function(){
+  var sec = document.getElementById('scale');
+  if(!sec || typeof startSim !== 'function') return;
+  var done=false;
+  function go(){ if(done) return; done=true; startSim(); }
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if(e.isIntersecting){ go(); io.disconnect(); } });
+    }, { threshold: 0.3 });
+    io.observe(sec);
+  } else { go(); }
+})();
+</script>
+
+
+<script>
+/* 통합 보기(index.html) 안에서 열릴 때: 위 번호를 '🏠 홈' 버튼 왼쪽 끝선에서 시작 */
+(function(){
+  var links=document.querySelector('nav .nav-links'), brand=document.querySelector('nav .brand'), L=null;
+  if(!links) return;
+  function reset(){ links.style.position=''; links.style.left=''; links.style.top=''; links.style.transform=''; links.style.marginLeft=''; }
+  function align(){
+    if(window.parent===window || L===null || innerWidth<=620) return reset();
+    var br=brand?brand.getBoundingClientRect().right:0;
+    if(L < br+16 || L+links.offsetWidth > innerWidth-8) return reset();
+    links.style.position='absolute'; links.style.left=L+'px'; links.style.top='50%'; links.style.transform='translateY(-50%)'; links.style.marginLeft='0';
+  }
+  window.addEventListener('message',function(ev){ if(ev.data && ev.data.type==='mt-navalign'){ L=ev.data.left; align(); } });
+  window.addEventListener('resize',align);
+  try{ if(window.parent!==window) window.parent.postMessage({type:'mt-navalign-req'},'*'); }catch(e){}
+})();
+</script>
+</body>
+</html>

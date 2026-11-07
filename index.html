@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>구글 대학생 연수 · 모듈 2·3·4 통합 보기</title>
+<link rel="stylesheet" href="fonts/pretendard.css">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" as="style" crossorigin
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+  :root{
+    --cream:#ffffff;--paper:#ffffff;--navy:#243551;--navy-2:#34496b;
+    --teal:#1e8e3e;--terra:#1967d2;--line:#e8eaed;--muted:#7a7064;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{margin:0;display:flex;flex-direction:column;height:100vh;overflow:hidden;
+    font-family:"Pretendard Variable","Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;background:var(--cream);color:var(--navy);}
+
+  .topbar{flex:none;display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+    padding:10px 20px;background:rgba(255,255,255,.86);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+    box-shadow:0 1px 0 rgba(60,64,67,.08);}
+  .brand{font-weight:600;font-size:1.02rem;display:flex;align-items:center;gap:8px;white-space:nowrap;}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--terra);box-shadow:0 0 0 4px rgba(25,103,210,.18);}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;}
+  .tab{border:1px solid transparent;background:var(--paper);color:var(--navy-2);
+    font-family:inherit;font-weight:600;font-size:.92rem;padding:9px 16px;border-radius:999px;
+    cursor:pointer;transition:.16s;white-space:nowrap;}
+  .tab .sub{display:block;font-size:.72rem;font-weight:600;color:var(--muted);margin-top:1px;}
+  .tab:hover{border-color:var(--terra);color:var(--terra);transform:translateY(-1px);}
+  .tab.active{background:#f1f3f4;border-color:transparent;color:#202124;box-shadow:none;}
+  .tab.active .sub{color:rgba(32,33,36,.62);}
+
+  .stage{flex:1;position:relative;background:var(--cream);}
+  iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--cream);}
+  @media (max-width:620px){
+    .topbar{gap:10px;}
+    .tabs{margin-left:0;width:100%;justify-content:center;}
+    .tab .sub{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="dot"></span>구글 대학생 연수 · MT 프로젝트</div>
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-src="home.html">🏠 홈<span class="sub">강의 · 패들렛</span></button>
+    <button class="tab" data-src="module2.html" data-module="2">모듈 2<span class="sub">나만의 MT 기획</span></button>
+    <button class="tab" data-src="module3.html" data-module="3">모듈 3<span class="sub">결정 대시보드</span></button>
+    <button class="tab" data-src="module4.html" data-module="4">모듈 4<span class="sub">엽서 자동화</span></button>
+  </nav>
+</header>
+
+<div class="stage">
+  <iframe id="frame" src="home.html" title="모듈 교안"></iframe>
+</div>
+
+<script>
+(function(){
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  var frame = document.getElementById('frame');
+  function activate(src){
+    tabs.forEach(function(t){ t.classList.toggle('active', t.dataset.src === src); });
+    if(frame.getAttribute('src') !== src) frame.setAttribute('src', src);
+  }
+  tabs.forEach(function(t){ t.addEventListener('click', function(){ activate(t.dataset.src); }); });
+  // 홈 모듈 카드 클릭 → 해당 탭으로 전환
+  window.addEventListener('message', function(ev){
+    var d = ev.data;
+    if(d && d.type === 'mt-goto' && d.module){
+      var target = tabs.filter(function(t){ return t.dataset.module === String(d.module); })[0];
+      if(target){ activate(target.dataset.src); window.scrollTo(0,0); }
+    }
+  });
+  /* 열 때는 항상 홈부터 — 마지막 탭을 기억하지 않습니다 */
+  /* 모듈 상단 번호(1·2·3…)를 '🏠 홈' 버튼 왼쪽 끝선에 맞추도록 위치를 알려줍니다 */
+  function sendAlign(){
+    try{ frame.contentWindow.postMessage({type:'mt-navalign', left: tabs[0].getBoundingClientRect().left}, '*'); }catch(e){}
+  }
+  frame.addEventListener('load', function(){ sendAlign(); setTimeout(sendAlign,300); });
+  window.addEventListener('resize', function(){ setTimeout(sendAlign,30); });
+  window.addEventListener('message', function(ev){ if(ev.data && ev.data.type==='mt-navalign-req') sendAlign(); });
+})();
+</script>
+</body>
+</html>
