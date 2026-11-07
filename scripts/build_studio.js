@@ -2065,22 +2065,39 @@ function buildStudio() {
   window.updateCheckItem = function(i, v){ currentData.checklist[i] = v; updateLivePreview(); document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2); };
   window.removeCheckItem = function(i){ currentData.checklist.splice(i, 1); syncFormFromData(); };
 
-  // ── JSON 편집기 양방향 동기화 ──
-  document.getElementById('tabForm').addEventListener('click', function(){
-    document.getElementById('tabForm').classList.add('active');
-    document.getElementById('tabJson').classList.remove('active');
-    document.getElementById('formView').style.display = 'block';
-    document.getElementById('jsonView').style.display = 'none';
-  });
+  // ── 좌측 패널 탭 스위처 (블록 라이브러리 / 폼 편집 / JSON) ──
+  window.switchEditorTab = function(tab) {
+    var tabBlocks = document.getElementById('tabBlocks');
+    var tabForm = document.getElementById('tabForm');
+    var tabJson = document.getElementById('tabJson');
+    var blocksView = document.getElementById('blocksView');
+    var formView = document.getElementById('formView');
+    var jsonView = document.getElementById('jsonView');
 
-  document.getElementById('tabJson').addEventListener('click', function(){
-    currentData.stackBlocks = canvasBlocks;
-    document.getElementById('tabJson').classList.add('active');
-    document.getElementById('tabForm').classList.remove('active');
-    document.getElementById('formView').style.display = 'none';
-    document.getElementById('jsonView').style.display = 'block';
-    document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2);
-  });
+    if (tabBlocks) tabBlocks.classList.toggle('active', tab === 'blocks');
+    if (tabForm) tabForm.classList.toggle('active', tab === 'form');
+    if (tabJson) tabJson.classList.toggle('active', tab === 'json');
+
+    if (blocksView) blocksView.style.display = (tab === 'blocks') ? 'block' : 'none';
+    if (formView) formView.style.display = (tab === 'form') ? 'block' : 'none';
+    if (jsonView) {
+      jsonView.style.display = (tab === 'json') ? 'block' : 'none';
+      if (tab === 'json') {
+        currentData.stackBlocks = canvasBlocks;
+        document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2);
+      }
+    }
+  };
+
+  if (document.getElementById('tabBlocks')) {
+    document.getElementById('tabBlocks').addEventListener('click', function(){ switchEditorTab('blocks'); });
+  }
+  if (document.getElementById('tabForm')) {
+    document.getElementById('tabForm').addEventListener('click', function(){ switchEditorTab('form'); });
+  }
+  if (document.getElementById('tabJson')) {
+    document.getElementById('tabJson').addEventListener('click', function(){ switchEditorTab('json'); });
+  }
 
   document.getElementById('jsonEditor').addEventListener('input', function(){
     try {
@@ -2540,6 +2557,92 @@ function buildStudio() {
   var selectedBlockId = null;
   var currentStackView = 'canvas';
 
+  // ── 실행 취소 / 다시 실행 (Undo / Redo) 엔진 ──
+  var historyStack = [];
+  var redoStack = [];
+  var maxHistory = 40;
+  var editDebounceTimer = null;
+
+  function pushHistoryState() {
+    var snapshot = JSON.stringify(canvasBlocks);
+    if (historyStack.length > 0 && historyStack[historyStack.length - 1] === snapshot) {
+      return;
+    }
+    historyStack.push(snapshot);
+    if (historyStack.length > maxHistory) historyStack.shift();
+    redoStack = [];
+    updateUndoRedoButtons();
+    updateHeaderBadge();
+  }
+
+  window.undoStack = function() {
+    if (historyStack.length <= 1) return;
+    var current = historyStack.pop();
+    redoStack.push(current);
+    var prev = historyStack[historyStack.length - 1];
+    canvasBlocks = JSON.parse(prev);
+    reindexBlockOrders();
+    renderStackCanvas();
+    updateLivePreview();
+    updateUndoRedoButtons();
+    updateHeaderBadge();
+    showToast('↩️ 실행 취소되었습니다.');
+  };
+
+  window.redoStack = function() {
+    if (redoStack.length === 0) return;
+    var next = redoStack.pop();
+    historyStack.push(next);
+    canvasBlocks = JSON.parse(next);
+    reindexBlockOrders();
+    renderStackCanvas();
+    updateLivePreview();
+    updateUndoRedoButtons();
+    updateHeaderBadge();
+    showToast('↪️ 다시 실행되었습니다.');
+  };
+
+  function updateUndoRedoButtons() {
+    var undoBtn = document.getElementById('undoBtn');
+    var redoBtn = document.getElementById('redoBtn');
+    if (undoBtn) {
+      undoBtn.disabled = historyStack.length <= 1;
+      undoBtn.style.opacity = (historyStack.length <= 1) ? '0.45' : '1';
+      undoBtn.style.cursor = (historyStack.length <= 1) ? 'not-allowed' : 'pointer';
+    }
+    if (redoBtn) {
+      redoBtn.disabled = redoStack.length === 0;
+      redoBtn.style.opacity = (redoStack.length === 0) ? '0.45' : '1';
+      redoBtn.style.cursor = (redoStack.length === 0) ? 'not-allowed' : 'pointer';
+    }
+  }
+
+  function updateHeaderBadge() {
+    var count = canvasBlocks.length;
+    var headerBadge = document.getElementById('headerBlockCountBadge');
+    if (headerBadge) headerBadge.innerText = count + '개 블록 구성';
+    var canvasBadge = document.getElementById('canvasBlockCountBadge');
+    if (canvasBadge) canvasBadge.innerText = count + '개 블록 구성 중';
+  }
+
+  // 글로벌 키보드 단축키 (Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z)
+  window.addEventListener('keydown', function(e) {
+    var tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
+
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
+      e.preventDefault();
+      if (e.shiftKey) {
+        window.redoStack();
+      } else {
+        window.undoStack();
+      }
+    } else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) {
+      e.preventDefault();
+      window.redoStack();
+    }
+  });
+
   function reindexBlockOrders() {
     canvasBlocks.forEach(function(blk, idx) {
       blk.order = idx;
@@ -2547,6 +2650,7 @@ function buildStudio() {
     if (typeof currentData !== 'undefined') {
       currentData.stackBlocks = canvasBlocks;
     }
+    updateHeaderBadge();
   }
 
   window.addBlockToStack = function(type, targetBlockId) {
@@ -2570,6 +2674,7 @@ function buildStudio() {
     selectedBlockId = newNode.id;
 
     renderStackCanvas();
+    pushHistoryState();
 
     setTimeout(function(){
       var el = document.getElementById('blockItem_' + newNode.id);
@@ -2595,6 +2700,7 @@ function buildStudio() {
       reindexBlockOrders();
       selectedBlockId = blockId;
       renderStackCanvas();
+      pushHistoryState();
       showToast('🔼 블록이 한 칸 위로 이동했습니다.');
       updateLivePreview();
     }
@@ -2612,6 +2718,7 @@ function buildStudio() {
       reindexBlockOrders();
       selectedBlockId = blockId;
       renderStackCanvas();
+      pushHistoryState();
       showToast('🔽 블록이 한 칸 아래로 이동했습니다.');
       updateLivePreview();
     }
@@ -2631,6 +2738,7 @@ function buildStudio() {
       reindexBlockOrders();
       selectedBlockId = clone.id;
       renderStackCanvas();
+      pushHistoryState();
       setTimeout(function(){
         var el = document.getElementById('blockItem_' + clone.id);
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2653,6 +2761,7 @@ function buildStudio() {
         selectedBlockId = (canvasBlocks[Math.min(idx, canvasBlocks.length - 1)]) ? canvasBlocks[Math.min(idx, canvasBlocks.length - 1)].id : null;
       }
       renderStackCanvas();
+      pushHistoryState();
       showToast('🗑️ 블록이 삭제되었습니다.');
       updateLivePreview();
     }
@@ -2706,6 +2815,11 @@ function buildStudio() {
         jsonArea.value = JSON.stringify(currentData, null, 2);
       }
     }
+
+    clearTimeout(editDebounceTimer);
+    editDebounceTimer = setTimeout(function(){
+      pushHistoryState();
+    }, 600);
   };
 
   window.selectPartsChip = function(blockId, catKey, chipValue) {
@@ -2778,6 +2892,40 @@ function buildStudio() {
   function renderWidgetConfigFormHtml(blk) {
     var d = blk.data || {};
     var s = blk.settings || {};
+
+    if (blk.type === 'sectionContainer') {
+      return '<div class="widget-form-section">' +
+        '<div class="widget-section-title">📦 섹션 컨테이너 설정</div>' +
+        '<div class="form-group">' +
+          '<label>섹션 제목</label>' +
+          '<input type="text" id="cfg_container_title" value="' + escapeFormVal(d.title || '') + '" placeholder="예: 주요 기획 및 전략 그룹">' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label>섹션 요약 / 부제목</label>' +
+          '<textarea id="cfg_container_subtitle" rows="2" placeholder="이 섹션의 목적과 포함된 내용을 설명하세요.">' + escapeFormVal(d.subtitle || '') + '</textarea>' +
+        '</div>' +
+      '</div>';
+    }
+
+    if (blk.type === 'divider') {
+      return '<div class="widget-form-section">' +
+        '<div class="widget-section-title">➖ 구분선 설정</div>' +
+        '<div class="form-group">' +
+          '<label>구분선 라벨 문구 (선택 사항)</label>' +
+          '<input type="text" id="cfg_divider_label" value="' + escapeFormVal(d.label || '') + '" placeholder="예: SECTION DIVIDER 또는 비워두기">' +
+        '</div>' +
+      '</div>';
+    }
+
+    if (blk.type === 'spacer') {
+      return '<div class="widget-form-section">' +
+        '<div class="widget-section-title">↕️ 여백 (스페이서) 설정</div>' +
+        '<div class="form-group">' +
+          '<label>여백 높이 (픽셀, px)</label>' +
+          '<input type="number" id="cfg_spacer_height" value="' + escapeFormVal(d.height || 36) + '" min="8" max="160" step="4">' +
+        '</div>' +
+      '</div>';
+    }
 
     if (blk.type === 'flipCard') {
       return '<div class="widget-form-section">' +
@@ -3013,7 +3161,14 @@ function buildStudio() {
     if (!blk) return;
 
     var d = blk.data;
-    if (blk.type === 'flipCard') {
+    if (blk.type === 'sectionContainer') {
+      d.title = getFormVal('cfg_container_title');
+      d.subtitle = getFormVal('cfg_container_subtitle');
+    } else if (blk.type === 'divider') {
+      d.label = getFormVal('cfg_divider_label');
+    } else if (blk.type === 'spacer') {
+      d.height = parseInt(getFormVal('cfg_spacer_height'), 10) || 36;
+    } else if (blk.type === 'flipCard') {
       d.badge = getFormVal('cfg_flip_badge');
       d.accentColor = getFormVal('cfg_flip_accentColor');
       d.frontTitle = getFormVal('cfg_flip_frontTitle');
@@ -3077,6 +3232,7 @@ function buildStudio() {
 
     reindexBlockOrders();
     renderStackCanvas();
+    pushHistoryState();
     updateLivePreview();
     closeWidgetConfigModal();
 
@@ -3096,7 +3252,7 @@ function buildStudio() {
       container.innerHTML = '<div class="empty-canvas-state">' +
         '<div style="font-size:2.4rem;margin-bottom:8px;">📝</div>' +
         '<h3 style="margin:0 0 6px;color:var(--navy);font-size:1.15rem;font-weight:800;">캔버스가 비어 있습니다</h3>' +
-        '<p style="margin:0 0 16px;color:var(--muted);font-size:.88rem;">상단 빠른 추가 바 또는 아래 셸프에서 원하는 블록을 추가하세요.</p>' +
+        '<p style="margin:0 0 16px;color:var(--muted);font-size:.88rem;">좌측 블록 팔레트에서 원하는 구조나 컴포넌트를 추가하세요.</p>' +
         '<button class="btn primary" onclick="addBlockToStack(\\'textButtonBlock\\')">+ 첫 블록 추가하기</button>' +
         '</div>';
       return;
@@ -3139,19 +3295,36 @@ function buildStudio() {
     var previewView = document.getElementById('previewFrameView');
     var btnCanvas = document.getElementById('viewBtnCanvas');
     var btnPreview = document.getElementById('viewBtnPreview');
+    var toggleBtn = document.getElementById('togglePreviewBtn');
+    var icon = document.getElementById('previewBtnIcon');
+    var label = document.getElementById('previewBtnLabel');
 
     if (view === 'preview') {
       if (canvasView) canvasView.style.display = 'none';
       if (previewView) previewView.style.display = 'flex';
       if (btnCanvas) btnCanvas.classList.remove('active');
       if (btnPreview) btnPreview.classList.add('active');
+      if (icon) icon.innerText = '📝';
+      if (label) label.innerText = '캔버스 편집';
+      if (toggleBtn) toggleBtn.classList.add('primary');
       updateLivePreview();
     } else {
       if (canvasView) canvasView.style.display = 'flex';
       if (previewView) previewView.style.display = 'none';
       if (btnCanvas) btnCanvas.classList.add('active');
       if (btnPreview) btnPreview.classList.remove('active');
+      if (icon) icon.innerText = '👁️';
+      if (label) label.innerText = '미리보기 모드';
+      if (toggleBtn) toggleBtn.classList.remove('primary');
       renderStackCanvas();
+    }
+  };
+
+  window.togglePreviewMode = function() {
+    if (currentStackView === 'canvas') {
+      window.switchStackView('preview');
+    } else {
+      window.switchStackView('canvas');
     }
   };
 
@@ -3172,6 +3345,7 @@ function buildStudio() {
     }
     reindexBlockOrders();
     renderStackCanvas();
+    pushHistoryState();
   }
 
   // ── 초기화: 드롭다운 채우기 및 폼 렌더링 ──
@@ -3533,6 +3707,8 @@ function buildStudio() {
   .stack-canvas-scroll {
     flex: 1;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     background: #f4f6fa;
     padding: 24px 20px 80px;
     position: relative;
@@ -3889,23 +4065,232 @@ function buildStudio() {
     padding: 12px 20px; border-top: 1px solid var(--line); background: #f8f9fa;
     display: flex; justify-content: flex-end; gap: 8px;
   }
+
+  /* ── 블록 라이브러리 팔레트 (좌측 패널 원클릭 추가) ── */
+  .palette-category-card {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(36,53,81,0.04);
+  }
+  .palette-cat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .palette-badge {
+    font-size: .68rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .palette-badge.layout {
+    background: #e8f0fe;
+    color: #1967d2;
+  }
+  .palette-badge.component {
+    background: #e6f4ea;
+    color: #137333;
+  }
+  .palette-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .palette-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #f8fafd;
+    border: 1px solid #e1ecfa;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: all .14s ease;
+    width: 100%;
+    font-family: inherit;
+  }
+  .palette-btn:hover {
+    background: #eef5fe;
+    border-color: #1967d2;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(25,103,210,0.12);
+  }
+  .palette-btn:active {
+    transform: translateY(0);
+  }
+  .palette-btn .p-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .palette-btn .p-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .palette-btn .p-title {
+    font-size: .84rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .palette-btn .p-sub {
+    font-size: .72rem;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .palette-btn .p-plus {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1967d2;
+    background: #e8f0fe;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: .15s;
+  }
+  .palette-btn:hover .p-plus {
+    background: #1967d2;
+    color: #ffffff;
+  }
+
+  /* ── 상단 시스템 바 강화 & Undo/Redo 버튼 ── */
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header-count-badge {
+    font-size: .72rem;
+    font-weight: 700;
+    background: #e8f0fe;
+    color: #1967d2;
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .history-btn-group {
+    display: flex;
+    align-items: center;
+    background: #f1f3f4;
+    border-radius: 8px;
+    padding: 2px;
+    gap: 2px;
+  }
+  .history-btn-group .btn {
+    border: none;
+    background: transparent;
+    padding: 5px 10px;
+    font-size: .80rem;
+    border-radius: 6px;
+  }
+  .history-btn-group .btn:hover:not(:disabled) {
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  /* ── 쉘 & 모바일 호환성 미디어 쿼리 ── */
+  @media (max-width: 900px) {
+    .studio-header {
+      height: auto;
+      min-height: 52px;
+      padding: 8px 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .studio-header .actions {
+      flex-wrap: wrap;
+      width: 100%;
+      justify-content: flex-start;
+      gap: 6px;
+    }
+    .workspace {
+      flex-direction: column;
+      height: auto;
+      min-height: calc(100vh - 80px);
+      overflow-y: auto;
+    }
+    .editor-pane {
+      width: 100%;
+      height: auto;
+      max-height: 380px;
+      border-right: none;
+      border-bottom: 1px solid var(--line);
+    }
+    .preview-pane {
+      width: 100%;
+      min-height: 500px;
+      flex: 1;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .btn {
+      padding: 5px 9px;
+      font-size: .76rem;
+    }
+    .btn-text {
+      display: none;
+    }
+    .header-count-badge {
+      display: none;
+    }
+    .canvas-stack-toolbar {
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+    .canvas-tool-chip {
+      flex-shrink: 0;
+    }
+  }
 </style>
 </head>
 <body>
 
-<!-- 상단 헤더 바 -->
+<!-- 상단 헤더 바 (통합 시스템 바) -->
 <header class="studio-header">
-  <div class="brand">
-    <span class="dot"></span> Gemini Style Workflow Studio
+  <div class="brand-group">
+    <div class="brand">
+      <span class="dot"></span> Gemini Style Workflow Studio
+    </div>
+    <span id="headerBlockCountBadge" class="header-count-badge">3개 블록 구성</span>
   </div>
   <div class="actions">
-    <!-- 작업 & 템플릿 선택 드롭다운 -->
+    <!-- 실행 취소 / 다시 실행 (Undo/Redo) -->
+    <div class="history-btn-group">
+      <button class="btn" id="undoBtn" onclick="undoStack()" title="실행 취소 (Ctrl+Z)" disabled>
+        <span>↩️</span> <span class="btn-text">실행 취소</span>
+      </button>
+      <button class="btn" id="redoBtn" onclick="redoStack()" title="다시 실행 (Ctrl+Y / Ctrl+Shift+Z)" disabled>
+        <span>↪️</span> <span class="btn-text">다시 실행</span>
+      </button>
+    </div>
+
+    <!-- 미리보기 모드 토글 -->
+    <button class="btn" id="togglePreviewBtn" onclick="togglePreviewMode()" title="캔버스 편집 모드와 실시간 완성본 미리보기를 토글합니다">
+      <span id="previewBtnIcon">👁️</span> <span id="previewBtnLabel">미리보기 모드</span>
+    </button>
+
+    <!-- HTML 다운로드 버튼 -->
+    <button class="btn primary" id="exportStackBtn" onclick="exportStackToHtml('export.html')" style="background:#0d652d; border-color:#0d652d;" title="캔버스 블록을 완전한 반응형 시맨틱 HTML(export.html)로 다운로드">
+      <span>📥</span> <span class="btn-text">HTML 다운로드</span>
+    </button>
+
+    <!-- 작업 저장 및 프리셋 드롭다운 -->
+    <button class="btn" id="openSaveBtn" style="background:#e8f0fe; color:#1967d2; border-color:#c6dafc;" title="현재 작성 중인 작업 내용을 브라우저에 영구 저장">💾 <span class="btn-text">저장</span></button>
     <select class="preset-select" id="presetSelect" title="작업 및 템플릿 불러오기"></select>
-    <button class="btn" id="deleteWorkBtn" style="display:none; color:#d93025; border-color:#fce8e6;" title="현재 불러온 저장 작업 삭제">🗑️ 삭제</button>
-    <button class="btn" id="openSaveBtn" style="background:#e8f0fe; color:#1967d2; border-color:#c6dafc;" title="현재 작성 중인 작업 내용을 브라우저에 영구 저장">💾 작업 저장</button>
-    <button class="btn" id="copyHtmlBtn" title="배포용 순수 HTML 복사 (하이라이트 기능 제외)">📋 HTML 복사</button>
-    <button class="btn primary" id="downloadHtmlBtn" title="배포용 순수 HTML 다운로드 (하이라이트 기능 제외)">⬇️ 단일 HTML 다운로드</button>
-    <button class="btn primary" id="exportStackBtn" onclick="exportStackToHtml('export.html')" style="background:#0d652d; border-color:#0d652d;" title="캔버스 블록을 완전한 반응형 시맨틱 HTML(export.html)로 다운로드">📥 export.html 다운로드</button>
+    <button class="btn" id="deleteWorkBtn" style="display:none; color:#d93025; border-color:#fce8e6;" title="현재 불러온 저장 작업 삭제">🗑️</button>
   </div>
 </header>
 
@@ -3914,12 +4299,141 @@ function buildStudio() {
   <!-- 좌측 편집기 패널 -->
   <aside class="editor-pane">
     <nav class="editor-tabs">
-      <button class="tab-btn active" id="tabForm">비주얼 폼 편집 (/vo)</button>
-      <button class="tab-btn" id="tabJson">JSON 직접 편집</button>
+      <button class="tab-btn active" id="tabBlocks" onclick="switchEditorTab('blocks')">🧩 블록 라이브러리</button>
+      <button class="tab-btn" id="tabForm" onclick="switchEditorTab('form')">⚙️ 폼 속성 편집</button>
+      <button class="tab-btn" id="tabJson" onclick="switchEditorTab('json')">JSON 직접 편집</button>
     </nav>
-    
-    <!-- 폼 모드 -->
-    <div class="editor-scroll" id="formView">
+
+    <!-- 1. 블록 라이브러리 뷰 (구조 3종 + 컴포넌트 6종 원클릭 추가) -->
+    <div class="editor-scroll" id="blocksView">
+      <div style="margin-bottom:14px;">
+        <h3 style="font-size:.92rem;font-weight:800;color:var(--navy);margin:0 0 3px;">⚡ 원클릭 블록 팔레트</h3>
+        <p style="font-size:.76rem;color:var(--muted);margin:0;line-height:1.4;">버튼을 클릭하면 캔버스에 즉시 블록이 추가됩니다.</p>
+      </div>
+
+      <!-- 📐 [구조 & 레이아웃 (Structure & Layout)] 도구군 -->
+      <div class="palette-category-card">
+        <div class="palette-cat-header">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:1rem;">📐</span>
+            <span style="font-size:.84rem;font-weight:800;color:var(--navy);">구조 (Structure &amp; Layout)</span>
+          </div>
+          <span class="palette-badge layout">3종</span>
+        </div>
+        <p style="font-size:.74rem;color:var(--muted);margin:0 0 10px;line-height:1.4;">
+          섹션 컨테이너, 구분선, 여백으로 레이아웃의 골격과 간격을 잡습니다.
+        </p>
+        <div class="palette-grid">
+          <!-- 1. 컨테이너 -->
+          <button type="button" class="palette-btn" onclick="addBlockToStack('sectionContainer')" title="섹션 그룹 래퍼 카드 추가">
+            <span class="p-icon">📦</span>
+            <div class="p-text">
+              <span class="p-title">컨테이너</span>
+              <span class="p-sub">그룹 래퍼 카드 박스</span>
+            </div>
+            <span class="p-plus">+</span>
+          </button>
+
+          <!-- 2. 구분선 -->
+          <button type="button" class="palette-btn" onclick="addBlockToStack('divider')" title="시각적 섹션 구분선 추가">
+            <span class="p-icon">➖</span>
+            <div class="p-text">
+              <span class="p-title">구분선</span>
+              <span class="p-sub">경계선 &amp; 라벨</span>
+            </div>
+            <span class="p-plus">+</span>
+          </button>
+
+          <!-- 3. 여백 -->
+          <button type="button" class="palette-btn" onclick="addBlockToStack('spacer')" title="블록 간 간격 조절 스페이서 추가">
+            <span class="p-icon">↕️</span>
+            <div class="p-text">
+              <span class="p-title">여백 (스페이서)</span>
+              <span class="p-sub">높이 조절 여백</span>
+            </div>
+            <span class="p-plus">+</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ⚡ [컴포넌트 & 블록 (Components & Blocks)] 도구군 -->
+      <div class="palette-category-card" style="margin-top:14px;">
+        <div class="palette-cat-header">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:1rem;">⚡</span>
+            <span style="font-size:.84rem;font-weight:800;color:var(--navy);">컴포넌트 (Components &amp; Blocks)</span>
+          </div>
+          <span class="palette-badge component">6종</span>
+        </div>
+        <p style="font-size:.74rem;color:var(--muted);margin:0 0 10px;line-height:1.4;">
+          독립 데이터와 인터랙션을 가진 핵심 기능 블록을 추가합니다.
+        </p>
+        <div class="palette-grid">
+          <!-- 1. 3D 플립 카드 -->
+          <button type="button" class="palette-btn" onclick="addBlockToStack('flipCard')" title="3D 플립 카드 추가">
+            <span class="p-icon">📌</span>
+            <div class="p-text">
+              <span class="p-title">3D 플립 카드</span>
+              <span class="p-sub">입체 회전 핵심 모듈</span>
+            </div>
+            <span class="p-plus">+</span>
+          </button>
+
+          <!-- 2. PARTS 프롬프트 -->
+          <button type="button" class="palette-btn" onclick="addBlockToStack('partsPrompt')" title="PARTS 프롬프트 조립기 추가">
+            <span class="p-icon">🧩</span>
+            <div class="p-text">
+              <span class="p-title">PARTS 프롬프트</span>
+              <span class="p-sub">P·A·R·T·S 칩 조립기</span>
+            </div>
+            <span class="p-plus">+</span>
+          </button>
+
+          <!-- 3. GAS 아코디언 -->
+          <button type="button" class="palette-btn" onclick="addBlockToStack('gasAccordion')" title="GAS 아코디언 추가">
+            <span class="p-icon">📑</span>
+            <div class="p-text">
+              <span class="p-title">GAS 아코디언</span>
+              <span class="p-sub">펼쳐지는 배포 코드</span>
+            </div>
+            <span class="p-plus">+</span>
+          </button>
+
+          <!-- 4. 엽서 시뮬레이터 -->
+          <button type="button" class="palette-btn" onclick="addBlockToStack('postcardSimulator')" title="엽서 시뮬레이터 추가">
+            <span class="p-icon">✉️</span>
+            <div class="p-text">
+              <span class="p-title">엽서 시뮬레이터</span>
+              <span class="p-sub">무인 발송 자동화</span>
+            </div>
+            <span class="p-plus">+</span>
+          </button>
+
+          <!-- 5. 안내 노트 -->
+          <button type="button" class="palette-btn" onclick="addBlockToStack('infoNote')" title="안내 노트 추가">
+            <span class="p-icon">💡</span>
+            <div class="p-text">
+              <span class="p-title">안내 노트</span>
+              <span class="p-sub">팁 / 주의 / 참고 상자</span>
+            </div>
+            <span class="p-plus">+</span>
+          </button>
+
+          <!-- 6. 텍스트 / 버튼 -->
+          <button type="button" class="palette-btn" onclick="addBlockToStack('textButtonBlock')" title="텍스트 & 액션 버튼 블록 추가">
+            <span class="p-icon">🎯</span>
+            <div class="p-text">
+              <span class="p-title">텍스트 / 버튼</span>
+              <span class="p-sub">헤더 타이틀 &amp; CTA</span>
+            </div>
+            <span class="p-plus">+</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 기존 폼 모드 (초기에는 숨김) -->
+    <div class="editor-scroll" id="formView" style="display:none;">
       
       <!-- ── 🛠️ 툴바 & 도구 모음 팔레트 (요구사항 2: 구조&레이아웃 도구만 노출) ── -->
       <div class="tool-section-card" id="toolbarSectionCard" data-editor-id="toolbar" data-editor-level="container">
@@ -4190,9 +4704,13 @@ function buildStudio() {
         <span style="font-size:.78rem;font-weight:800;color:var(--navy);display:flex;align-items:center;gap:4px;">
           <span>⚡ 빠른 블록 추가:</span>
         </span>
-        <button class="canvas-tool-chip" onclick="addBlockToStack('flipCard')"><span>📌</span> 3D 플립 카드</button>
-        <button class="canvas-tool-chip" onclick="addBlockToStack('partsPrompt')"><span>🧩</span> PARTS 프롬프트</button>
-        <button class="canvas-tool-chip" onclick="addBlockToStack('gasAccordion')"><span>📑</span> GAS 아코디언</button>
+        <button class="canvas-tool-chip" onclick="addBlockToStack('sectionContainer')"><span>📦</span> 컨테이너</button>
+        <button class="canvas-tool-chip" onclick="addBlockToStack('divider')"><span>➖</span> 구분선</button>
+        <button class="canvas-tool-chip" onclick="addBlockToStack('spacer')"><span>↕️</span> 여백</button>
+        <span style="color:#dadce0;margin:0 2px;">|</span>
+        <button class="canvas-tool-chip" onclick="addBlockToStack('flipCard')"><span>📌</span> 3D 카드</button>
+        <button class="canvas-tool-chip" onclick="addBlockToStack('partsPrompt')"><span>🧩</span> PARTS 칩</button>
+        <button class="canvas-tool-chip" onclick="addBlockToStack('gasAccordion')"><span>📑</span> 아코디언</button>
         <button class="canvas-tool-chip" onclick="addBlockToStack('postcardSimulator')"><span>✉️</span> 엽서 시뮬레이터</button>
         <button class="canvas-tool-chip" onclick="addBlockToStack('infoNote')"><span>💡</span> 안내 노트</button>
         <button class="canvas-tool-chip" onclick="addBlockToStack('textButtonBlock')"><span>🎯</span> 텍스트/버튼</button>
@@ -4213,6 +4731,18 @@ function buildStudio() {
             <div class="shelf-line"></div>
           </div>
           <div class="shelf-grid">
+            <button class="shelf-card-btn" onclick="addBlockToStack('sectionContainer')">
+              <span class="shelf-icon">📦</span>
+              <div class="shelf-text"><span class="shelf-title">컨테이너</span><span class="shelf-sub">구조 섹션 그룹 래퍼 카드</span></div>
+            </button>
+            <button class="shelf-card-btn" onclick="addBlockToStack('divider')">
+              <span class="shelf-icon">➖</span>
+              <div class="shelf-text"><span class="shelf-title">구분선</span><span class="shelf-sub">시각적 섹션 경계선 및 라벨</span></div>
+            </button>
+            <button class="shelf-card-btn" onclick="addBlockToStack('spacer')">
+              <span class="shelf-icon">↕️</span>
+              <div class="shelf-text"><span class="shelf-title">여백 (스페이서)</span><span class="shelf-sub">상하 높이 조절 간격 블록</span></div>
+            </button>
             <button class="shelf-card-btn" onclick="addBlockToStack('flipCard')">
               <span class="shelf-icon">📌</span>
               <div class="shelf-text"><span class="shelf-title">3D 플립 카드</span><span class="shelf-sub">입체 회전 핵심 모듈 카드</span></div>

@@ -30,14 +30,73 @@
     },
 
     /**
-     * 카탈로그 내 등록된 6대 핵심 위젯 템플릿
+     * 카탈로그 내 등록된 3대 구조 템플릿 & 6대 핵심 컴포넌트 위젯 템플릿
      */
     templates: {
+      // ───────────────────────────────────────────────────────────────────────
+      // [구조 & 레이아웃 (Structure & Layout)] - 컨테이너, 구분선, 여백
+      // ───────────────────────────────────────────────────────────────────────
+      sectionContainer: {
+        type: "sectionContainer",
+        category: "structure",
+        name: "섹션 컨테이너",
+        icon: "📦",
+        origin: "layout",
+        description: "자식 요소들을 감싸고 카드형 테두리와 배경으로 시각적 위계를 형성하는 구조 블록",
+        data: {
+          title: "새로운 섹션 그룹",
+          subtitle: "관련 컴포넌트와 실행 단계를 그룹화하여 배치하세요.",
+          theme: "paper"
+        },
+        settings: {
+          align: "left",
+          theme: "light",
+          maxWidth: "880px"
+        }
+      },
+
+      divider: {
+        type: "divider",
+        category: "structure",
+        name: "구분선",
+        icon: "➖",
+        origin: "layout",
+        description: "콘텐츠 그룹 사이에 명확한 시각적 경계를 제공하는 선 블록",
+        data: {
+          label: "SECTION DIVIDER"
+        },
+        settings: {
+          align: "center",
+          theme: "light",
+          maxWidth: "880px"
+        }
+      },
+
+      spacer: {
+        type: "spacer",
+        category: "structure",
+        name: "여백 (스페이서)",
+        icon: "↕️",
+        origin: "layout",
+        description: "블록 간의 여백을 조절하여 시각적 호흡을 주는 간격 블록",
+        data: {
+          height: 36
+        },
+        settings: {
+          align: "center",
+          theme: "light",
+          maxWidth: "100%"
+        }
+      },
+
+      // ───────────────────────────────────────────────────────────────────────
+      // [컴포넌트 & 블록 (Components & Blocks)] 6대 핵심 위젯
       // ───────────────────────────────────────────────────────────────────────
       // 1. 3D 플립 카드 (Flip Card) - 출처: home.html (.flip, .face.front, .face.back)
       // ───────────────────────────────────────────────────────────────────────
       flipCard: {
         type: "flipCard",
+        category: "component",
         name: "3D 플립 카드",
         icon: "📌",
         origin: "home.html",
@@ -67,6 +126,7 @@
       // ───────────────────────────────────────────────────────────────────────
       partsPrompt: {
         type: "partsPrompt",
+        category: "component",
         name: "PARTS 프롬프트 조립기",
         icon: "🧩",
         origin: "module2.html",
@@ -121,6 +181,7 @@
       // ───────────────────────────────────────────────────────────────────────
       gasAccordion: {
         type: "gasAccordion",
+        category: "component",
         name: "GAS 접이식 아코디언",
         icon: "📑",
         origin: "module3.html",
@@ -158,6 +219,7 @@
       // ───────────────────────────────────────────────────────────────────────
       postcardSimulator: {
         type: "postcardSimulator",
+        category: "component",
         name: "엽서 발송 자동화 시뮬레이터",
         icon: "✉️",
         origin: "module4.html",
@@ -184,6 +246,7 @@
       // ───────────────────────────────────────────────────────────────────────
       infoNote: {
         type: "infoNote",
+        category: "component",
         name: "안내 / 팁 / 주의 노트",
         icon: "💡",
         origin: "module2.html, module3.html",
@@ -206,6 +269,7 @@
       // ───────────────────────────────────────────────────────────────────────
       textButtonBlock: {
         type: "textButtonBlock",
+        category: "component",
         name: "텍스트 & 액션 버튼 블록",
         icon: "🎯",
         origin: "home.html, module2.html",
@@ -276,6 +340,48 @@
       const textAlign = s.align || 'center';
 
       switch (node.type) {
+        // ── [구조 & 레이아웃 (Structure & Layout)] 3종 ──
+        // A. 섹션 컨테이너 (Section Container)
+        case 'sectionContainer': {
+          return `
+<div class="stack-block stack-container" data-block-id="${node.id}" style="max-width:${maxW};margin:${marginH};padding:24px 28px;background:#ffffff;border:1px solid #dadce0;border-radius:20px;box-shadow:0 4px 16px rgba(36,53,81,.06);text-align:left;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+    <span style="font-size:1.2rem;line-height:1;">📦</span>
+    <h3 style="margin:0;font-size:1.2rem;font-weight:800;color:#0b1a2c;"${editAttr('title')}>${d.title || '새로운 섹션 그룹'}</h3>
+  </div>
+  <p style="margin:0 0 16px;font-size:.9rem;color:#5f6368;line-height:1.5;"${editAttr('subtitle')}>${d.subtitle || '관련 컴포넌트와 실행 단계를 그룹화하여 배치하세요.'}</p>
+  <div style="padding:16px;background:#f8fafd;border:2px dashed #dadce0;border-radius:12px;text-align:center;color:#5f6368;font-size:.82rem;">
+    ➕ [구조 컨테이너] 다른 컴포넌트나 콘텐츠를 그룹화하는 레이아웃 영역입니다.
+  </div>
+</div>`.trim();
+        }
+
+        // B. 구분선 (Divider)
+        case 'divider': {
+          return `
+<div class="stack-block stack-divider" data-block-id="${node.id}" style="max-width:${maxW};margin:${marginH};padding:18px 0;">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div style="flex:1;height:1px;background:#e8eaed;"></div>
+    ${d.label ? `<span style="font-size:.72rem;font-weight:800;color:#80868b;letter-spacing:.08em;text-transform:uppercase;"${editAttr('label')}>${d.label}</span>` : ''}
+    <div style="flex:1;height:1px;background:#e8eaed;"></div>
+  </div>
+</div>`.trim();
+        }
+
+        // C. 여백 (Spacer)
+        case 'spacer': {
+          const h = d.height || 36;
+          if (isEditable) {
+            return `
+<div class="stack-block stack-spacer" data-block-id="${node.id}" style="max-width:${maxW};margin:${marginH};height:${h}px;background:rgba(26,115,232,0.04);border:1px dashed rgba(26,115,232,0.3);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#1967d2;font-size:.74rem;font-weight:700;">
+  ↕️ 여백 ${h}px (스페이서)
+</div>`.trim();
+          } else {
+            return `<div class="stack-block stack-spacer" data-block-id="${node.id}" style="max-width:${maxW};margin:${marginH};height:${h}px;"></div>`;
+          }
+        }
+
+        // ── [컴포넌트 & 블록 (Components & Blocks)] 6종 ──
         // 1. 3D 플립 카드
         case 'flipCard': {
           const accent = d.accentColor || '#1967d2';
