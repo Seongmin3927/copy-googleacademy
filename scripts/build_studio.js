@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const vm = require('vm');
 
 function buildStudio() {
@@ -58,135 +59,133 @@ function buildStudio() {
           frontTitle: "고객 피드백 감성 & 패턴 분석",
           tags: ["정량 분석", "VOC", "클러스터링"],
           color: "#1967d2",
-          backDesc: "주간 접수된 수백 건의 VOC 데이터를 5가지 핵심 카테고리(버그, 기능 제안, UX 불만 등)로 분류하고 긴급 대응 우선순위를 산출합니다."
+          backDesc: "수백 건의 고객 문의 및 설문 텍스트에서 불만 요인(Pain Points)과 긍정 키워드를 클러스터링하여 시각화 차트 데이터로 가공합니다."
         },
         {
           badge: "PHASE 03",
-          frontTitle: "KPI 대시보드 실시간 반영",
-          tags: ["Apps Script", "Sheets", "자동화"],
+          frontTitle: "구글 시트 연동 자동 지표 산출",
+          tags: ["Google Sheets", "Apps Script", "대시보드"],
           color: "#137333",
-          backDesc: "정리된 구조화 JSON 데이터를 Apps Script API로 호출하여 팀 공유 구글 시트와 Looker 대시보드에 즉각 반영합니다."
+          backDesc: "Gemini API를 Apps Script와 바인딩하여 시트에 입력되는 신규 로우(Row)마다 카테고리 태깅과 요약문을 실시간으로 채워넣습니다."
         }
       ],
       steps: [
         {
           num: "1",
-          title: "회의 음성 텍스트를 구조화 요약 프롬프트에 입력",
+          title: "회의 음성 스크립트 전처리 및 표준 JSON 변환",
           tool: "Gemini 2.5 Pro",
-          goal: "회의록 원문에서 결정 사항과 차주 실행 과제(Action Items)만 100% 누락 없이 추출",
-          desc: "구글 밋(Google Meet) 녹음본 또는 클로바노트 텍스트를 복사하여 아래 프롬프트에 붙여넣습니다.",
-          prompt: "당신은 전략기획팀 전문 수석 비서입니다. 아래 주간 회의 원문을 분석하여 다음 JSON 스키마 규격으로만 응답하세요:\n{\n  \"meeting_title\": \"주간 운영 회의\",\n  \"key_decisions\": [\"결정사항 1\", \"결정사항 2\"],\n  \"action_items\": [{\"task\": \"과제명\", \"owner\": \"담당자\", \"due\": \"마감일\"}]\n}\n\n회의 원문:\n[여기에 텍스트 입력]",
-          tip: "Gemini의 JSON 모드를 활용하면 출력 포맷이 고정되어 Apps Script에서 바로 파싱할 수 있습니다.",
-          note: "민감한 고객 개인정보나 결제 정보는 회의록 전송 전 반드시 마스킹 처리하세요.",
-          warn: "정산 및 예산 관련 수치는 생성 후 반드시 담당 부서의 수기 확인을 거쳐야 합니다.",
-          url: "https://script.google.com",
-          urlLabel: "구글 앱스 스크립트(Apps Script) 콘솔 바로가기"
+          goal: "구조화되지 않은 음성 텍스트를 구조적 데이터 스키마로 정리",
+          desc: "아래 프롬프트를 복사하여 Gemini에 전달하고 정형화된 JSON 회의록 데이터를 생성합니다.",
+          prompt: "당신은 구글 테크니컬 프로그램 매니저(TPM)입니다. 아래 회의 스크립트를 분석하여 다음 JSON 스키마로 출력하세요:\n{\n  \"meeting_title\": \"...\",\n  \"key_decisions\": [\"...\"],\n  \"action_items\": [{ \"owner\": \"...\", \"task\": \"...\", \"due\": \"...\" }]\n}",
+          tip: "Gemini 웹 또는 API 호출 시 시스템 프롬프트(System Instruction)에 JSON Schema를 지정하면 100% 신뢰성 있는 결과를 얻을 수 있습니다.",
+          note: "이 단계의 산출물은 다음 스프레드시트 자동화 단계의 직접적인 입력 데이터로 사용됩니다.",
+          warn: "공개된 회의록에 사내 기밀 정보가 포함되지 않도록 마스킹 처리를 권장합니다.",
+          url: "https://ai.google.dev/"
         },
         {
           num: "2",
-          title: "구글 시트 연동 Apps Script 웹훅 실행",
-          tool: "Google Apps Script",
-          goal: "추출된 JSON 데이터를 공유 시트에 자동 행 추가",
-          desc: "스프레드시트의 확장 프로그램 > Apps Script 메뉴에서 API 엔드포인트 코드를 배포합니다.",
-          prompt: "function doPost(e) {\n  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('WeeklyReport');\n  var data = JSON.parse(e.postData.contents);\n  sheet.appendRow([new Date(), data.meeting_title, JSON.stringify(data.key_decisions), JSON.stringify(data.action_items)]);\n  return ContentService.createTextOutput(JSON.stringify({result: 'success'})).setMimeType(ContentService.MimeType.JSON);\n}",
-          tip: "웹 앱 배포 시 '액세스 권한: 모든 사용자'로 설정해야 외부 웹훅 호출이 가능합니다.",
-          note: "프로덕션 환경에서는 X-API-KEY 헤더 검증 로직을 추가하는 것을 권장합니다."
+          title: "Google Apps Script 기반 스프레드시트 실시간 동기화",
+          tool: "Apps Script",
+          goal: "추출된 액션 아이템을 팀 대시보드 시트에 1초 만에 자동 기입",
+          desc: "스프레드시트의 확장 프로그램 ➔ Apps Script 편집기에서 트리거 함수를 배포합니다.",
+          prompt: "function onNewMeetingNote(jsonData) {\n  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('액션아이템');\n  jsonData.action_items.forEach(item => {\n    sheet.appendRow([new Date(), item.owner, item.task, item.due, '진행중']);\n  });\n}",
+          tip: "트리거 실행 주기나 Webhook URL을 설정하여 실시간성을 보장할 수 있습니다.",
+          note: "API 토큰은 Script Properties(스크립트 속성)에 안전하게 보관하세요.",
+          warn: "시트 이름이 '액션아이템'과 정확히 일치하는지 사전에 점검하세요.",
+          url: "https://script.google.com/"
+        },
+        {
+          num: "3",
+          title: "주간 성과 대시보드 시각화 및 관계자 슬랙 공유",
+          tool: "Google Sheets & Slack",
+          goal: "매주 금요일 오후 5시 경영진 및 팀원에게 정량 지표 자동 리포팅",
+          desc: "피벗 테이블과 슬랙 웹훅 봇을 결합하여 완성된 주간 지표를 채널에 게시합니다.",
+          prompt: "curl -X POST -H 'Content-type: application/json' \\\n--data '{\"text\":\"📊 *주간 업무 자동화 요약*: 이번 주 액션아이템 18건 중 16건 완수 (달성률 88.8%)\"}' \\\nhttps://hooks.slack.com/services/YOUR/WEBHOOK/URL",
+          tip: "조건부 서식을 시트에 적용해두면 지연된 태스크가 빨간색으로 자동 강조됩니다.",
+          note: "슬랙 알림 외에도 Gmail을 통한 PDF 첨부 발송으로 쉽게 확장할 수 있습니다."
         }
       ],
       checklist: [
-        "Gemini API 키 환경 변수 등록 완료",
-        "Apps Script 웹 앱 최신 버전 배포 완료",
-        "구글 시트 대상 탭 권한 확인",
-        "슬랙 수신 채널 웹훅 URL 테스트 통과"
+        "Gemini API 키 환경변수 세팅 완료",
+        "Google Sheets 내 '액션아이템' 시트 탭 생성 완료",
+        "Apps Script 테스트 실행 시 콘솔 200 OK 확인",
+        "슬랙 웹훅 URL 보안 점검 완료"
       ]
     },
-    project: {
-      title: "2026 신규 AI 서비스 런칭 로드맵",
-      badge: "🚀 PRODUCT LAUNCH BLUEPRINT",
-      description: "시장 조사, 프롬프트 엔지니어링, Cloudflare 인프라 배포까지 엔드투엔드로 진행하는 신규 프로덕트 런칭 플랜입니다.",
+    meeting: {
+      title: "원클릭 스마트 회의록 & 액션 플래너",
+      badge: "⚡ 3분 완성 회의록",
+      description: "회의 중 메모한 두서없는 단어들을 명료한 핵심 요약과 담당자별 액션 아이템으로 즉시 변환하는 실전 템플릿입니다.",
       toolbar: {
         enabled: true,
         showSearch: true,
-        searchPlaceholder: "런칭 로드맵 키워드 검색...",
+        searchPlaceholder: "회의록 키워드 검색...",
         showSuggestChips: true,
-        suggestChips: ["시장조사", "MVP기획", "Cloudflare", "프롬프트"],
+        suggestChips: ["결정사항", "차주 계획", "담당자", "마감일"],
         showCategoryTabs: true,
-        categoryTabs: ["전체", "기획", "개발", "배포"],
+        categoryTabs: ["전체", "안건", "결정사항", "액션플랜"],
         showPrint: true,
         showProgress: true,
         showThemeToggle: true
       },
       whyBox: {
         enabled: true,
-        title: "🎯 린(Lean) AI 프로덕트 런칭의 핵심 가치",
-        desc: "인프라 구축에 수 주를 소모하지 않고 서버리스 Cloudflare 스택과 사전 검증된 프롬프트 아키텍처로 3일 안에 프로토타입을 실서빙합니다."
-      },
-      procBox: {
-        enabled: true,
-        badge: "LAUNCH TIMELINE",
-        title: "아이디어 검증 ➔ 인터랙티브 프로토타이핑 ➔ Cloudflare 배포 ➔ 피드백 루프"
+        title: "💡 회의록 정리 시간 90% 감축",
+        desc: "회의가 끝난 직후 3분 안에 완성도 높은 공식 회의록을 배포하여 참석자들의 실행력을 극대화합니다."
       },
       kpiStats: [
-        { num: "D-14", label: "목표 런칭 일정", color: "#1967d2" },
-        { num: "99.9%", label: "글로벌 엣지 가용성", color: "#137333" },
-        { num: "0원", label: "초기 서버 인프라 비용", color: "#f9ab00" }
+        { num: "3분", label: "회의록 완성 소요시간", color: "#1967d2" },
+        { num: "0건", label: "누락된 업무 지시", color: "#137333" }
       ],
       meta: [
-        { label: "목표 기간", value: "4주 완성 (D-28)" },
-        { label: "배포 인프라", value: "Cloudflare Pages & Workers" },
-        { label: "타깃 고객", value: "B2B AI 도입 실무자" }
+        { label: "작성 주기", value: "수시 (미팅 직후)" },
+        { label: "권장 참석자", value: "프로젝트 전원" }
       ],
       flowmap: [
-        { num: "1", title: "시장 검증", desc: "경쟁사 & 니즈 조사", color: "#174ea6" },
-        { num: "2", title: "MVP 기획", desc: "핵심 인터랙션 정의", color: "#1967d2" },
-        { num: "3", title: "프롬프트 고도화", desc: "안정적 응답 튜닝", color: "#4a90e8" },
-        { num: "4", title: "엣지 배포", desc: "Cloudflare 프로덕션 서빙", color: "#34a853" }
+        { num: "1", title: "메모 입력", desc: "키워드 중심 거친 메모", color: "#1967d2" },
+        { num: "2", title: "AI 구조화", desc: "결정/보류/액션 분류", color: "#4a90e8" },
+        { num: "3", title: "배포", desc: "원클릭 복사 및 전송", color: "#34a853" }
       ],
       cards: [
-        { badge: "STEP 1", frontTitle: "타깃 니즈 수렴", tags: ["FGI", "설문", "Persona"], color: "#174ea6", backDesc: "잠재 사용자 인터뷰를 통해 가장 고통받는 3대 반복 작업을 정의합니다." },
-        { badge: "STEP 2", frontTitle: "Cloudflare 배포", tags: ["Pages", "Workers", "Edge"], color: "#137333", backDesc: "글로벌 CDN 엣지 네트워크를 통해 50ms 미만의 지연 시간으로 웹을 서빙합니다." }
+        { badge: "STEP 1", frontTitle: "회의 전 아젠다 공유", tags: ["사전 준비"], color: "#1967d2", backDesc: "목적이 불분명한 회의를 방지하기 위해 안건 3가지를 사전 정의합니다." },
+        { badge: "STEP 2", frontTitle: "실시간 논의 포인트 기록", tags: ["키워드 메모"], color: "#4a90e8", backDesc: "완벽한 문장이 아닌 단어와 수치 중심으로 빠르게 받아적습니다." }
       ],
       steps: [
         {
           num: "1",
-          title: "Cloudflare Pages 프로젝트 생성 및 깃 연동",
-          tool: "Wrangler CLI",
-          goal: "Git Push 시 1분 내 자동 빌드 및 글로벌 배포 파이프라인 구성",
-          desc: "wrangler.jsonc 설정과 함께 메인 브랜치를 연결합니다.",
-          prompt: "npm install -g wrangler\nwrangler pages project create my-ai-service\ngit push origin main",
-          tip: "_headers 파일에 Font 및 Image 정적 캐시 규칙을 적용하세요."
+          title: "거친 미팅 메모를 정제된 비즈니스 회의록으로 구조화",
+          tool: "Gemini 2.5 Flash",
+          goal: "참석자, 안건, 결정사항, 미결 과제를 일목요연한 포맷으로 출력",
+          desc: "아래 프롬프트에 오늘의 미팅 메모를 입력하세요.",
+          prompt: "아래 메모를 기반으로 프로페셔널한 비즈니스 회의록을 작성해주세요.\n\n[회의 메모]:\n- 참석자: 김팀장, 이매니저, 박프로\n- 주요 내용: 신규 기능 론칭 일정을 2주 연기하기로 합의함. QA 기간 확보 목적. 마케팅팀에는 오늘 18시 전까지 사전 공지 필요.",
+          tip: "발언자별 견해 차이가 있었던 항목은 [주요 쟁점] 섹션으로 분리하면 팀 내 얼라인먼트에 큰 도움이 됩니다."
         }
       ],
-      checklist: ["도메인 DNS 레코드 연결", "SSL/TLS 암호화 활성화", "SEO 메타 태그 검증"]
+      checklist: ["참석자 명단 확인", "결정 사항에 대한 이견 유무 확인", "액션 아이템별 마감일자 확정"]
     },
     onboarding: {
-      title: "신규 팀원을 위한 생성형 AI 실무 온보딩 가이드",
-      badge: "🔰 ONBOARDING PLAYBOOK",
-      description: "입사 첫 주에 마스터하는 프롬프트 작성 원칙, 사내 업무 도구 연동, 보안 가이드라인입니다.",
+      title: "신규 입사자를 위한 AI 업무 툴킷 마스터 가이드",
+      badge: "🌱 신규 입사자 온보딩",
+      description: "사내에서 사용하는 Gemini, Workspace, 자동화 매크로를 3일 만에 능숙하게 다룰 수 있도록 돕는 단계별 실습 로드맵입니다.",
       toolbar: {
         enabled: true,
         showSearch: true,
         searchPlaceholder: "온보딩 가이드 검색...",
         showSuggestChips: true,
-        suggestChips: ["프롬프트 원칙", "사내 보안", "Gemini 사용법"],
+        suggestChips: ["PARTS 프롬프트", "사내 보안", "단축키", "템플릿"],
         showCategoryTabs: true,
-        categoryTabs: ["전체", "1일차", "2일차", "3일차"],
+        categoryTabs: ["전체", "1일차: 세팅", "2일차: 실습", "3일차: 실전"],
         showPrint: true,
         showProgress: true,
         showThemeToggle: true
       },
       whyBox: {
         enabled: true,
-        title: "💡 AI 온보딩의 필요성",
-        desc: "팀 전체가 검증된 프롬프트 프레임워크(PARTS)를 통일하여 사용하여 커뮤니케이션 오버헤드를 줄입니다."
-      },
-      procBox: {
-        enabled: true,
-        badge: "CURRICULUM",
-        title: "계정 설정 ➔ PARTS 프롬프트 실습 ➔ 업무 자동화 적용 ➔ 보안 수칙 서약"
+        title: "💡 첫 주부터 100% 실전 투입",
+        desc: "업무 툴 사용법을 묻느라 소모되는 시간을 줄이고 첫 주부터 자신감 있게 실무를 리드하도록 지원합니다."
       },
       kpiStats: [
-        { num: "3일", label: "기초 온보딩 완료", color: "#1967d2" },
+        { num: "3일", label: "실무 툴 적응 완료", color: "#1967d2" },
         { num: "100%", label: "보안 수칙 준수율", color: "#137333" },
         { num: "2배", label: "문서 작성 속도 향상", color: "#f9ab00" }
       ],
@@ -222,65 +221,207 @@ function buildStudio() {
   var PRESETS = ${JSON.stringify(PRESETS, null, 2)};
 
   // ── 도구 및 컴포넌트 레지스트리 (Role & Architecture Guidelines 기반) ──
-  // [Decision Matrix]
-  // 1) 조건 1 또는 2가 True -> [구조 & 레이아웃 (Structure & Layout)]
-  // 2) 조건 3이 True이고 조건 1·2가 False -> [컴포넌트 & 블록 (Components & Blocks)]
+  // [Decision Matrix 판별 알고리즘]
+  // 조건 1: 컨테이너 지배권 (다른 요소를 Wrapper로 감싸고 자식 배치 방향 Flex/Grid/Stack 및 간격 Gap을 직접 결정하는가?)
+  // 조건 2: 글로벌 파급력 (단일 블록을 넘어 섹션 전체 또는 폼 전체의 레이아웃 흐름/스타일에 영향을 주는가?)
+  // 조건 3: 독립적 데이터 존재 여부 (자체 텍스트, 아이콘, 토글 상태 등 독립된 콘텐츠 속성을 가지는 단말 노드 Leaf Node인가?)
+  //
+  // 판정 규칙:
+  // - 조건 1 또는 2가 True -> [구조 & 레이아웃 (Structure & Layout)] -> 툴바&도구모음에 노출
+  // - 조건 3이 True이고 조건 1·2가 False -> [컴포넌트 & 블록 (Components & Blocks)] -> 각 권역 구조 도구의 하위에 귀속
   var TOOL_REGISTRY = {
+    // ══════════════════════════════════════════════════════════
+    // 1. [구조 & 레이아웃 (Structure & Layout)] (조건 1 또는 2 True)
+    // ══════════════════════════════════════════════════════════
+    header: {
+      category: "layout",
+      categoryLabel: "구조 & 레이아웃 (LAYOUT)",
+      decisionCondition1: true,
+      decisionCondition2: false,
+      decisionCondition3: false,
+      decisionReason: "조건 1 만족: Hero 래퍼 컨테이너로서 자식 요소(제목, 뱃지, 설명, 칩)의 정렬/여백/배치를 직접 지배",
+      icon: "🏛️",
+      name: "기본 정보 (헤더 섹션)",
+      desc: "보고서의 최상단 Hero 컨테이너 프레임입니다. 전체 문서를 대표하는 타이틀, 상단 뱃지 문구, 요약 설명, 그리고 하위 블록(Why 인트로, 프로세스 플로우 바, 태그 칩)의 배치를 중앙 정렬 및 패딩으로 직접 지배합니다.",
+      scenario: "모든 보고서와 워크플로우의 최상단 정체성과 목적을 정의하는 필수적인 구조 프레임입니다.",
+      previewHtml: '<div style="text-align:center;padding:16px;background:#f8fafd;border:1px dashed #c6dafc;border-radius:12px;"><span style="background:#fff;border:1px solid #dadce0;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;color:#5f6368;">✦ STAMP BADGE</span><h4 style="margin:8px 0 4px;color:#0b1a2c;">보고서 타이틀 (Hero Title)</h4><p style="margin:0;font-size:11px;color:#5f6368;">워크플로우 요약 설명이 배치되는 메인 컨테이너입니다.</p></div>',
+      actionText: "헤더 영역으로 이동 & 포커스",
+      actionType: "focus",
+      actionKey: "header"
+    },
+    toolbar: {
+      category: "layout",
+      categoryLabel: "구조 & 레이아웃 (LAYOUT)",
+      decisionCondition1: true,
+      decisionCondition2: true,
+      decisionCondition3: false,
+      decisionReason: "조건 1 및 조건 2 만족: 상단 고정 바 래퍼 컨테이너이며, 실시간 검색/진행률/인쇄/다크모드 등 전역 레이아웃 및 테마에 글로벌 파급력을 가짐",
+      icon: "🧭",
+      name: "상단 시스템 툴바 (System Toolbar)",
+      desc: "화면 상단에 고정(sticky)되는 시스템 네비게이션 컨테이너입니다. 실시간 검색창, 추천 검색어 칩, 카테고리 탭, 인쇄/PDF 호출, 스크롤 진행률 표시줄, 다크모드 토글 스위치를 수용합니다.",
+      scenario: "독자가 긴 가이드 문서를 탐색하고 인쇄하거나 다크모드로 전환할 수 있도록 상단 컨트롤러를 제공합니다.",
+      previewHtml: '<div style="background:#fff;border:1px solid #dadce0;border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:700;font-size:11px;color:#0b1a2c;">● 보고서 툴바</span><span style="font-size:10px;color:#1967d2;background:#e8f0fe;padding:2px 8px;border-radius:6px;">검색 · 인쇄 · 진행률 · 테마</span></div>',
+      actionText: "시스템 툴바 접기/펼치기",
+      actionType: "toggle",
+      actionKey: "toolbar"
+    },
+    kpiStats: {
+      category: "layout",
+      categoryLabel: "구조 & 레이아웃 (LAYOUT)",
+      decisionCondition1: true,
+      decisionCondition2: false,
+      decisionCondition3: false,
+      decisionReason: "조건 1 만족: 4열 반응형 그리드(Grid) 컨테이너로서 자식 KPI 카드 요소들의 다열 배치와 간격을 직접 지배",
+      icon: "📊",
+      name: "KPI 지표 스코어보드 (KPI Grid)",
+      desc: "핵심 성과 수치와 지표를 다열 반응형 그리드로 묶어 시각화하는 권역 구조입니다. 85% 절감, 1/5 단축 등 주요 정량적 성과를 강조하는 KPI 지표 카드 블록들을 내부에 배치합니다.",
+      scenario: "'85% 절감', '1/5 단축', '100% 무결성' 등 정량적 성과 데이터를 경영진이나 팀원에게 즉각 전달할 때 사용합니다.",
+      previewHtml: '<div style="display:flex;gap:8px;"><div style="flex:1;background:#fff;border:1px solid #dadce0;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:800;color:#1967d2;">85%</div><div style="font-size:10px;color:#5f6368;">수작업 절감</div></div><div style="flex:1;background:#fff;border:1px solid #dadce0;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:800;color:#137333;">1/5</div><div style="font-size:10px;color:#5f6368;">소요 시간</div></div></div>',
+      actionText: "KPI 스코어보드 섹션 토글/추가",
+      actionType: "toggleSection",
+      actionKey: "kpiStats"
+    },
+    flowmap: {
+      category: "layout",
+      categoryLabel: "구조 & 레이아웃 (LAYOUT)",
+      decisionCondition1: true,
+      decisionCondition2: false,
+      decisionCondition3: false,
+      decisionReason: "조건 1 만족: 가로 스크롤 Flexbox 컨테이너로서 자식 단계 노드들과 연결 화살표(→)의 배치 방향 및 흐름을 직접 지배",
+      icon: "🗺️",
+      name: "1줄 흐름 지도 (Flow Map)",
+      desc: "전체 워크플로우 진행 단계를 가로 일렬 파이프라인으로 일목요연하게 조망할 수 있는 Flexbox 권역 구조입니다. 각 단계 번호, 명칭, 핵심 요약을 담은 진행 단계 노드 블록들을 수용합니다.",
+      scenario: "본격적인 단계별 실행에 앞서 독자에게 전체 프로세스 지도를 직관적으로 인지시키고자 할 때 사용합니다.",
+      previewHtml: '<div style="display:flex;align-items:center;gap:6px;background:#f8fafd;padding:10px;border-radius:10px;border:1px solid #dadce0;"><span style="background:#1967d2;color:#fff;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">1</span><span style="font-size:11px;font-weight:600;">데이터 수집</span><span style="color:#5f6368;">→</span><span style="background:#137333;color:#fff;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">2</span><span style="font-size:11px;font-weight:600;">AI 요약</span></div>',
+      actionText: "1줄 흐름 지도 섹션 토글/추가",
+      actionType: "toggleSection",
+      actionKey: "flowmap"
+    },
+    cards: {
+      category: "layout",
+      categoryLabel: "구조 & 레이아웃 (LAYOUT)",
+      decisionCondition1: true,
+      decisionCondition2: false,
+      decisionCondition3: false,
+      decisionReason: "조건 1 만족: 3열 반응형 그리드 및 3D 원근(Perspective) 래퍼로서 모듈 카드들의 다열 그리드 레이아웃을 직접 지배",
+      icon: "📌",
+      name: "3D 플립 카드 (핵심 모듈 그리드)",
+      desc: "보고서의 핵심 모듈과 테마를 3열 카드 그리드로 정렬하고, 클릭 시 앞/뒷면이 3차원으로 회전하는 인터랙티브 권역 구조입니다. 3D 플립 모듈 카드 블록들을 수용합니다.",
+      scenario: "프로젝트를 구성하는 주요 모듈별 핵심 전략과 세부 요강을 감각적인 3차원 플립 카드로 독자에게 전달할 때 사용합니다.",
+      previewHtml: '<div style="background:#fff;border:1px solid #c6dafc;border-radius:10px;padding:12px;box-shadow:0 2px 6px rgba(0,0,0,.06);"><span style="font-size:10px;background:#e8f0fe;color:#1967d2;padding:2px 6px;border-radius:4px;font-weight:700;">✦ PHASE 01</span><div style="font-size:12px;font-weight:800;color:#0b1a2c;margin-top:4px;">음성 회의록 구조화</div><div style="font-size:10px;color:#5f6368;margin-top:4px;">카드를 누르면 상세 내용 ↻</div></div>',
+      actionText: "3D 플립 카드 섹션 토글/추가",
+      actionType: "toggleSection",
+      actionKey: "cards"
+    },
+    steps: {
+      category: "layout",
+      categoryLabel: "구조 & 레이아웃 (LAYOUT)",
+      decisionCondition1: true,
+      decisionCondition2: false,
+      decisionCondition3: false,
+      decisionReason: "조건 1 만족: 수직 스택(Vertical Flex) 리스트 컨테이너로서 단계별 실행 카드들의 순서와 수직 흐름을 직접 지배",
+      icon: "🛠️",
+      name: "상세 실행 단계 (Steps Workflow)",
+      desc: "실습과 실행의 핵심 본문이 전개되는 수직 워크플로우 컨테이너 구조입니다. 실행 단계 카드와 그 내부의 프롬프트, 실습 꿀팁, 핵심 노트, 주의 경고, URL 리소스 등 다양한 서브 블록들을 수용합니다.",
+      scenario: "워크플로우의 가장 본질적인 실행 지침과 프롬프트를 단계별(Step 1, Step 2...)로 독자에게 가이드할 때 필수적으로 사용합니다.",
+      previewHtml: '<div style="background:#fff;border:1px solid #dadce0;border-radius:10px;padding:12px;"><div style="display:flex;align-items:center;gap:6px;"><span style="background:#1967d2;color:#fff;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">1</span><b style="font-size:12px;color:#0b1a2c;">Gemini 프롬프트 실행 단계</b></div><div style="font-size:11px;color:#5f6368;margin-top:4px;padding-left:26px;">프롬프트 복사 박스, 실습 팁, 참고 노트를 수용하는 워크플로우 컨테이너</div></div>',
+      actionText: "새 실행 단계 추가",
+      actionType: "addStep",
+      actionKey: "steps"
+    },
+    checklist: {
+      category: "layout",
+      categoryLabel: "구조 & 레이아웃 (LAYOUT)",
+      decisionCondition1: true,
+      decisionCondition2: false,
+      decisionCondition3: false,
+      decisionReason: "조건 1 만족: 점검 항목 그룹 래퍼 카드 컨테이너로서 체크박스 리스트의 묶음 레이아웃 직접 지배",
+      icon: "✅",
+      name: "최종 점검 체크리스트",
+      desc: "워크플로우 실행 후 누락된 요소가 없는지 확인하는 점검 그룹 카드 컨테이너 구조입니다. 인터랙티브 체크박스와 점검 텍스트를 가진 체크 항목 블록들을 수용합니다.",
+      scenario: "모든 프로세스를 마친 사용자가 필수 점검 사항(보안 점검, 권한 부여, 2단계 인증 등)을 하나씩 체크하며 완료할 수 있도록 합니다.",
+      previewHtml: '<div style="background:#fff;border:1px solid #dadce0;border-radius:10px;padding:10px;"><label style="display:flex;align-items:center;gap:6px;font-size:12px;"><input type="checkbox" checked><span>API 키 환경변수 세팅 완료</span></label><label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:4px;"><input type="checkbox"><span>Google Sheets 연동 확인</span></label></div>',
+      actionText: "체크리스트 섹션 토글/추가",
+      actionType: "toggleSection",
+      actionKey: "checklist"
+    },
+
+    // ── 서브 툴바 컨트롤러 (구조 & 레이아웃 세부 기능) ──
     search: {
       category: "layout",
-      categoryLabel: "구조 & 레이아웃",
+      categoryLabel: "구조 & 레이아웃 (LAYOUT)",
+      decisionCondition1: true,
+      decisionCondition2: true,
+      decisionCondition3: false,
+      decisionReason: "조건 1, 2 만족: 상단 툴바 내 검색 컨테이너이며 문서 전체 인덱싱 및 앵커 점프 전역 파급력 보유",
       icon: "🔍",
-      name: "실시간 검색엔진 도구",
-      desc: "보고서 내부의 모든 섹션, 단계, 프롬프트, 체크리스트를 브라우저 단에서 실시간 자동 인덱싱하고, 검색어 입력 시 드롭다운 결과 목록 표시 및 해당 요소로 스무스 스크롤 점프와 펄스(Pulse) 하이라이트를 실행합니다.",
-      scenario: "단계가 10개 이상이거나 긴 워크플로우 문서에서 독자가 원하는 특정 키워드(예: 'Apps Script', '프롬프트')를 1초 만에 찾을 수 있도록 할 때 필수적입니다.",
-      previewHtml: '<div style="background:#fff;border:1px solid #dadce0;border-radius:20px;padding:6px 14px;display:flex;align-items:center;gap:8px;"><span style="color:#5f6368;">🔍</span><span style="color:#80868b;font-size:13px;">키워드 검색 (회의록, 대시보드...)...</span></div>',
-      actionText: "상단 검색창 켜기/끄기",
+      name: "실시간 검색창",
+      desc: "보고서 내부의 모든 단계, 프롬프트, 지표를 실시간 자동 인덱싱하고, 검색 시 해당 위치로 스무스 스크롤 점프 및 하이라이트를 실행합니다.",
+      scenario: "방대한 양의 가이드에서 원하는 특정 키워드를 즉시 찾고자 할 때 사용합니다.",
+      previewHtml: '<div style="background:#fff;border:1px solid #dadce0;border-radius:20px;padding:6px 14px;display:flex;align-items:center;gap:8px;"><span style="color:#5f6368;">🔍</span><span style="color:#80868b;font-size:12px;">키워드 검색...</span></div>',
+      actionText: "검색창 켜기/끄기",
       actionType: "toggle",
       actionKey: "showSearch"
     },
     suggestChips: {
       category: "layout",
-      categoryLabel: "구조 & 레이아웃",
+      categoryLabel: "구조 & 레이아웃 (LAYOUT)",
+      decisionCondition1: false,
+      decisionCondition2: true,
+      decisionCondition3: false,
+      decisionReason: "조건 2 만족: 상단 빠른 탐색 칩으로서 보고서 필터링 전역 흐름에 영향",
       icon: "⚡",
       name: "추천 검색어 칩 (Suggest Chips)",
-      desc: "홈(index.html) 스타일의 빠른 탐색 칩입니다. 사용자가 검색창에 직접 타이핑하지 않고도 빈번히 찾는 주요 키워드를 원클릭으로 필터링할 수 있는 추천 태그 모음을 상단에 제공합니다.",
-      scenario: "보고서의 가장 핵심이 되는 키워드 3~5개를 태그로 노출하여 방문자의 빠른 탐색을 유도할 때 적용합니다.",
-      previewHtml: '<div style="display:flex;gap:6px;flex-wrap:wrap;"><span style="font-size:11px;background:#e8f0fe;color:#1967d2;padding:4px 10px;border-radius:999px;font-weight:600;">⚡ #마스코트</span><span style="font-size:11px;background:#e8f0fe;color:#1967d2;padding:4px 10px;border-radius:999px;font-weight:600;">⚡ #Apps Script</span><span style="font-size:11px;background:#e8f0fe;color:#1967d2;padding:4px 10px;border-radius:999px;font-weight:600;">⚡ #PARTS</span></div>',
+      desc: "홈(index.html) 스타일의 빠른 탐색 태그 칩입니다. 주요 키워드를 원클릭으로 필터링할 수 있는 추천 태그 모음을 상단에 제공합니다.",
+      scenario: "보고서의 가장 핵심이 되는 키워드 3~5개를 태그로 노출하여 빠른 필터링을 지원합니다.",
+      previewHtml: '<div style="display:flex;gap:6px;"><span style="font-size:11px;background:#e8f0fe;color:#1967d2;padding:3px 8px;border-radius:999px;">⚡ #마스코트</span><span style="font-size:11px;background:#e8f0fe;color:#1967d2;padding:3px 8px;border-radius:999px;">⚡ #Apps Script</span></div>',
       actionText: "추천 검색어 칩 켜기/끄기",
       actionType: "toggle",
       actionKey: "showSuggestChips"
     },
     categoryTabs: {
       category: "layout",
-      categoryLabel: "구조 & 레이아웃",
+      categoryLabel: "구조 & 레이아웃 (LAYOUT)",
+      decisionCondition1: false,
+      decisionCondition2: true,
+      decisionCondition3: false,
+      decisionReason: "조건 2 만족: 상단 알약형 탭으로서 단계별/주제별 본문 노출 필터링 전역 흐름 지배",
       icon: "🗂️",
       name: "카테고리 네비게이션 탭",
-      desc: "홈(index.html)에서 사용하는 알약(Pill)형 카테고리 전환 탭입니다. 단계별(1단계: 기획, 2단계: 실습 등) 또는 주제별로 보고서 본문을 구분하여 필터링할 수 있는 탭 바를 상단에 배치합니다.",
-      scenario: "보고서의 분량이 많아 단계별/주제별로 독자의 시선을 구분하여 집중시키고 싶을 때 적용합니다.",
-      previewHtml: '<div style="display:flex;gap:6px;"><span style="font-size:12px;background:#0b1a2c;color:#fff;padding:5px 12px;border-radius:999px;font-weight:600;">전체</span><span style="font-size:12px;background:#f1f3f4;color:#243551;padding:5px 12px;border-radius:999px;font-weight:600;">1단계: 기획</span><span style="font-size:12px;background:#f1f3f4;color:#243551;padding:5px 12px;border-radius:999px;font-weight:600;">2단계: 실습</span></div>',
+      desc: "홈(index.html)에서 사용하는 알약(Pill)형 카테고리 전환 탭입니다. 단계별 또는 주제별로 보고서 본문을 구분하여 필터링합니다.",
+      scenario: "보고서의 분량이 많아 단계별(기획, 실습, 검증)로 독자의 시선을 구분하여 집중시키고 싶을 때 적용합니다.",
+      previewHtml: '<div style="display:flex;gap:6px;"><span style="font-size:12px;background:#0b1a2c;color:#fff;padding:4px 10px;border-radius:999px;">전체</span><span style="font-size:12px;background:#f1f3f4;color:#243551;padding:4px 10px;border-radius:999px;">1단계: 기획</span></div>',
       actionText: "카테고리 탭 켜기/끄기",
       actionType: "toggle",
       actionKey: "showCategoryTabs"
     },
     print: {
       category: "layout",
-      categoryLabel: "구조 & 레이아웃",
+      categoryLabel: "구조 & 레이아웃 (LAYOUT)",
+      decisionCondition1: false,
+      decisionCondition2: true,
+      decisionCondition3: false,
+      decisionReason: "조건 2 만족: 인쇄용 CSS 미디어 쿼리 트리거로 문서 전체 레이아웃을 A4 출력용으로 변환",
       icon: "🖨️",
-      name: "인쇄 및 PDF 내보내기 도구",
-      desc: "상단 툴바에 브라우저 네이티브 인쇄 대화상자(window.print)를 즉각 호출하는 액션 버튼을 배치합니다. 인쇄용 CSS 미디어 쿼리가 적용되어 A4 출력 및 PDF 저장 시 깔끔한 문서 레이아웃으로 변환됩니다.",
-      scenario: "작성된 AI 업무 가이드나 로드맵을 사내 보고용 PDF로 출력하거나 종이 문서로 보관할 때 유용합니다.",
-      previewHtml: '<button style="background:#fff;border:1px solid #dadce0;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px;">🖨️ 인쇄 / PDF 저장</button>',
-      actionText: "인쇄/PDF 버튼 켜기/끄기",
+      name: "인쇄 및 PDF 내보내기",
+      desc: "브라우저 네이티브 인쇄 대화상자(window.print)를 즉각 호출하는 액션 버튼을 상단에 배치합니다. 인쇄용 CSS가 적용되어 깔끔한 PDF로 추출됩니다.",
+      scenario: "사내 보고용 PDF로 출력하거나 종이 문서로 보관할 때 사용합니다.",
+      previewHtml: '<button style="background:#fff;border:1px solid #dadce0;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;">🖨️ 인쇄 / PDF 저장</button>',
+      actionText: "인쇄 버튼 켜기/끄기",
       actionType: "toggle",
       actionKey: "showPrint"
     },
     progress: {
       category: "layout",
-      categoryLabel: "구조 & 레이아웃",
+      categoryLabel: "구조 & 레이아웃 (LAYOUT)",
+      decisionCondition1: true,
+      decisionCondition2: false,
+      decisionCondition3: false,
+      decisionReason: "조건 1 만족: 페이지 최상단 고정 진행률 바 컨테이너",
       icon: "📊",
-      name: "스크롤 진행률 표시줄 (Progress Bar)",
-      desc: "페이지 최상단에 브라우저 스크롤 위치를 0~100%로 계산하여 구글 시그니처 그라디언트(#4a90e8 → #34a853 → #ea4335)로 부드럽게 채워지는 진행률 바를 생성합니다.",
-      scenario: "긴 분량의 가이드 문서를 읽을 때 사용자가 현재 전체 내용 중 어디까지 읽었는지 시각적인 피드백을 제공합니다.",
+      name: "스크롤 진행률 표시줄",
+      desc: "브라우저 스크롤 위치를 0~100%로 계산하여 구글 시그니처 그라디언트로 부드럽게 채워지는 진행률 바를 생성합니다.",
+      scenario: "긴 분량의 가이드 문서를 읽을 때 현재 전체 내용 중 어디까지 도달했는지 시각적인 피드백을 제공합니다.",
       previewHtml: '<div style="width:100%;height:6px;background:#eee;border-radius:3px;overflow:hidden;"><div style="width:65%;height:100%;background:linear-gradient(90deg,#4a90e8,#34a853,#ea4335);"></div></div>',
       actionText: "진행률 바 켜기/끄기",
       actionType: "toggle",
@@ -288,111 +429,275 @@ function buildStudio() {
     },
     theme: {
       category: "layout",
-      categoryLabel: "구조 & 레이아웃",
+      categoryLabel: "구조 & 레이아웃 (LAYOUT)",
+      decisionCondition1: false,
+      decisionCondition2: true,
+      decisionCondition3: false,
+      decisionReason: "조건 2 만족: Google Workspace 다크 테마와 라이트 테마 변수를 전역적으로 전환",
       icon: "🌓",
       name: "다크모드 / 라이트모드 전역 스타일러",
-      desc: "Google Workspace 다크 테마 팔레트(--navy:#e8eaed, --paper:#202124, --bg:#121212)와 라이트 테마를 원클릭으로 토글할 수 있는 스위치를 상단 툴바에 배치합니다.",
+      desc: "다크 테마 팔레트(--navy:#e8eaed, --paper:#202124, --bg:#121212)와 라이트 테마를 원클릭으로 토글할 수 있는 스위치를 배치합니다.",
       scenario: "야간 작업 환경이나 어두운 화면을 선호하는 실무자에게 눈의 피로도를 낮추는 시각 환경을 제공합니다.",
-      previewHtml: '<button style="background:#202124;color:#e8eaed;border:1px solid #3c4043;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;">🌓 테마 전환 (다크/라이트)</button>',
+      previewHtml: '<button style="background:#202124;color:#e8eaed;border:1px solid #3c4043;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;">🌓 테마 전환</button>',
       actionText: "다크모드 스위치 켜기/끄기",
       actionType: "toggle",
       actionKey: "showThemeToggle"
     },
+
+    // ══════════════════════════════════════════════════════════
+    // 2. [컴포넌트 & 블록 (Components & Blocks)] (조건 3 True, 조건 1·2 False)
+    // ══════════════════════════════════════════════════════════
     whyBox: {
       category: "blocks",
-      categoryLabel: "컴포넌트 & 블록",
+      categoryLabel: "컴포넌트 & 블록 (BLOCK)",
+      parentLayout: "header",
+      parentLayoutName: "기본 정보 (헤더 섹션)",
+      decisionCondition1: false,
+      decisionCondition2: false,
+      decisionCondition3: true,
+      decisionReason: "조건 3 만족: 자체 제목, 설명 텍스트와 다크 네이비 그라데이션 스타일을 가진 독립 단말 노드(Leaf Node)",
       icon: "🌌",
       name: "Why 인트로 박스 (Why-Box)",
-      desc: "모듈 2, 3, 4에서 핵심 도입 배경을 설명할 때 사용하는 다크 네이비 그라데이션 박스입니다. 묵직하고 신뢰감 있는 비주얼로 독자의 주목을 이끌어내고 프로젝트의 근본적인 목적(Why)을 전달합니다.",
+      desc: "모듈 2, 3, 4에서 핵심 도입 배경을 설명할 때 사용하는 다크 네이비 그라데이션 박스입니다. 프로젝트의 근본적인 목적(Why)을 강력하게 전달합니다.",
       scenario: "보고서 서두에 '기존 수작업 대비 왜 이 AI 자동화가 필수적인가?'에 대한 핵심 명분을 강조할 때 사용합니다.",
-      previewHtml: '<div style="background:linear-gradient(135deg,#0b1a2c,#243551);color:#fff;border-radius:12px;padding:16px;"><span style="font-size:10px;color:#8ab4f8;font-weight:700;letter-spacing:1px;">✦ WHY WE NEED THIS</span><h4 style="margin:4px 0 6px;font-size:14px;color:#fff;">왜 이 자동화가 필요한가?</h4><p style="margin:0;font-size:12px;color:#e8eaed;line-height:1.5;">매주 6시간의 수작업을 10분으로 단축합니다.</p></div>',
-      actionText: "Why 인트로 박스 추가",
-      actionType: "insert",
+      previewHtml: '<div style="background:linear-gradient(135deg,#0b1a2c,#243551);color:#fff;border-radius:12px;padding:14px;"><span style="font-size:10px;color:#8ab4f8;font-weight:700;">✦ WHY WE NEED THIS</span><h4 style="margin:4px 0 6px;font-size:13px;color:#fff;">왜 이 자동화가 필요한가?</h4><p style="margin:0;font-size:11px;color:#e8eaed;line-height:1.5;">매주 6시간의 수작업을 10분으로 단축합니다.</p></div>',
+      actionText: "헤더 하위에 Why 인트로 박스 추가",
+      actionType: "insertBlock",
       actionKey: "whyBox"
     },
     procBox: {
       category: "blocks",
-      categoryLabel: "컴포넌트 & 블록",
+      categoryLabel: "컴포넌트 & 블록 (BLOCK)",
+      parentLayout: "header",
+      parentLayoutName: "기본 정보 (헤더 섹션)",
+      decisionCondition1: false,
+      decisionCondition2: false,
+      decisionCondition3: true,
+      decisionReason: "조건 3 만족: 캡슐 뱃지와 파이프라인 텍스트를 가지는 단말 노드(Leaf Node)",
       icon: "🔄",
       name: "프로세스 플로우 바 (Procbox)",
-      desc: "모듈 3, 4 스타일에 적용된 네이비 캡슐형 프로세스 흐름 바입니다. 여러 시스템 간의 데이터 이동 경로(입력 ➔ AI 처리 ➔ DB 저장 ➔ 알림)를 한 줄 파이프라인으로 일목요연하게 시각화합니다.",
+      desc: "모듈 3, 4 스타일에 적용된 네이비 캡슐형 프로세스 흐름 바입니다. 시스템 간 데이터 이동 경로(입력 ➔ 처리 ➔ 저장 ➔ 발송)를 한 줄 파이프라인으로 시각화합니다.",
       scenario: "전체 아키텍처나 단계별 실행 과정의 핵심 흐름을 한눈에 명쾌하게 보여줄 때 배치합니다.",
-      previewHtml: '<div style="background:rgba(36,53,81,.9);color:#fff;border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:12px;"><span style="background:#1967d2;padding:2px 6px;border-radius:999px;font-size:10px;font-weight:700;">PIPELINE</span><span>음성 수집 ➔ Gemini 요약 ➔ 구글 시트 저장</span></div>',
-      actionText: "프로세스 플로우 바 추가",
-      actionType: "insert",
+      previewHtml: '<div style="background:rgba(36,53,81,.9);color:#fff;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:11px;"><span style="background:#1967d2;padding:2px 6px;border-radius:999px;font-size:9px;font-weight:700;">PIPELINE</span><span>음성 수집 ➔ Gemini 요약 ➔ 구글 시트 저장</span></div>',
+      actionText: "헤더 하위에 프로세스 플로우 바 추가",
+      actionType: "insertBlock",
       actionKey: "procBox"
     },
-    kpiStats: {
+    stampBadge: {
       category: "blocks",
-      categoryLabel: "컴포넌트 & 블록",
+      categoryLabel: "컴포넌트 & 블록 (BLOCK)",
+      parentLayout: "header",
+      parentLayoutName: "기본 정보 (헤더 섹션)",
+      decisionCondition1: false,
+      decisionCondition2: false,
+      decisionCondition3: true,
+      decisionReason: "조건 3 만족: 독립된 뱃지 텍스트와 원형 캡슐 스타일을 가지는 단말 노드(Leaf Node)",
+      icon: "🏷️",
+      name: "상단 뱃지 문구 (Stamp Badge)",
+      desc: "보고서 제목 위에 작고 세련되게 떠 있는 원형 알약 뱃지입니다. 프로젝트의 버전, 슬로건, 공식 인증 표식을 나타냅니다.",
+      scenario: "'🚀 2026 스마트 워크 플레이북', '⚡ 사내 공식 가이드' 등의 타이틀 뱃지를 설정할 때 사용합니다.",
+      previewHtml: '<div style="display:inline-block;border:1px solid #dadce0;color:#5f6368;padding:4px 12px;border-radius:999px;font-weight:700;font-size:11px;background:#fff;">🚀 2026 스마트 워크 플레이북</div>',
+      actionText: "상단 뱃지 입력란으로 이동",
+      actionType: "focusItem",
+      actionKey: "hero-badge"
+    },
+    kpiCard: {
+      category: "blocks",
+      categoryLabel: "컴포넌트 & 블록 (BLOCK)",
+      parentLayout: "kpiStats",
+      parentLayoutName: "KPI 지표 스코어보드",
+      decisionCondition1: false,
+      decisionCondition2: false,
+      decisionCondition3: true,
+      decisionReason: "조건 3 만족: 수치, 라벨, 액센트 색상을 가지는 독립 KPI 단말 노드(Leaf Node)",
       icon: "📊",
-      name: "KPI 지표 스코어보드 (KPI Grid)",
-      desc: "모듈 3에 적용된 3분할 통계 수치 스코어보드입니다. 거대한 숫자 폰트와 감각적인 색상 액센트(블루, 그린, 레드)를 통해 업무 성과 지표나 단축 시간, 절감율을 강력하게 부각합니다.",
-      scenario: "'85% 절감', '1/5 단축', '100% 무결성' 등 정량적 성과 데이터를 경영진이나 팀원에게 즉각 전달할 때 사용합니다.",
-      previewHtml: '<div style="display:flex;gap:8px;"><div style="flex:1;background:#fff;border:1px solid #dadce0;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:800;color:#1967d2;">85%</div><div style="font-size:10px;color:#5f6368;">수작업 절감</div></div><div style="flex:1;background:#fff;border:1px solid #dadce0;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:800;color:#137333;">1/5</div><div style="font-size:10px;color:#5f6368;">소요 시간</div></div></div>',
+      name: "KPI 지표 카드 (Stat Card)",
+      desc: "숫자 폰트와 감각적인 색상 액센트(블루, 그린, 레드)를 통해 업무 성과 지표나 단축 시간, 절감율을 강력하게 부각하는 단말 카드입니다.",
+      scenario: "'85% 절감', '1/5 단축', '100% 무결성' 등 정량적 성과 데이터를 추가할 때 사용합니다.",
+      previewHtml: '<div style="background:#fff;border:1px solid #dadce0;border-radius:8px;padding:8px 14px;text-align:center;"><div style="font-size:20px;font-weight:800;color:#1967d2;">85%</div><div style="font-size:10px;color:#5f6368;">수작업 절감율</div></div>',
       actionText: "KPI 지표 카드 추가",
-      actionType: "insert",
-      actionKey: "kpiStats"
+      actionType: "insertBlock",
+      actionKey: "kpiCard"
+    },
+    flowStep: {
+      category: "blocks",
+      categoryLabel: "컴포넌트 & 블록 (BLOCK)",
+      parentLayout: "flowmap",
+      parentLayoutName: "1줄 흐름 지도",
+      decisionCondition1: false,
+      decisionCondition2: false,
+      decisionCondition3: true,
+      decisionReason: "조건 3 만족: 단계 번호, 단계명, 요약 설명 및 색상을 가지는 흐름도 단말 노드(Leaf Node)",
+      icon: "🗺️",
+      name: "진행 단계 노드 (Flow Step)",
+      desc: "1줄 흐름 지도 컨테이너 내부에서 가로 화살표로 연결되는 단일 진행 단계 노드 블록입니다.",
+      scenario: "전체 파이프라인 중 하나의 특정 단계(기획, 데이터 전처리, API 연동 등)를 추가할 때 사용합니다.",
+      previewHtml: '<div style="display:inline-flex;align-items:center;gap:6px;background:#f8fafd;border:1px solid #dadce0;border-radius:8px;padding:6px 10px;"><span style="background:#1967d2;color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;">3</span><span style="font-size:11px;font-weight:700;">자동 보고서 생성</span></div>',
+      actionText: "진행 단계 노드 추가",
+      actionType: "insertBlock",
+      actionKey: "flowStep"
+    },
+    flipCard: {
+      category: "blocks",
+      categoryLabel: "컴포넌트 & 블록 (BLOCK)",
+      parentLayout: "cards",
+      parentLayoutName: "3D 플립 카드",
+      decisionCondition1: false,
+      decisionCondition2: false,
+      decisionCondition3: true,
+      decisionReason: "조건 3 만족: 앞면 타이틀, 배지, 태그 및 뒷면 상세 설명을 가지는 3D 카드 단말 노드(Leaf Node)",
+      icon: "📌",
+      name: "3D 플립 모듈 카드 (Flip Card)",
+      desc: "앞면에는 핵심 타이틀과 태그 칩이 보이고, 클릭 시 부드럽게 180도 회전하여 뒷면의 세부 실행 계획이 나타나는 단말 카드입니다.",
+      scenario: "각 모듈별 핵심 지침을 압축적으로 보여주고 상호작용 재미를 부여할 때 사용합니다.",
+      previewHtml: '<div style="background:#fff;border:1px solid #dadce0;border-radius:8px;padding:10px;"><span style="font-size:9px;color:#1967d2;font-weight:700;">✦ MODULE</span><div style="font-size:12px;font-weight:700;margin:3px 0;">회의록 3초 구조화</div><div style="font-size:10px;color:#70757a;">카드를 누르면 상세 내용 ↻</div></div>',
+      actionText: "3D 플립 카드 추가",
+      actionType: "insertBlock",
+      actionKey: "flipCard"
+    },
+    stepCard: {
+      category: "blocks",
+      categoryLabel: "컴포넌트 & 블록 (BLOCK)",
+      parentLayout: "steps",
+      parentLayoutName: "상세 실행 단계",
+      decisionCondition1: false,
+      decisionCondition2: false,
+      decisionCondition3: true,
+      decisionReason: "조건 3 만족: 번호, 제목, 도구 태그, 목표 및 설명 텍스트를 가지는 단계 단말 노드(Leaf Node)",
+      icon: "🛠️",
+      name: "새 실행 단계 카드 (Step Card)",
+      desc: "상세 실행 단계 컨테이너 내부에 추가되는 독립적인 하나의 스텝 카드입니다. 내부 서브 블록(프롬프트, 팁, 노트, 경고, URL)을 담을 수 있습니다.",
+      scenario: "워크플로우에 새로운 세부 단계(Step)를 추가할 때 사용합니다.",
+      previewHtml: '<div style="background:#fff;border:1px solid #dadce0;border-radius:8px;padding:10px;"><b style="font-size:12px;color:#0b1a2c;">Step 4: 신규 자동화 파이프라인 배포</b><p style="margin:2px 0 0;font-size:11px;color:#5f6368;">실행 목표와 도구를 포함하는 새 단계 카드</p></div>',
+      actionText: "새 실행 단계 카드 추가",
+      actionType: "insertBlock",
+      actionKey: "stepCard"
     },
     prompt: {
       category: "blocks",
-      categoryLabel: "컴포넌트 & 블록",
+      categoryLabel: "컴포넌트 & 블록 (BLOCK)",
+      parentLayout: "steps",
+      parentLayoutName: "상세 실행 단계 (스텝 내부)",
+      decisionCondition1: false,
+      decisionCondition2: false,
+      decisionCondition3: true,
+      decisionReason: "조건 3 만족: 프롬프트 내용과 원클릭 복사 이벤트를 가진 시그니처 단말 노드(Leaf Node)",
       icon: "📋",
       name: "Gemini 프롬프트 카드 (Prompt Box)",
-      desc: "모듈 2, 4에서 실습 프롬프트를 배포할 때 사용하는 시그니처 카드입니다. 파스텔 톤 그라데이션(#e9f2ff → #e6f8ef), 점선 테두리, 그리고 누르면 '✅ 복사됨' 피드백을 주는 원클릭 복사 버튼이 포함되어 있습니다.",
+      desc: "모듈 2, 4에서 실습 프롬프트를 배포할 때 사용하는 시그니처 카드입니다. 파스텔 톤 그라데이션과 '✅ 복사됨' 피드백을 주는 원클릭 복사 버튼이 포함되어 있습니다.",
       scenario: "사용자가 복사해서 바로 Gemini 웹 또는 API에 붙여넣을 수 있는 고품질 프롬프트를 제공할 때 필수적으로 사용합니다.",
-      previewHtml: '<div style="background:linear-gradient(135deg,#e9f2ff,#e6f8ef);border:2px dashed #4a90e8;border-radius:10px;padding:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:11px;font-weight:700;color:#1967d2;">✨ Gemini Prompt</span><span style="font-size:10px;background:#fff;border:1px solid #1967d2;color:#1967d2;padding:2px 6px;border-radius:4px;font-weight:700;">복사</span></div><div style="font-size:11px;color:#202124;font-family:monospace;">당신은 전문 수석 비서입니다...</div></div>',
-      actionText: "Gemini 프롬프트 단계 추가",
-      actionType: "insert",
+      previewHtml: '<div style="background:linear-gradient(135deg,#e9f2ff,#e6f8ef);border:2px dashed #4a90e8;border-radius:8px;padding:8px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:10px;font-weight:700;color:#1967d2;">✨ Gemini Prompt</span><span style="font-size:9px;background:#fff;border:1px solid #1967d2;color:#1967d2;padding:1px 5px;border-radius:4px;font-weight:700;">복사</span></div><div style="font-size:10px;color:#202124;font-family:monospace;">당신은 전문 수석 비서입니다...</div></div>',
+      actionText: "스텝에 Gemini 프롬프트 박스 추가",
+      actionType: "insertBlock",
       actionKey: "prompt"
     },
     tip: {
       category: "blocks",
-      categoryLabel: "컴포넌트 & 블록",
+      categoryLabel: "컴포넌트 & 블록 (BLOCK)",
+      parentLayout: "steps",
+      parentLayoutName: "상세 실행 단계 (스텝 내부)",
+      decisionCondition1: false,
+      decisionCondition2: false,
+      decisionCondition3: true,
+      decisionReason: "조건 3 만족: 토글 접힘 상태와 팁 텍스트를 가진 아코디언 단말 노드(Leaf Node)",
       icon: "💡",
       name: "접이식 팁 아코디언 (Tip Accordion)",
-      desc: "모듈 3, 4 스타일에 적용된 <details><summary> 기반 아코디언 카드입니다. 본문 흐름을 방해하지 않으면서도 필요한 사람만 눌러서 심화 노하우나 꿀팁을 확인할 수 있도록 컴팩트하게 접혀 있습니다.",
+      desc: "모듈 3, 4 스타일에 적용된 details/summary 기반 아코디언 카드입니다. 본문 흐름을 방해하지 않으면서도 필요한 사람만 눌러서 심화 노하우를 확인할 수 있습니다.",
       scenario: "필수적인 내용은 아니지만 알아두면 매우 유용한 고급 설정 방법, 주의할 점, 단축 팁을 제공할 때 사용합니다.",
-      previewHtml: '<div style="background:#f8f9fa;border:1px solid #c6dafc;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;color:#0b1a2c;">💡 실습 꿀팁 및 권장 가이드 (펼치기 ▸)</div>',
-      actionText: "접이식 팁 단계 추가",
-      actionType: "insert",
+      previewHtml: '<div style="background:#f8f9fa;border:1px solid #c6dafc;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:600;color:#0b1a2c;">💡 실습 꿀팁 및 권장 가이드 (펼치기 ▸)</div>',
+      actionText: "스텝에 접이식 팁 아코디언 추가",
+      actionType: "insertBlock",
       actionKey: "tip"
     },
     note: {
       category: "blocks",
-      categoryLabel: "컴포넌트 & 블록",
+      categoryLabel: "컴포넌트 & 블록 (BLOCK)",
+      parentLayout: "steps",
+      parentLayoutName: "상세 실행 단계 (스텝 내부)",
+      decisionCondition1: false,
+      decisionCondition2: false,
+      decisionCondition3: true,
+      decisionReason: "조건 3 만족: 블루 액센트 보더와 안내 문구를 가진 콜아웃 단말 노드(Leaf Node)",
       icon: "ℹ️",
       name: "핵심 안내 노트 (Note Callout)",
       desc: "모듈 2, 3, 4에서 공통으로 쓰이는 왼쪽 파란색 액센트 보더(border-left: 4px solid #4a90e8) 카드입니다. 중요한 참고 데이터 규격이나 권장 전제 조건을 명료하게 안내합니다.",
       scenario: "API 호출 시 필수 파라미터 규칙이나 데이터 정합성 주의점을 환기시킬 때 사용합니다.",
-      previewHtml: '<div style="background:#f8fafd;border-left:4px solid #4a90e8;border-radius:0 8px 8px 0;padding:8px 12px;font-size:12px;color:#243551;"><b>ℹ️ 핵심 참고:</b> JSON 응답의 타임스탬프는 ISO-8601 규격을 권장합니다.</div>',
-      actionText: "핵심 안내 노트 단계 추가",
-      actionType: "insert",
+      previewHtml: '<div style="background:#f8fafd;border-left:4px solid #4a90e8;border-radius:0 6px 6px 0;padding:6px 10px;font-size:11px;color:#243551;"><b>ℹ️ 핵심 참고:</b> JSON 응답의 타임스탬프는 ISO-8601 규격을 권장합니다.</div>',
+      actionText: "스텝에 핵심 안내 노트 추가",
+      actionType: "insertBlock",
       actionKey: "note"
     },
     warn: {
       category: "blocks",
-      categoryLabel: "컴포넌트 & 블록",
+      categoryLabel: "컴포넌트 & 블록 (BLOCK)",
+      parentLayout: "steps",
+      parentLayoutName: "상세 실행 단계 (스텝 내부)",
+      decisionCondition1: false,
+      decisionCondition2: false,
+      decisionCondition3: true,
+      decisionReason: "조건 3 만족: 레드 액센트 보더와 위험 경고 문구를 가진 콜아웃 단말 노드(Leaf Node)",
       icon: "⚠️",
       name: "주의 경고 박스 (Warning Box)",
       desc: "모듈 3, 4에 적용된 레드/테라코타 왼쪽 액센트 보더(border-left: 4px solid #e05555) 경고 박스입니다. 치명적인 오류나 보안 사고를 방지할 수 있도록 강력한 시각적 주의를 환기합니다.",
       scenario: "API 시크릿 키 유출 주의, 예산/결제 수치 수기 검증, 보안 권한 설정 등 위험 요소를 경고할 때 사용합니다.",
-      previewHtml: '<div style="background:#fff5f3;border-left:4px solid #e05555;border-radius:0 8px 8px 0;padding:8px 12px;font-size:12px;color:#7a2020;"><b>⚠️ 주의사항:</b> 공용 저장소에 API 키를 절대 커밋하지 마세요.</div>',
-      actionText: "주의 경고 박스 단계 추가",
-      actionType: "insert",
+      previewHtml: '<div style="background:#fff5f3;border-left:4px solid #e05555;border-radius:0 6px 6px 0;padding:6px 10px;font-size:11px;color:#7a2020;"><b>⚠️ 주의사항:</b> 공용 저장소에 API 키를 절대 커밋하지 마세요.</div>',
+      actionText: "스텝에 주의 경고 박스 추가",
+      actionType: "insertBlock",
       actionKey: "warn"
     },
     urlbox: {
       category: "blocks",
-      categoryLabel: "컴포넌트 & 블록",
+      categoryLabel: "컴포넌트 & 블록 (BLOCK)",
+      parentLayout: "steps",
+      parentLayoutName: "상세 실행 단계 (스텝 내부)",
+      decisionCondition1: false,
+      decisionCondition2: false,
+      decisionCondition3: true,
+      decisionReason: "조건 3 만족: 외부 URL 및 새창 이동 버튼을 가진 리소스 단말 노드(Leaf Node)",
       icon: "🌐",
       name: "URL 리소스 상자 (Resource Box)",
-      desc: "모듈 2, 3에서 구글 시트 템플릿, Apps Script 콘솔, 대시보드 링크를 제공할 때 사용하는 전용 상자입니다. 민트-그레이 그라데이션 배경과 원클릭 '열기 ↗' 새창 이동 버튼이 탑재되어 있습니다.",
+      desc: "모듈 2, 3에서 구글 시트 템플릿, Apps Script 콘솔, 대시보드 링크를 제공할 때 사용하는 전용 상자입니다. 원클릭 '열기 ↗' 새창 이동 버튼이 탑재되어 있습니다.",
       scenario: "사용자가 바로 복사하거나 열어볼 수 있는 외부 공식 문서, 깃허브 코드, 스프레드시트 사본 링크를 제공할 때 사용합니다.",
-      previewHtml: '<div style="background:linear-gradient(135deg,#e6f8ef,#f1f3f4);border:1px solid #dadce0;border-radius:10px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:12px;"><b style="color:#137333;">🔗 관련 리소스</b><div style="font-size:10px;color:#5f6368;">https://docs.google.com/...</div></div><span style="background:#fff;border:1px solid #c6dafc;padding:3px 8px;border-radius:6px;font-size:11px;color:#1967d2;font-weight:700;">열기 ↗</span></div>',
-      actionText: "URL 리소스 단계 추가",
-      actionType: "insert",
+      previewHtml: '<div style="background:linear-gradient(135deg,#e6f8ef,#f1f3f4);border:1px solid #dadce0;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:11px;"><b style="color:#137333;">🔗 관련 리소스</b><div style="font-size:9px;color:#5f6368;">https://docs.google.com/...</div></div><span style="background:#fff;border:1px solid #c6dafc;padding:2px 6px;border-radius:4px;font-size:10px;color:#1967d2;font-weight:700;">열기 ↗</span></div>',
+      actionText: "스텝에 URL 리소스 상자 추가",
+      actionType: "insertBlock",
       actionKey: "urlbox"
+    },
+    goal: {
+      category: "blocks",
+      categoryLabel: "컴포넌트 & 블록 (BLOCK)",
+      parentLayout: "steps",
+      parentLayoutName: "상세 실행 단계 (스텝 내부)",
+      decisionCondition1: false,
+      decisionCondition2: false,
+      decisionCondition3: true,
+      decisionReason: "조건 3 만족: 단계별 목표 텍스트를 가진 단말 노드(Leaf Node)",
+      icon: "🎯",
+      name: "실행 목표 (Goal Callout)",
+      desc: "각 단계의 최상단에 배치되어 해당 단계를 거쳤을 때 달성해야 하는 핵심 산출물이나 마일스톤을 명료하게 정의합니다.",
+      scenario: "단계별 핵심 지향점을 한 줄로 명확히 인지시키고자 할 때 사용합니다.",
+      previewHtml: '<div style="background:rgba(25,103,210,.06);border:1px solid rgba(25,103,210,.18);border-radius:6px;padding:6px 10px;font-size:11px;color:#1967d2;font-weight:600;">🎯 목표: 정형화된 JSON 데이터 스키마 즉시 추출</div>',
+      actionText: "스텝에 실행 목표 추가",
+      actionType: "insertBlock",
+      actionKey: "goal"
+    },
+    checkItem: {
+      category: "blocks",
+      categoryLabel: "컴포넌트 & 블록 (BLOCK)",
+      parentLayout: "checklist",
+      parentLayoutName: "최종 점검 체크리스트",
+      decisionCondition1: false,
+      decisionCondition2: false,
+      decisionCondition3: true,
+      decisionReason: "조건 3 만족: 체크박스 체크 여부와 텍스트를 가진 체크리스트 단말 노드(Leaf Node)",
+      icon: "✅",
+      name: "체크리스트 점검 항목 (Check Item)",
+      desc: "최종 점검 체크리스트 컨테이너 내부에 추가되는 개별 점검 항목 블록입니다.",
+      scenario: "프로세스 완료 후 검수해야 할 세부 점검 사항을 하나 더 추가할 때 사용합니다.",
+      previewHtml: '<label style="display:flex;align-items:center;gap:6px;font-size:11px;"><input type="checkbox" checked><span>사내 보안 가이드라인 준수 확인</span></label>',
+      actionText: "체크리스트 점검 항목 추가",
+      actionType: "insertBlock",
+      actionKey: "checkItem"
     }
   };
 
@@ -429,148 +734,53 @@ function buildStudio() {
 
     if (savedKeys.length > 0) {
       var savedGroup = document.createElement('optgroup');
-      savedGroup.label = '✨ 내 저장된 작업 (My Saved Work)';
+      savedGroup.label = '💾 내가 저장한 작업 (' + savedKeys.length + '개)';
       savedKeys.forEach(function(k) {
         var opt = document.createElement('option');
         opt.value = 'saved:' + k;
-        opt.textContent = '📑 ' + (saved[k].name || '이름 없는 작업') + ' (' + (saved[k].updatedAt || '최근') + ')';
+        opt.textContent = '📂 ' + (saved[k].name || k);
         savedGroup.appendChild(opt);
       });
       select.appendChild(savedGroup);
     }
 
     var presetGroup = document.createElement('optgroup');
-    presetGroup.label = '📂 기본 템플릿 (Preset Templates)';
-    var p1 = document.createElement('option'); p1.value = 'weekly'; p1.textContent = 'AI 주간 업무 보고서'; presetGroup.appendChild(p1);
-    var p2 = document.createElement('option'); p2.value = 'project'; p2.textContent = '신규 프로젝트 런칭 로드맵'; presetGroup.appendChild(p2);
-    var p3 = document.createElement('option'); p3.value = 'onboarding'; p3.textContent = 'AI 도구 온보딩 & 가이드'; presetGroup.appendChild(p3);
+    presetGroup.label = '🌟 기본 표준 템플릿';
+    presetGroup.innerHTML = 
+      '<option value="preset:weekly">🚀 주간 업무 자동화 보고서 (기본)</option>' +
+      '<option value="preset:meeting">⚡ 스마트 회의록 &amp; 액션 플래너</option>' +
+      '<option value="preset:onboarding">🌱 신규 입사자 AI 툴킷 온보딩</option>';
     select.appendChild(presetGroup);
 
     if (selectedKey) {
       select.value = selectedKey;
-    } else if (currentLoadedWorkKey && saved[currentLoadedWorkKey]) {
+    } else if (currentLoadedWorkKey) {
       select.value = 'saved:' + currentLoadedWorkKey;
     } else {
-      select.value = 'weekly';
+      select.value = 'preset:weekly';
     }
 
-    updateDeleteBtnVisibility();
-  }
-
-  function updateDeleteBtnVisibility() {
-    var select = document.getElementById('presetSelect');
     var delBtn = document.getElementById('deleteWorkBtn');
-    if(!delBtn) return;
-    if(select.value && select.value.startsWith('saved:')){
+    if (select.value.startsWith('saved:')) {
       delBtn.style.display = 'inline-flex';
     } else {
       delBtn.style.display = 'none';
     }
   }
 
-  // ── 작업 저장 모달 열기/닫기 ──
-  document.getElementById('openSaveBtn').addEventListener('click', function(){
-    var nameInput = document.getElementById('saveWorkName');
-    nameInput.value = currentData.title || '나만의 워크플로우 보고서';
-    document.getElementById('saveModal').style.display = 'flex';
-    setTimeout(function(){ nameInput.focus(); nameInput.select(); }, 50);
-  });
-
-  window.closeSaveModal = function(){
-    document.getElementById('saveModal').style.display = 'none';
-  };
-
-  window.confirmSaveWork = function(){
-    var nameInput = document.getElementById('saveWorkName');
-    var workName = (nameInput.value || '').trim();
-    if(!workName){
-      alert('작업 이름을 입력해 주세요.');
-      nameInput.focus();
-      return;
-    }
-
-    var now = new Date();
-    var timeStr = (now.getMonth()+1) + '/' + now.getDate() + ' ' +
-                  String(now.getHours()).padStart(2, '0') + ':' +
-                  String(now.getMinutes()).padStart(2, '0');
-
-    var saved = getSavedWorks();
-    var workId = 'work_' + Date.now();
-
-    if(currentLoadedWorkKey && saved[currentLoadedWorkKey] && saved[currentLoadedWorkKey].name === workName){
-      workId = currentLoadedWorkKey;
-    }
-
-    saved[workId] = {
-      id: workId,
-      name: workName,
-      data: JSON.parse(JSON.stringify(currentData)),
-      updatedAt: timeStr
-    };
-
-    setSavedWorks(saved);
-    currentLoadedWorkKey = workId;
-
-    closeSaveModal();
-    updatePresetDropdown('saved:' + workId);
-    showToast('✅ "' + workName + '" 작업이 안전하게 저장되었습니다!');
-  };
-
-  // ── 저장된 작업 삭제 버튼 ──
-  document.getElementById('deleteWorkBtn').addEventListener('click', function(){
-    var select = document.getElementById('presetSelect');
-    var val = select.value;
-    if(!val || !val.startsWith('saved:')) return;
-
-    var workId = val.replace('saved:', '');
-    var saved = getSavedWorks();
-    var workName = saved[workId] ? saved[workId].name : '선택된 작업';
-
-    if(confirm('정말 "' + workName + '" 저장 작업을 삭제하시겠습니까?')){
-      delete saved[workId];
-      setSavedWorks(saved);
-      currentLoadedWorkKey = null;
-      updatePresetDropdown('weekly');
-      currentData = JSON.parse(JSON.stringify(PRESETS.weekly));
-      syncFormFromData();
-      showToast('🗑️ "' + workName + '" 작업이 삭제되었습니다.');
-    }
-  });
-
-  // ── 템플릿 & 저장 작업 선택 (불러오기) ──
-  document.getElementById('presetSelect').addEventListener('change', function(e){
-    var k = e.target.value;
-    updateDeleteBtnVisibility();
-
-    if(k.startsWith('saved:')){
-      var workId = k.replace('saved:', '');
-      var saved = getSavedWorks();
-      if(saved[workId] && saved[workId].data){
-        currentData = JSON.parse(JSON.stringify(saved[workId].data));
-        currentLoadedWorkKey = workId;
-        syncFormFromData();
-        showToast('📂 "' + saved[workId].name + '" 작업을 불러왔습니다.');
-      }
-    } else if(PRESETS[k]){
-      currentLoadedWorkKey = null;
-      currentData = JSON.parse(JSON.stringify(PRESETS[k]));
-      syncFormFromData();
-      showToast('📂 템플릿을 불러왔습니다.');
-    }
-  });
-
-  // ── 툴바 섹션 펼침/숨김 기능 (요구사항 1) ──
+  // ── 툴바 접기/펼치기 ──
   window.toggleToolbarSection = function(){
     var card = document.getElementById('toolbarSectionCard');
-    var isCollapsed = card.classList.toggle('collapsed');
+    card.classList.toggle('collapsed');
     var hint = document.getElementById('tbToggleHint');
-    if(hint) hint.textContent = isCollapsed ? '펼치기' : '접기';
+    if(hint){
+      hint.textContent = card.classList.contains('collapsed') ? '펼치기' : '접기';
+    }
   };
 
-  // ── 툴바 기능 토글 (요구사항 3 버튼 방식) ──
+  // ── 툴바 피처 토글 ──
   window.toggleToolbarFeature = function(key){
     currentData.toolbar = currentData.toolbar || {};
-    currentData.toolbar.enabled = true;
     currentData.toolbar[key] = !currentData.toolbar[key];
     syncToolbarButtons();
     updateLivePreview();
@@ -579,46 +789,41 @@ function buildStudio() {
 
   function syncToolbarButtons(){
     var tb = currentData.toolbar || {};
+    var count = 0;
     var features = [
-      { key: 'showSearch', btnId: 'btnToolSearch', pillId: 'pillToolSearch' },
-      { key: 'showSuggestChips', btnId: 'btnToolChips', pillId: 'pillToolChips' },
-      { key: 'showCategoryTabs', btnId: 'btnToolTabs', pillId: 'pillToolTabs' },
-      { key: 'showPrint', btnId: 'btnToolPrint', pillId: 'pillToolPrint' },
-      { key: 'showProgress', btnId: 'btnToolProgress', pillId: 'pillToolProgress' },
-      { key: 'showThemeToggle', btnId: 'btnToolTheme', pillId: 'pillToolTheme' }
+      { key: 'showSearch', btnId: 'btnToolSearch', pillId: 'pillToolSearch', chipId: 'chipToolSearch' },
+      { key: 'showSuggestChips', btnId: 'btnToolChips', pillId: 'pillToolChips', chipId: 'chipToolChips' },
+      { key: 'showCategoryTabs', btnId: 'btnToolTabs', pillId: 'pillToolTabs', chipId: 'chipToolTabs' },
+      { key: 'showPrint', btnId: 'btnToolPrint', pillId: 'pillToolPrint', chipId: 'chipToolPrint' },
+      { key: 'showProgress', btnId: 'btnToolProgress', pillId: 'pillToolProgress', chipId: 'chipToolProgress' },
+      { key: 'showThemeToggle', btnId: 'btnToolTheme', pillId: 'pillToolTheme', chipId: 'chipToolTheme' }
     ];
 
-    var activeCount = 0;
     features.forEach(function(f){
-      var active = !!tb[f.key];
-      if(active) activeCount++;
+      var on = !!tb[f.key];
+      if(on) count++;
       var btn = document.getElementById(f.btnId);
       var pill = document.getElementById(f.pillId);
+      var chip = document.getElementById(f.chipId);
       if(btn){
-        if(active) btn.classList.add('active');
-        else btn.classList.remove('active');
+        btn.classList.toggle('active', on);
       }
       if(pill){
-        pill.textContent = active ? 'ON' : 'OFF';
+        pill.textContent = on ? 'ON' : 'OFF';
+      }
+      if(chip){
+        chip.classList.toggle('active', on);
+        chip.textContent = (f.key === 'showSearch' ? '🔍 검색창' : f.key === 'showSuggestChips' ? '⚡ 추천 칩' : f.key === 'showCategoryTabs' ? '🗂️ 탭 바' : f.key === 'showPrint' ? '🖨️ 인쇄' : f.key === 'showProgress' ? '📊 진행률' : '🌓 다크모드') + ' (' + (on ? 'ON' : 'OFF') + ')';
       }
     });
 
     var badge = document.getElementById('tbActiveCountBadge');
-    if(badge) badge.textContent = activeCount + '개 활성';
+    if(badge) badge.textContent = count + '개 활성';
 
-    var searchInp = document.getElementById('tbSearchPlaceholder');
-    if(searchInp) searchInp.value = tb.searchPlaceholder || '';
-
-    var chipsInp = document.getElementById('tbSuggestChips');
-    if(chipsInp) chipsInp.value = (tb.suggestChips || []).join(', ');
-
-    var tabsInp = document.getElementById('tbCategoryTabs');
-    if(tabsInp) tabsInp.value = (tb.categoryTabs || []).join(', ');
-
-    var subBox = document.getElementById('subToolbarSettings');
-    if(subBox){
-      subBox.style.display = (tb.showSearch || tb.showSuggestChips || tb.showCategoryTabs) ? 'block' : 'none';
-    }
+    var chipsBox = document.getElementById('boxSuggestChipsInput');
+    if(chipsBox) chipsBox.style.display = tb.showSuggestChips ? 'block' : 'none';
+    var tabsBox = document.getElementById('boxCategoryTabsInput');
+    if(tabsBox) tabsBox.style.display = tb.showCategoryTabs ? 'block' : 'none';
   }
 
   window.updateToolbarText = function(key, val){
@@ -642,7 +847,67 @@ function buildStudio() {
     document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2);
   };
 
-  // ── 도구 설명 & 적용 예시 모달 (요구사항 2) ──
+  // ── 구조&레이아웃 도구 포커스 / 토글 ──
+  window.focusLayoutSection = function(key){
+    if(key === 'header'){
+      var el = document.querySelector('[data-editor-id="header"]');
+      if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      var inp = document.getElementById('fTitle');
+      if(inp) inp.focus();
+    } else if(key === 'toolbar'){
+      var sc = document.getElementById('toolbarSectionCard');
+      if(sc && sc.classList.contains('collapsed')){
+        toggleToolbarSection();
+      }
+      var sub = document.getElementById('subToolbarSettings');
+      if(sub) sub.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if(key === 'kpiStats'){
+      if(!currentData.kpiStats || !currentData.kpiStats.length){
+        currentData.kpiStats = [
+          { num: "85%", label: "수작업 절감", color: "#1967d2" },
+          { num: "1/5", label: "소요 시간 단축", color: "#137333" }
+        ];
+        syncFormFromData();
+        showToast('✨ [KPI 지표 스코어보드] 섹션이 활성화되었습니다!');
+      }
+      var el = document.getElementById('kpiStatsEditorContainer');
+      if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if(key === 'flowmap'){
+      if(!currentData.flowmap || !currentData.flowmap.length){
+        currentData.flowmap = [
+          { num: "1", title: "준비", desc: "도구 세팅", color: "#1967d2" },
+          { num: "2", title: "실행", desc: "자동화 실행", color: "#137333" }
+        ];
+        syncFormFromData();
+        showToast('✨ [1줄 흐름 지도] 섹션이 활성화되었습니다!');
+      }
+      var el = document.getElementById('flowItemsContainer');
+      if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if(key === 'cards'){
+      if(!currentData.cards || !currentData.cards.length){
+        currentData.cards = [
+          { badge: "MODULE", frontTitle: "핵심 모듈 1", tags: ["기획"], color: "#1967d2", backDesc: "상세 계획입니다." }
+        ];
+        syncFormFromData();
+        showToast('✨ [3D 플립 카드] 섹션이 활성화되었습니다!');
+      }
+      var el = document.getElementById('cardItemsContainer');
+      if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if(key === 'steps'){
+      var el = document.getElementById('stepItemsContainer');
+      if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if(key === 'checklist'){
+      if(!currentData.checklist || !currentData.checklist.length){
+        currentData.checklist = ["첫 번째 점검 항목", "두 번째 점검 항목"];
+        syncFormFromData();
+        showToast('✨ [체크리스트] 섹션이 활성화되었습니다!');
+      }
+      var el = document.getElementById('checkItemsContainer');
+      if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  // ── 도구 설명 & 적용 예시 모달 (요구사항 2 + Decision Matrix 판정 표시) ──
   window.openToolHelpModal = function(e, toolKey){
     if(e) e.stopPropagation();
     var tool = TOOL_REGISTRY[toolKey];
@@ -662,6 +927,28 @@ function buildStudio() {
       catBadge.style.borderColor = '#d7bbf5';
     }
 
+    // Decision Matrix 판정 정보 바인딩
+    var decisionHtml = 
+      '<div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:6px;margin-bottom:8px;text-align:center;">' +
+        '<div style="background:#fff;padding:6px;border-radius:6px;border:1px solid #e1ecfa;">' +
+          '<div style="font-size:10px;color:#5f6368;font-weight:700;">조건 1. 컨테이너 지배권</div>' +
+          '<div style="font-size:12px;font-weight:800;color:' + (tool.decisionCondition1 ? '#1967d2' : '#70757a') + ';">' + (tool.decisionCondition1 ? '✅ True (충족)' : '❌ False') + '</div>' +
+        '</div>' +
+        '<div style="background:#fff;padding:6px;border-radius:6px;border:1px solid #e1ecfa;">' +
+          '<div style="font-size:10px;color:#5f6368;font-weight:700;">조건 2. 글로벌 파급력</div>' +
+          '<div style="font-size:12px;font-weight:800;color:' + (tool.decisionCondition2 ? '#1967d2' : '#70757a') + ';">' + (tool.decisionCondition2 ? '✅ True (충족)' : '❌ False') + '</div>' +
+        '</div>' +
+        '<div style="background:#fff;padding:6px;border-radius:6px;border:1px solid #e1ecfa;">' +
+          '<div style="font-size:10px;color:#5f6368;font-weight:700;">조건 3. 독립 단말 데이터</div>' +
+          '<div style="font-size:12px;font-weight:800;color:' + (tool.decisionCondition3 ? '#7627bb' : '#70757a') + ';">' + (tool.decisionCondition3 ? '✅ True (Leaf Node)' : '❌ False') + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:.82rem;color:#4a5056;line-height:1.5;">' +
+        '<b>판정 사유:</b> ' + (tool.decisionReason || '') +
+        (tool.parentLayoutName ? '<br><b>소속 권역:</b> ' + tool.parentLayoutName + ' 하위' : '') +
+      '</div>';
+    document.getElementById('toolHelpDecisionDetails').innerHTML = decisionHtml;
+
     document.getElementById('toolHelpDesc').textContent = tool.desc;
     document.getElementById('toolHelpScenario').textContent = tool.scenario;
     document.getElementById('toolHelpPreviewWrap').innerHTML = tool.previewHtml || '<p style="color:#5f6368;">예시 미리보기 준비 중</p>';
@@ -672,8 +959,17 @@ function buildStudio() {
       closeToolHelpModal();
       if(tool.actionType === 'toggle'){
         toggleToolbarFeature(tool.actionKey);
-      } else if(tool.actionType === 'insert'){
-        insertWidget(tool.actionKey);
+      } else if(tool.actionType === 'focus'){
+        focusLayoutSection(tool.actionKey);
+      } else if(tool.actionType === 'toggleSection'){
+        focusLayoutSection(tool.actionKey);
+      } else if(tool.actionType === 'addStep'){
+        addStepItem();
+      } else if(tool.actionType === 'insertBlock'){
+        insertBlockToLayout(tool.parentLayout, tool.actionKey);
+      } else if(tool.actionType === 'focusItem'){
+        var target = document.querySelector('[data-editor-id="' + tool.actionKey + '"]');
+        if(target){ target.scrollIntoView({ behavior:'smooth', block:'center' }); }
       }
     };
 
@@ -684,9 +980,92 @@ function buildStudio() {
     document.getElementById('toolHelpModal').style.display = 'none';
   };
 
-  // ── 장식 요소 & 위젯 추가 (요구사항 2 & 3: 버튼 클릭 시 기능 추가) ──
-  window.insertWidget = function(type){
-    if(type === 'whyBox'){
+  // ── 컴포넌트 & 블록 선택 팝오버 열기 (요구사항 2: + 버튼 신설) ──
+  window.openBlockPicker = function(e, layoutKey, stepIdx){
+    if(e){
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    var pop = document.getElementById('blockPickerPopover');
+    if(!pop) return;
+
+    // 이미 열려있는 경우 토글 닫기
+    if(pop.style.display === 'flex' && pop.getAttribute('data-active-layout') === layoutKey && pop.getAttribute('data-active-step') === String(stepIdx)){
+      pop.style.display = 'none';
+      return;
+    }
+
+    var blocks = [];
+    var layoutTitle = '';
+    if(layoutKey === 'header'){
+      layoutTitle = '🏛️ 기본 정보 (헤더 섹션)';
+      blocks = ['whyBox', 'procBox', 'suggestChips', 'stampBadge'];
+    } else if(layoutKey === 'kpiStats'){
+      layoutTitle = '📊 KPI 지표 스코어보드';
+      blocks = ['kpiCard'];
+    } else if(layoutKey === 'flowmap'){
+      layoutTitle = '🗺️ 1줄 흐름 지도 (Flow Map)';
+      blocks = ['flowStep'];
+    } else if(layoutKey === 'cards'){
+      layoutTitle = '📌 3D 플립 카드 (핵심 모듈)';
+      blocks = ['flipCard'];
+    } else if(layoutKey === 'steps'){
+      layoutTitle = '🛠️ 상세 실행 단계 (Steps)';
+      blocks = ['stepCard'];
+    } else if(layoutKey === 'step-sub'){
+      layoutTitle = '🛠️ Step #' + (Number(stepIdx)+1) + ' 내부 서브 블록';
+      blocks = ['prompt', 'tip', 'note', 'warn', 'urlbox', 'goal'];
+    } else if(layoutKey === 'checklist'){
+      layoutTitle = '✅ 최종 점검 체크리스트';
+      blocks = ['checkItem'];
+    }
+
+    var html = '<div class="picker-header">' +
+      '<div class="picker-title">' + layoutTitle + '</div>' +
+      '<div class="picker-desc">추가할 [컴포넌트 &amp; 블록]을 선택하세요.</div>' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:5px;max-height:300px;overflow-y:auto;">';
+
+    blocks.forEach(function(bKey){
+      var tool = TOOL_REGISTRY[bKey];
+      if(!tool) return;
+      html += '<div class="picker-item" onclick="insertBlockToLayout(\\'' + layoutKey + '\\', \\'' + bKey + '\\', ' + (stepIdx !== undefined ? stepIdx : 'null') + ')">' +
+        '<div class="picker-item-left">' +
+          '<span class="picker-item-icon">' + tool.icon + '</span>' +
+          '<div class="picker-item-text">' +
+            '<span class="picker-item-name">' + tool.name + '</span>' +
+            '<span class="picker-item-sub">' + tool.desc.substring(0, 36) + '...</span>' +
+          '</div>' +
+        '</div>' +
+        '<button class="picker-help-btn" onclick="openToolHelpModal(event, \\'' + bKey + '\\')" title="도구 설명 및 적용 예시 보기">?</button>' +
+      '</div>';
+    });
+    html += '</div>';
+
+    pop.innerHTML = html;
+    pop.setAttribute('data-active-layout', layoutKey);
+    pop.setAttribute('data-active-step', stepIdx !== undefined ? String(stepIdx) : '');
+
+    var btn = e.currentTarget || e.target;
+    var rect = btn.getBoundingClientRect();
+    pop.style.display = 'flex';
+    
+    var top = rect.bottom + window.scrollY + 6;
+    var left = rect.left + window.scrollX;
+    
+    if(left + 340 > window.innerWidth){
+      left = Math.max(10, window.innerWidth - 350);
+    }
+    pop.style.top = top + 'px';
+    pop.style.left = left + 'px';
+  };
+
+  // ── 블록을 권역 구조에 추가 실행 ──
+  window.insertBlockToLayout = function(layoutKey, blockType, stepIdx){
+    var pop = document.getElementById('blockPickerPopover');
+    if(pop) pop.style.display = 'none';
+
+    if(blockType === 'whyBox'){
       currentData.whyBox = currentData.whyBox || {
         enabled: true,
         title: "💡 왜 이 워크플로우를 도입해야 하는가?",
@@ -694,10 +1073,10 @@ function buildStudio() {
       };
       currentData.whyBox.enabled = true;
       syncFormFromData();
-      showToast('✨ [Why 인트로 박스]가 추가되었습니다!');
+      showToast('✨ [Why 인트로 박스]가 헤더 하위에 추가되었습니다!');
       var target = document.querySelector('[data-editor-id="whyBox"]');
       if(target) target.scrollIntoView({ behavior:'smooth', block:'center' });
-    } else if(type === 'procBox'){
+    } else if(blockType === 'procBox'){
       currentData.procBox = currentData.procBox || {
         enabled: true,
         badge: "AUTOMATION PIPELINE",
@@ -705,92 +1084,116 @@ function buildStudio() {
       };
       currentData.procBox.enabled = true;
       syncFormFromData();
-      showToast('✨ [프로세스 플로우 바]가 추가되었습니다!');
+      showToast('✨ [프로세스 플로우 바]가 헤더 하위에 추가되었습니다!');
       var target = document.querySelector('[data-editor-id="procBox"]');
       if(target) target.scrollIntoView({ behavior:'smooth', block:'center' });
-    } else if(type === 'kpiStats'){
+    } else if(blockType === 'suggestChips'){
+      toggleToolbarFeature('showSuggestChips');
+      showToast('✨ [추천 검색어 칩] 설정이 활성화되었습니다!');
+      var inp = document.getElementById('tbSuggestChips');
+      if(inp){ inp.focus(); inp.scrollIntoView({ behavior:'smooth', block:'center' }); }
+    } else if(blockType === 'stampBadge'){
+      var inp = document.getElementById('fBadge');
+      if(inp){ inp.focus(); inp.scrollIntoView({ behavior:'smooth', block:'center' }); }
+      showToast('✨ [상단 뱃지 문구] 입력란으로 포커스되었습니다!');
+    } else if(blockType === 'kpiCard'){
       currentData.kpiStats = currentData.kpiStats || [];
       currentData.kpiStats.push({ "num": "99%", "label": "신규 성과 지표", "color": "#1967d2" });
       syncFormFromData();
-      showToast('✨ [KPI 스코어보드 지표]가 추가되었습니다!');
-      var target = document.querySelector('[data-editor-id="kpiStats"]');
+      showToast('✨ [KPI 지표 카드]가 추가되었습니다!');
+      var target = document.querySelector('[data-editor-id="kpi-' + (currentData.kpiStats.length - 1) + '"]');
       if(target) target.scrollIntoView({ behavior:'smooth', block:'center' });
-    } else if(type === 'prompt'){
+    } else if(blockType === 'flowStep'){
+      currentData.flowmap = currentData.flowmap || [];
+      currentData.flowmap.push({
+        num: String(currentData.flowmap.length + 1),
+        title: "새 진행 단계",
+        desc: "단계 설명 및 산출물",
+        color: "#1967d2"
+      });
+      syncFormFromData();
+      showToast('✨ [1줄 흐름 지도 단계 노드]가 추가되었습니다!');
+      var target = document.querySelector('[data-editor-id="flow-' + (currentData.flowmap.length - 1) + '"]');
+      if(target) target.scrollIntoView({ behavior:'smooth', block:'center' });
+    } else if(blockType === 'flipCard'){
+      currentData.cards = currentData.cards || [];
+      currentData.cards.push({
+        badge: "MODULE",
+        frontTitle: "신규 모듈 카드",
+        tags: ["태그1", "태그2"],
+        color: "#1967d2",
+        backDesc: "카드를 뒤집었을 때 표시되는 상세 계획 및 지침입니다."
+      });
+      syncFormFromData();
+      showToast('✨ [3D 플립 모듈 카드]가 추가되었습니다!');
+      var target = document.querySelector('[data-editor-id="card-' + (currentData.cards.length - 1) + '"]');
+      if(target) target.scrollIntoView({ behavior:'smooth', block:'center' });
+    } else if(blockType === 'stepCard'){
       currentData.steps = currentData.steps || [];
       currentData.steps.push({
         num: String(currentData.steps.length + 1),
-        title: "Gemini AI 원클릭 프롬프트 실행 단계",
-        tool: "Gemini 2.5 Pro",
-        goal: "복사 가능한 실무 프롬프트로 결과물 즉시 추출",
-        desc: "아래 프롬프트 박스의 복사 버튼을 눌러 Gemini에 전달하세요.",
-        prompt: "당신은 AI 업무 자동화 전문가입니다. 아래 과제를 단계별로 해결하는 마스터플랜을 작성해주세요.",
-        tip: "더 정밀한 결과를 원하면 출력 포맷을 마크다운 표로 지정하세요."
+        title: "새로운 실행 단계",
+        tool: "Gemini",
+        goal: "실행 목표를 입력하세요",
+        desc: "단계별 세부 실행 가이드라인입니다."
       });
       syncFormFromData();
-      showToast('✨ [Gemini 프롬프트 카드] 실행 단계가 추가되었습니다!');
+      showToast('✨ [새 실행 단계 카드]가 워크플로우에 추가되었습니다!');
       var target = document.querySelector('[data-editor-id="step-' + (currentData.steps.length - 1) + '"]');
       if(target) target.scrollIntoView({ behavior:'smooth', block:'center' });
-    } else if(type === 'tip'){
-      currentData.steps = currentData.steps || [];
-      currentData.steps.push({
-        num: String(currentData.steps.length + 1),
-        title: "실무 꿀팁 및 권장 가이드라인",
-        tool: "Best Practice",
-        goal: "오류 방지 및 성능 최적화 팁 숙지",
-        desc: "상세 팁은 클릭 시 펼쳐지는 아코디언으로 제공됩니다.",
-        tip: "Apps Script 트리거 시간 간격을 5분 이상으로 설정하면 할당량 초과(Quota Error)를 사전에 방지할 수 있습니다."
-      });
+    } else if(blockType === 'prompt' && stepIdx !== null && stepIdx !== undefined){
+      currentData.steps[stepIdx].prompt = currentData.steps[stepIdx].prompt || "당신은 AI 업무 자동화 전문가입니다. 아래 과제를 단계별로 해결하는 마스터플랜을 작성해주세요.";
       syncFormFromData();
-      showToast('✨ [접이식 팁 아코디언] 실행 단계가 추가되었습니다!');
-      var target = document.querySelector('[data-editor-id="step-' + (currentData.steps.length - 1) + '"]');
+      showToast('✨ Step #' + (Number(stepIdx)+1) + '에 [Gemini 프롬프트 박스]가 추가되었습니다!');
+      var target = document.querySelector('[data-editor-id="step-' + stepIdx + '-prompt"]');
       if(target) target.scrollIntoView({ behavior:'smooth', block:'center' });
-    } else if(type === 'note'){
-      currentData.steps = currentData.steps || [];
-      currentData.steps.push({
-        num: String(currentData.steps.length + 1),
-        title: "핵심 참고 사항 및 데이터 규격",
-        tool: "Reference Note",
-        goal: "데이터 파이프라인 무결성 유지",
-        desc: "중요 포인트 안내 박스를 포함한 실행 단계입니다.",
-        note: "API 호출 시 JSON 응답의 타임스탬프 필드는 UTC 기준 ISO-8601 형식을 준수해야 합니다."
-      });
+    } else if(blockType === 'tip' && stepIdx !== null && stepIdx !== undefined){
+      currentData.steps[stepIdx].tip = currentData.steps[stepIdx].tip || "실무 팁: 트리거 시간 간격을 5분 이상으로 설정하면 할당량 초과(Quota Error)를 방지할 수 있습니다.";
       syncFormFromData();
-      showToast('✨ [핵심 안내 노트] 실행 단계가 추가되었습니다!');
-      var target = document.querySelector('[data-editor-id="step-' + (currentData.steps.length - 1) + '"]');
+      showToast('✨ Step #' + (Number(stepIdx)+1) + '에 [접이식 팁 아코디언]이 추가되었습니다!');
+      var target = document.querySelector('[data-editor-id="step-' + stepIdx + '-tip"]');
       if(target) target.scrollIntoView({ behavior:'smooth', block:'center' });
-    } else if(type === 'warn'){
-      currentData.steps = currentData.steps || [];
-      currentData.steps.push({
-        num: String(currentData.steps.length + 1),
-        title: "보안 점검 및 접근 제어 주의사항",
-        tool: "Security Warning",
-        goal: "외부 유출 방지 및 토큰 관리",
-        desc: "주의/경고 박스가 포함된 단계입니다.",
-        warn: "공용 저장소(GitHub Public)에 API 시크릿 키나 서비스 계정 키 파일을 절대 커밋하지 마세요."
-      });
+    } else if(blockType === 'note' && stepIdx !== null && stepIdx !== undefined){
+      currentData.steps[stepIdx].note = currentData.steps[stepIdx].note || "핵심 참고: API 호출 시 JSON 응답의 타임스탬프 필드는 UTC 기준 ISO-8601 형식을 준수해야 합니다.";
       syncFormFromData();
-      showToast('✨ [주의 경고 박스] 실행 단계가 추가되었습니다!');
-      var target = document.querySelector('[data-editor-id="step-' + (currentData.steps.length - 1) + '"]');
+      showToast('✨ Step #' + (Number(stepIdx)+1) + '에 [핵심 안내 노트]가 추가되었습니다!');
+      var target = document.querySelector('[data-editor-id="step-' + stepIdx + '-note"]');
       if(target) target.scrollIntoView({ behavior:'smooth', block:'center' });
-    } else if(type === 'urlbox'){
-      currentData.steps = currentData.steps || [];
-      currentData.steps.push({
-        num: String(currentData.steps.length + 1),
-        title: "외부 연동 리소스 및 스프레드시트 템플릿",
-        tool: "External Resource",
-        goal: "사전 제작된 구글 시트 템플릿 사본 만들기",
-        desc: "아래 URL 리소스 박스에서 사본 링크를 바로 열 수 있습니다.",
-        url: "https://docs.google.com/spreadsheets",
-        urlLabel: "구글 스프레드시트 업무 템플릿 열기"
-      });
+    } else if(blockType === 'warn' && stepIdx !== null && stepIdx !== undefined){
+      currentData.steps[stepIdx].warn = currentData.steps[stepIdx].warn || "주의사항: 공용 저장소(GitHub Public)에 API 시크릿 키를 절대 커밋하지 마세요.";
       syncFormFromData();
-      showToast('✨ [URL 리소스 상자] 실행 단계가 추가되었습니다!');
-      var target = document.querySelector('[data-editor-id="step-' + (currentData.steps.length - 1) + '"]');
+      showToast('✨ Step #' + (Number(stepIdx)+1) + '에 [주의 경고 박스]가 추가되었습니다!');
+      var target = document.querySelector('[data-editor-id="step-' + stepIdx + '-warn"]');
+      if(target) target.scrollIntoView({ behavior:'smooth', block:'center' });
+    } else if(blockType === 'urlbox' && stepIdx !== null && stepIdx !== undefined){
+      currentData.steps[stepIdx].url = currentData.steps[stepIdx].url || "https://docs.google.com/spreadsheets/";
+      syncFormFromData();
+      showToast('✨ Step #' + (Number(stepIdx)+1) + '에 [URL 리소스 상자]가 추가되었습니다!');
+      var target = document.querySelector('[data-editor-id="step-' + stepIdx + '-url"]');
+      if(target) target.scrollIntoView({ behavior:'smooth', block:'center' });
+    } else if(blockType === 'goal' && stepIdx !== null && stepIdx !== undefined){
+      currentData.steps[stepIdx].goal = currentData.steps[stepIdx].goal || "목표: 신속하고 정확한 업무 자동화 구현";
+      syncFormFromData();
+      showToast('✨ Step #' + (Number(stepIdx)+1) + '에 [실행 목표]가 설정되었습니다!');
+      var target = document.querySelector('[data-editor-id="step-' + stepIdx + '-goal"]');
+      if(target) target.scrollIntoView({ behavior:'smooth', block:'center' });
+    } else if(blockType === 'checkItem'){
+      currentData.checklist = currentData.checklist || [];
+      currentData.checklist.push("새 점검 항목 내용 확인");
+      syncFormFromData();
+      showToast('✨ [체크리스트 점검 항목]이 추가되었습니다!');
+      var target = document.querySelector('[data-editor-id="check-' + (currentData.checklist.length - 1) + '"]');
       if(target) target.scrollIntoView({ behavior:'smooth', block:'center' });
     }
-    updateLivePreview();
-    document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2);
   };
+
+  // 팝오버 외부 클릭 시 닫기
+  document.addEventListener('click', function(e){
+    var pop = document.getElementById('blockPickerPopover');
+    if(pop && !pop.contains(e.target) && !e.target.closest('.add-block-btn') && !e.target.closest('.dock-add-btn') && !e.target.closest('.add-subblock-btn')){
+      pop.style.display = 'none';
+    }
+  });
 
   // Toast 알림
   function showToast(msg){
@@ -804,7 +1207,7 @@ function buildStudio() {
   }
 
   // ── HTML 렌더러 (보고서 생성 엔진) ──
-  // isExport === true: 내려받기/복사용 순수 시맨틱 HTML (하이라이트 및 인스펙터 스크립트 제거)
+  // isExport === true: 내려받기/복사용 순수 시맨틱 HTML (하이라이트 및 인스펙터 스크립트 100% 제거)
   // isExport === false: 에디터 실시간 미리보기용 HTML (Chrome DevTools 양방향 요소 검사기 포함)
   function renderReportHtml(config, isExport) {
     function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -858,10 +1261,9 @@ function buildStudio() {
     buf.push('.tb-search-input:focus { border-color:var(--blue); background:#fff; box-shadow:0 0 0 3px rgba(25,103,210,.14); }\\n');
     buf.push('.tb-search-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); font-size:.85rem; color:var(--muted); pointer-events:none; }\\n');
     buf.push('.tb-search-dropdown { position:absolute; top:calc(100% + 6px); left:0; right:0; background:var(--paper); border:1px solid var(--line); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.15); max-height:320px; overflow-y:auto; display:none; z-index:1000; }\\n');
-    buf.push('.tb-search-item { padding:10px 14px; border-bottom:1px solid var(--line); cursor:pointer; font-size:.84rem; display:flex; align-items:center; gap:8px; }\\n');
+    buf.push('.tb-search-item { padding:10px 14px; border-bottom:1px solid var(--line); cursor:pointer; font-size:.84rem; display:flex; align-items:center; justify-content:space-between; }\\n');
     buf.push('.tb-search-item:hover { background:rgba(25,103,210,.08); }\\n');
-    buf.push('.tb-search-badge { font-size:.72rem; font-weight:700; padding:2px 6px; border-radius:4px; background:#e8f0fe; color:var(--blue); }\\n');
-    buf.push('.tb-search-title { font-weight:600; color:var(--text); flex:1; }\\n');
+    buf.push('.tb-search-badge { font-size:.70rem; padding:2px 6px; border-radius:4px; font-weight:700; background:#e8f0fe; color:#1967d2; }\\n');
     buf.push('.tb-actions { display:flex; align-items:center; gap:8px; }\\n');
     buf.push('.tb-btn { display:inline-flex; align-items:center; gap:5px; font-family:inherit; font-size:.82rem; font-weight:600; padding:6px 12px; border-radius:8px; border:1px solid var(--line); background:var(--paper); color:var(--text); cursor:pointer; transition:.14s; }\\n');
     buf.push('.tb-btn:hover { background:rgba(0,0,0,.04); border-color:#c6dafc; }\\n');
@@ -873,105 +1275,97 @@ function buildStudio() {
     buf.push('p.lead { font-size:1.1rem; color:var(--muted); max-width:760px; margin:0 auto 24px; line-height:1.65; }\\n');
     buf.push('.meta-chips { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:16px; }\\n');
     buf.push('.meta-chip { background:rgba(25,103,210,.08); border:1px solid rgba(25,103,210,.18); padding:6px 14px; border-radius:999px; font-size:.84rem; color:var(--blue); font-weight:600; }\\n');
-    buf.push('.suggest-chips-bar { display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; margin:14px 0; }\\n');
-    buf.push('.chip-label { font-size:.8rem; font-weight:700; color:var(--muted); }\\n');
-    buf.push('.suggest-chip { font-size:.78rem; font-weight:600; background:rgba(25,103,210,.08); color:var(--blue); border:1px solid rgba(25,103,210,.18); padding:4px 10px; border-radius:999px; cursor:pointer; transition:.14s; }\\n');
-    buf.push('.suggest-chip:hover { background:var(--blue); color:#fff; }\\n');
-    buf.push('.category-tabs-bar { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin:20px 0; }\\n');
-    buf.push('.category-tab { border:1px solid var(--line); background:var(--paper); color:var(--navy-2); font-family:inherit; font-weight:600; font-size:.86rem; padding:7px 16px; border-radius:999px; cursor:pointer; transition:.16s; }\\n');
-    buf.push('.category-tab:hover { border-color:#c6dafc; }\\n');
-    buf.push('.category-tab.active { background:var(--navy); color:#fff; border-color:var(--navy); }\\n');
-    buf.push('.why-box { background:linear-gradient(135deg,var(--navy),var(--navy-2)); color:#f1f3f4; border-radius:20px; padding:28px 30px; margin:28px 0; box-shadow:0 10px 30px rgba(11,26,44,0.12); position:relative; }\\n');
-    buf.push('.why-eyebrow { font-size:.75rem; font-weight:700; letter-spacing:.12em; color:#8ab4f8; display:block; margin-bottom:6px; }\\n');
-    buf.push('.why-box h3 { color:#fff; margin:0 0 10px; font-size:1.25rem; font-weight:700; }\\n');
-    buf.push('.why-box p { color:#e8eaed; line-height:1.65; margin:0; font-size:.95rem; }\\n');
-    buf.push('.procbox { background:rgba(36,53,81,.88); color:#fff; padding:13px 20px; border-radius:14px; text-align:center; margin:20px 0; display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; box-shadow:0 4px 16px rgba(0,0,0,.08); }\\n');
-    buf.push('.proc-badge { background:#1967d2; font-size:.74rem; font-weight:700; padding:3px 9px; border-radius:999px; letter-spacing:.08em; }\\n');
-    buf.push('.proc-text { font-weight:600; font-size:.92rem; }\\n');
-    buf.push('.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:14px; margin:24px 0; }\\n');
-    buf.push('.kpi-card { background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:20px 16px; text-align:center; box-shadow:0 4px 14px rgba(36,53,81,.04); transition:.16s; }\\n');
-    buf.push('.kpi-card:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(36,53,81,.08); }\\n');
-    buf.push('.kpi-num { font-size:1.9rem; font-weight:800; line-height:1.1; margin-bottom:6px; }\\n');
-    buf.push('.kpi-label { font-size:.84rem; font-weight:600; color:var(--muted); }\\n');
-    buf.push('section { margin:46px 0; }\\n');
-    buf.push('.eyebrow { font-size:.78rem; font-weight:800; color:var(--blue); letter-spacing:.14em; text-transform:uppercase; margin-bottom:6px; }\\n');
-    buf.push('h2.sec { font-size:1.55rem; font-weight:800; color:var(--navy); margin:0 0 8px; }\\n');
-    buf.push('.flowmap { display:flex; align-items:stretch; gap:12px; margin-top:20px; overflow-x:auto; padding-bottom:12px; }\\n');
-    buf.push('.fstep { flex:1; min-width:180px; background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:16px; position:relative; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:8px; border-top:4px solid var(--accent,#1967d2); }\\n');
-    buf.push('.fnum { width:24px; height:24px; border-radius:50%; background:var(--accent,#1967d2); color:#fff; font-size:.75rem; font-weight:800; display:flex; align-items:center; justify-content:center; }\\n');
-    buf.push('.fmeta b { font-size:.95rem; color:var(--navy); display:block; margin-bottom:4px; }\\n');
-    buf.push('.fmeta .ft { font-size:.82rem; color:var(--muted); line-height:1.45; display:block; }\\n');
-    buf.push('.farrow { align-self:center; font-size:1.2rem; color:var(--muted); }\\n');
-    buf.push('.modgrid { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:20px; margin-top:20px; }\\n');
-    buf.push('.flip { perspective:1000px; height:220px; cursor:pointer; }\\n');
-    buf.push('.flip-inner { position:relative; width:100%; height:100%; transition:transform .5s cubic-bezier(.16,1,.3,1); transform-style:preserve-3d; border-radius:18px; }\\n');
-    buf.push('.flip.flipped .flip-inner { transform:rotateY(180deg); }\\n');
-    buf.push('.face { position:absolute; inset:0; backface-visibility:hidden; border-radius:18px; padding:22px; display:flex; flex-direction:column; justify-content:space-between; border:1px solid var(--line); box-shadow:var(--shadow); }\\n');
-    buf.push('.face.front { background:var(--paper); border-left:5px solid var(--accent,#1967d2); }\\n');
-    buf.push('.face.back { background:linear-gradient(135deg,var(--navy),var(--navy-2)); color:#fff; transform:rotateY(180deg); border:none; }\\n');
-    buf.push('.card-badge { font-size:.72rem; font-weight:700; color:var(--accent,#1967d2); text-transform:uppercase; letter-spacing:.08em; display:block; margin-bottom:6px; }\\n');
+    buf.push('.why-box { background:linear-gradient(135deg,#0b1a2c,#243551); color:#fff; border-radius:18px; padding:28px 32px; margin:32px 0; box-shadow:0 12px 36px rgba(11,26,44,.18); border:1px solid rgba(255,255,255,.1); }\\n');
+    buf.push('.why-box .wbadge { display:inline-block; font-size:.72rem; font-weight:800; letter-spacing:.14em; color:#8ab4f8; text-transform:uppercase; margin-bottom:8px; }\\n');
+    buf.push('.why-box h3 { font-size:1.45rem; font-weight:800; margin:0 0 10px; color:#fff; }\\n');
+    buf.push('.why-box p { font-size:1rem; color:#e8eaed; line-height:1.7; margin:0; }\\n');
+    buf.push('.procbox { background:rgba(36,53,81,.85); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.15); color:#fff; border-radius:12px; padding:12px 20px; margin:20px 0 32px; display:flex; align-items:center; gap:12px; font-size:.9rem; }\\n');
+    buf.push('.procbox .badge { background:#1967d2; color:#fff; padding:3px 10px; border-radius:999px; font-size:.72rem; font-weight:800; letter-spacing:.08em; }\\n');
+    buf.push('.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin:28px 0; }\\n');
+    buf.push('.kpi-card { background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:20px; text-align:center; box-shadow:var(--shadow); }\\n');
+    buf.push('.kpi-num { font-size:2.2rem; font-weight:800; line-height:1.1; margin-bottom:6px; }\\n');
+    buf.push('.kpi-label { font-size:.85rem; color:var(--muted); font-weight:600; }\\n');
+    buf.push('.eyebrow { font-size:.78rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--blue); margin-bottom:6px; }\\n');
+    buf.push('h2.sec { font-size:1.75rem; font-weight:800; color:var(--navy); margin:0 0 10px; letter-spacing:-.01em; }\\n');
+    buf.push('section { margin:56px 0; }\\n');
+    buf.push('.flowmap { display:flex; gap:12px; align-items:center; overflow-x:auto; padding:16px 4px; margin-top:16px; }\\n');
+    buf.push('.fstep { flex:1; min-width:180px; background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--accent,#1967d2); border-radius:12px; padding:14px; box-shadow:var(--shadow); display:flex; gap:10px; align-items:center; }\\n');
+    buf.push('.fnum { font-size:1.2rem; font-weight:800; color:var(--blue); min-width:24px; }\\n');
+    buf.push('.fmeta b { display:block; font-size:.9rem; color:var(--navy); margin-bottom:2px; }\\n');
+    buf.push('.fmeta .ft { font-size:.78rem; color:var(--muted); }\\n');
+    buf.push('.farrow { color:var(--muted); font-size:1.1rem; font-weight:700; flex-shrink:0; }\\n');
+    buf.push('.modgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; margin-top:20px; }\\n');
+    buf.push('.flip { perspective:1000px; height:240px; cursor:pointer; }\\n');
+    buf.push('.flip-inner { position:relative; width:100%; height:100%; text-align:left; transition:transform .6s cubic-bezier(.4,0,.2,1); transform-style:preserve-3d; border-radius:16px; box-shadow:var(--shadow); }\\n');
+    buf.push('.flip.is-flipped .flip-inner { transform:rotateY(180deg); }\\n');
+    buf.push('.face { position:absolute; width:100%; height:100%; -webkit-backface-visibility:hidden; backface-visibility:hidden; border-radius:16px; padding:24px; box-sizing:border-box; border:1px solid var(--line); background:var(--paper); display:flex; flex-direction:column; justify-content:space-between; }\\n');
+    buf.push('.face.back { transform:rotateY(180deg); background:linear-gradient(135deg,var(--navy),var(--navy-2)); color:#fff; border-color:var(--navy); }\\n');
+    buf.push('.face.front { border-top:4px solid var(--accent,#1967d2); }\\n');
+    buf.push('.card-badge { display:inline-block; font-size:.7rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--blue); margin-bottom:6px; }\\n');
     buf.push('.face.back .card-badge { color:#8ab4f8; }\\n');
-    buf.push('.face h3 { margin:0; font-size:1.15rem; font-weight:700; color:var(--navy); line-height:1.4; }\\n');
-    buf.push('.tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }\\n');
-    buf.push('.tag { font-size:.72rem; padding:3px 8px; border-radius:6px; background:#f1f3f4; color:#3c4043; font-weight:600; }\\n');
-    buf.push('.flip-hint { font-size:.72rem; color:var(--muted); align-self:flex-end; font-weight:600; }\\n');
-    buf.push('.face.back .flip-hint { color:#bdc1c6; }\\n');
-    buf.push('.backbody p { font-size:.88rem; line-height:1.6; margin:0; color:#e8eaed; }\\n');
-    buf.push('.step-list { display:flex; flex-direction:column; gap:20px; margin-top:20px; }\\n');
-    buf.push('.step-card { background:var(--paper); border:1px solid var(--line); border-radius:20px; padding:22px 24px; box-shadow:var(--shadow); transition:all .2s; }\\n');
-    buf.push('.step-card.done { opacity:.68; background:#f8f9fa; border-color:#e0e0e0; }\\n');
-    buf.push('.step-top { display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none; }\\n');
+    buf.push('.face.front h3 { font-size:1.15rem; font-weight:800; color:var(--navy); margin:0 0 8px; line-height:1.35; }\\n');
+    buf.push('.face.front .tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }\\n');
+    buf.push('.face.front .tag { font-size:.72rem; padding:3px 8px; background:rgba(0,0,0,.04); border-radius:6px; color:var(--muted); font-weight:600; }\\n');
+    buf.push('.face.back p { font-size:.9rem; line-height:1.6; color:#e8eaed; margin:0; }\\n');
+    buf.push('.flip-hint { font-size:.72rem; color:var(--muted); text-align:right; margin-top:8px; }\\n');
+    buf.push('.face.back .flip-hint { color:#9aa0a6; }\\n');
+    buf.push('.step-list { display:flex; flex-direction:column; gap:18px; margin-top:20px; }\\n');
+    buf.push('.step-card { background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:24px; box-shadow:var(--shadow); transition:transform .18s, border-color .18s; }\\n');
+    buf.push('.step-top { display:flex; justify-content:space-between; align-items:center; cursor:pointer; user-select:none; }\\n');
     buf.push('.step-title-group { display:flex; align-items:center; gap:12px; }\\n');
-    buf.push('.step-num { width:30px; height:30px; border-radius:50%; background:var(--blue); color:#fff; font-size:.85rem; font-weight:800; display:flex; align-items:center; justify-content:center; }\\n');
-    buf.push('.step-title { font-size:1.15rem; font-weight:700; color:var(--navy); margin:0; }\\n');
-    buf.push('.tool-tag { font-size:.74rem; font-weight:700; color:var(--blue); background:#e8f0fe; padding:3px 10px; border-radius:999px; }\\n');
-    buf.push('.done-btn { font-size:.78rem; font-weight:600; padding:6px 12px; border-radius:8px; border:1px solid var(--line); background:#fff; color:var(--muted); cursor:pointer; }\\n');
-    buf.push('.step-card.done .done-btn { background:#e6f4ea; color:#137333; border-color:#ceead6; font-weight:700; }\\n');
-    buf.push('.step-body { margin-top:16px; padding-top:14px; border-top:1px dashed var(--line); }\\n');
-    buf.push('.step-goal { font-size:.88rem; font-weight:700; color:var(--blue); margin-bottom:8px; display:flex; align-items:center; gap:6px; }\\n');
-    buf.push('.step-desc { font-size:.92rem; color:var(--text); line-height:1.6; margin-bottom:12px; }\\n');
-    buf.push('.prompt-box { background:linear-gradient(135deg,#e9f2ff,#e6f8ef); border:2px dashed #4a90e8; border-radius:16px; padding:16px 18px; margin:14px 0; position:relative; }\\n');
-    buf.push('.prompt-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }\\n');
-    buf.push('.prompt-badge { display:inline-flex; align-items:center; gap:5px; font-size:.76rem; font-weight:700; color:#1967d2; background:#fff; padding:3px 9px; border-radius:6px; box-shadow:0 1px 3px rgba(0,0,0,.08); }\\n');
-    buf.push('.prompt-box pre { margin:0; font-family:"Consolas","Menlo",monospace; font-size:.84rem; color:#202124; white-space:pre-wrap; word-break:break-all; line-height:1.6; }\\n');
-    buf.push('.copy-btn { font-size:.75rem; font-weight:700; padding:4px 10px; border-radius:6px; border:1px solid #1967d2; background:#fff; color:#1967d2; cursor:pointer; transition:.14s; }\\n');
-    buf.push('.copy-btn:hover { background:#1967d2; color:#fff; }\\n');
-    buf.push('.tip-box-collapsible { margin:12px 0; background:#f8f9fa; border:1px solid #c6dafc; border-radius:12px; padding:2px 14px; }\\n');
-    buf.push('.tip-box-collapsible summary { cursor:pointer; font-weight:700; color:var(--navy); padding:10px 0; list-style:none; font-size:.90rem; display:flex; align-items:center; gap:6px; }\\n');
-    buf.push('.tip-body { padding:4px 0 10px; font-size:.88rem; color:#3c4043; line-height:1.6; }\\n');
-    buf.push('.note-box { background:#f8fafd; border-left:4px solid #4a90e8; border-radius:0 10px 10px 0; padding:12px 16px; margin:12px 0; font-size:.90rem; color:var(--navy-2); line-height:1.6; }\\n');
-    buf.push('.warn-box { background:#fff5f3; border-left:4px solid #e05555; border-radius:0 10px 10px 0; padding:12px 16px; margin:12px 0; font-size:.90rem; color:#7a2020; line-height:1.6; }\\n');
-    buf.push('.urlbox-wrap { background:linear-gradient(135deg,#e6f8ef,#f1f3f4); border:1px solid var(--line); border-radius:14px; padding:12px 16px; margin:12px 0; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }\\n');
-    buf.push('.urlbox-meta { display:flex; flex-direction:column; }\\n');
-    buf.push('.urlbox-meta b { font-size:.86rem; color:#137333; margin-bottom:2px; }\\n');
-    buf.push('.urlbox-meta span { font-size:.78rem; color:#5f6368; word-break:break-all; }\\n');
-    buf.push('.urlbox-btn { display:inline-flex; align-items:center; gap:4px; padding:6px 12px; background:#fff; border:1px solid #c6dafc; border-radius:8px; font-size:.80rem; font-weight:600; color:#1967d2; text-decoration:none; }\\n');
-    buf.push('.checklist-card { background:var(--paper); border:1px solid var(--line); border-radius:18px; padding:20px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:12px; }\\n');
-    buf.push('.check-item { display:flex; align-items:center; gap:10px; font-size:.92rem; font-weight:600; color:var(--navy-2); cursor:pointer; }\\n');
-    buf.push('.check-item input[type="checkbox"] { width:18px; height:18px; accent-color:var(--blue); cursor:pointer; }\\n');
-    buf.push('footer { text-align:center; padding:40px 0 20px; font-size:.82rem; color:var(--muted); border-top:1px solid var(--line); margin-top:50px; }\\n');
+    buf.push('.step-num { width:32px; height:32px; border-radius:50%; background:rgba(25,103,210,.12); color:var(--blue); font-weight:800; font-size:1rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }\\n');
+    buf.push('.step-title { font-size:1.15rem; font-weight:800; color:var(--navy); margin:0; }\\n');
+    buf.push('.tool-tag { font-size:.72rem; background:rgba(25,103,210,.08); color:var(--blue); padding:3px 8px; border-radius:6px; font-weight:700; }\\n');
+    buf.push('.done-btn { font-size:.78rem; font-family:inherit; padding:5px 12px; border-radius:999px; border:1px solid var(--line); background:var(--paper); color:var(--muted); cursor:pointer; font-weight:600; transition:.14s; }\\n');
+    buf.push('.step-card.completed .done-btn { background:#e6f4ea; color:#137333; border-color:#a8dab5; }\\n');
+    buf.push('.step-body { margin-top:16px; padding-top:16px; border-top:1px solid var(--line); }\\n');
+    buf.push('.step-goal { font-size:.92rem; font-weight:700; color:var(--navy); margin-bottom:8px; }\\n');
+    buf.push('.step-desc { font-size:.92rem; color:var(--muted); margin-bottom:14px; line-height:1.6; }\\n');
+    buf.push('.prompt-box { background:linear-gradient(135deg,#e9f2ff,#e6f8ef); border:2px dashed #4a90e8; border-radius:12px; padding:14px 16px; margin:12px 0; }\\n');
+    buf.push('body.dark-theme .prompt-box { background:linear-gradient(135deg,rgba(74,144,232,.15),rgba(52,168,83,.15)); border-color:#8ab4f8; }\\n');
+    buf.push('.prompt-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }\\n');
+    buf.push('.prompt-badge { font-size:.74rem; font-weight:800; color:var(--blue); letter-spacing:.06em; }\\n');
+    buf.push('.copy-btn { font-size:.74rem; font-family:inherit; font-weight:700; padding:4px 10px; border-radius:6px; border:1px solid var(--blue); background:#fff; color:var(--blue); cursor:pointer; transition:.14s; }\\n');
+    buf.push('.copy-btn:hover { background:var(--blue); color:#fff; }\\n');
+    buf.push('.prompt-box pre { margin:0; font-family:"Pretendard",monospace; font-size:.88rem; color:var(--text); white-space:pre-wrap; word-break:break-word; line-height:1.55; }\\n');
+    buf.push('.tip-box-collapsible { background:rgba(0,0,0,.02); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:10px 0; }\\n');
+    buf.push('.tip-box-collapsible summary { font-size:.84rem; font-weight:700; color:var(--navy); cursor:pointer; user-select:none; }\\n');
+    buf.push('.tip-body { margin-top:8px; font-size:.84rem; color:var(--muted); line-height:1.6; }\\n');
+    buf.push('.note-box { background:rgba(25,103,210,.04); border-left:4px solid var(--blue); padding:10px 14px; border-radius:0 10px 10px 0; margin:10px 0; font-size:.85rem; color:var(--navy-2); }\\n');
+    buf.push('.warn-box { background:rgba(197,34,31,.05); border-left:4px solid var(--terra); padding:10px 14px; border-radius:0 10px 10px 0; margin:10px 0; font-size:.85rem; color:#8c1d18; }\\n');
+    buf.push('.urlbox-wrap { background:linear-gradient(135deg,#e6f8ef,#f1f3f4); border:1px solid var(--line); border-radius:12px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; margin:10px 0; }\\n');
+    buf.push('.urlbox-meta b { display:block; font-size:.82rem; color:var(--teal); }\\n');
+    buf.push('.urlbox-meta span { font-size:.76rem; color:var(--muted); word-break:break-all; }\\n');
+    buf.push('.urlbox-btn { font-size:.78rem; font-weight:700; padding:6px 12px; border-radius:8px; background:#fff; border:1px solid var(--line); color:var(--blue); text-decoration:none; transition:.14s; }\\n');
+    buf.push('.urlbox-btn:hover { background:var(--blue); color:#fff; border-color:var(--blue); }\\n');
+    buf.push('.checklist-card { background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:24px; box-shadow:var(--shadow); }\\n');
+    buf.push('.check-item { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); font-size:.92rem; }\\n');
+    buf.push('.check-item:last-child { border-bottom:none; }\\n');
+    buf.push('.check-item input[type="checkbox"] { width:18px; height:18px; cursor:pointer; accent-color:var(--blue); }\\n');
+    buf.push('.check-item.done span { text-decoration:line-through; color:var(--muted); }\\n');
+    buf.push('footer { text-align:center; padding:48px 0 24px; font-size:.82rem; color:var(--muted); border-top:1px solid var(--line); margin-top:60px; }\\n');
 
-    // ── Chrome DevTools 스타일 검사 하이라이트 CSS (내보내기 모드에서는 완전 제외!) ──
+    // ── Chrome DevTools 스타일 요소 검사 하이라이트 CSS (내보내기 모드에서는 완전 제외!) ──
     if (!isExport) {
-      buf.push('/* ── 상위 컨테이너 검사 하이라이트 (Blue) ── */\\n');
+      buf.push('/* 1) 상위 컨테이너 검사 하이라이트 (Blue) */\\n');
       buf.push('.devtools-inspect-container-active { outline:2px solid #1a73e8 !important; outline-offset:3px !important; box-shadow:0 0 0 4px rgba(26,115,232,0.2) !important; position:relative !important; transition:outline .1s ease, box-shadow .1s ease !important; }\\n');
       buf.push('.devtools-inspect-badge-container { position:absolute; background:#1a73e8; color:#fff; font-size:11px; font-family:"Pretendard",system-ui,sans-serif; font-weight:700; padding:3px 8px; border-radius:4px; z-index:999999; pointer-events:none; box-shadow:0 4px 10px rgba(0,0,0,0.25); white-space:nowrap; }\\n');
-
-      buf.push('/* ── 하위 세부 항목 검사 하이라이트 (Vivid Orange / Coral) (요구사항 1) ── */\\n');
-      buf.push('.devtools-inspect-subitem-active { outline:2px dashed #ea580c !important; outline-offset:2px !important; box-shadow:0 0 0 4px rgba(234,88,12,0.25) !important; position:relative !important; background:rgba(234,88,12,0.04) !important; transition:outline .1s ease, box-shadow .1s ease !important; }\\n');
-      buf.push('.devtools-inspect-badge-subitem { position:absolute; background:#ea580c; color:#fff; font-size:11px; font-family:"Pretendard",system-ui,sans-serif; font-weight:700; padding:3px 8px; border-radius:4px; z-index:1000000; pointer-events:none; box-shadow:0 4px 10px rgba(0,0,0,0.25); white-space:nowrap; }\\n');
+      
+      buf.push('/* 2) 하위 세부 항목 검사 하이라이트 (Vivid Orange / Coral) (요구사항 1) */\\n');
+      buf.push('.devtools-inspect-subitem-active { outline:2px dashed #ea580c !important; outline-offset:2px !important; box-shadow:0 0 0 3px rgba(234,88,12,0.25) !important; position:relative !important; transition:outline .1s ease, box-shadow .1s ease !important; }\\n');
+      buf.push('.devtools-inspect-badge-subitem { position:absolute; background:#ea580c; color:#fff; font-size:11px; font-family:"Pretendard",system-ui,sans-serif; font-weight:700; padding:3px 8px; border-radius:4px; z-index:999999; pointer-events:none; box-shadow:0 4px 10px rgba(0,0,0,0.25); white-space:nowrap; }\\n');
     }
 
     buf.push('</style>\\n</head>\\n<body>\\n');
 
-    // 상단 스크롤 진행률 바 (옵션)
-    if (tb.enabled && tb.showProgress) {
+    // 스크롤 진행률 표시바
+    if (tb.showProgress) {
       buf.push('<div class="tb-progress-bar" id="reportProgressBar"></div>\\n');
     }
 
-    // 상단 툴바 (옵션)
+    // 시스템 툴바
     if (tb.enabled) {
-      buf.push('<header class="report-toolbar"' + inspectAttr('toolbar', '상단 툴바', 'container') + '>\\n');
+      buf.push('<header class="report-toolbar"' + inspectAttr('toolbar', '상단 시스템 툴바', 'container') + '>\\n');
       buf.push('  <div class="tb-left"><span style="width:10px;height:10px;border-radius:50%;background:#1967d2;display:inline-block;"></span>' + esc(title) + '</div>\\n');
       if (tb.showSearch) {
         buf.push('  <div class="tb-search-wrap"' + inspectAttr('tb-search-box', '실시간 검색창', 'item') + '>\\n');
@@ -981,62 +1375,54 @@ function buildStudio() {
         buf.push('  </div>\\n');
       }
       buf.push('  <div class="tb-actions">\\n');
-      if (tb.showPrint) buf.push('    <button class="tb-btn" onclick="window.print()"' + inspectAttr('tb-print-btn', '인쇄 버튼', 'item') + '>🖨️ 인쇄 / PDF</button>\\n');
-      if (tb.showThemeToggle) buf.push('    <button class="tb-btn" onclick="document.body.classList.toggle(\\'dark-theme\\')"' + inspectAttr('tb-theme-btn', '테마 토글', 'item') + '>🌓 테마</button>\\n');
+      if (tb.showPrint) {
+        buf.push('    <button class="tb-btn" onclick="window.print()">🖨️ 인쇄 / PDF</button>\\n');
+      }
+      if (tb.showThemeToggle) {
+        buf.push('    <button class="tb-btn" onclick="document.body.classList.toggle(\\'dark-theme\\')">🌓 테마</button>\\n');
+      }
       buf.push('  </div>\\n');
       buf.push('</header>\\n');
     }
 
     buf.push('<div class="wrap">\\n');
-    // 헤더 영역 (상위 컨테이너는 Blue, 개별 하위 항목은 Orange로 식별)
-    buf.push('<header class="hero"' + inspectAttr('header', '헤더 (기본 정보)', 'container') + '>');
-    buf.push('<span class="stamp-badge"' + inspectAttr('hero-badge', '상단 뱃지 문구 (Stamp Badge)', 'item') + '>' + esc(badge) + '</span>');
-    buf.push('<h1' + inspectAttr('hero-title', '보고서 제목 (Title)', 'item') + '>' + fmtTitle(title) + '</h1>');
-    buf.push('<p class="lead"' + inspectAttr('hero-desc', '요약 설명 (Description)', 'item') + '>' + esc(description) + '</p>');
+
+    // 헤더 영역
+    buf.push('<header class="hero"' + inspectAttr('header', '기본 정보 (헤더)', 'container') + '>\\n');
+    buf.push('  <div class="stamp-badge"' + inspectAttr('hero-badge', '상단 뱃지 문구 (' + badge + ')', 'item') + '>' + esc(badge) + '</div>\\n');
+    buf.push('  <h1' + inspectAttr('hero-title', '보고서 제목 (' + title + ')', 'item') + '>' + fmtTitle(title) + '</h1>\\n');
+    if (description) {
+      buf.push('  <p class="lead"' + inspectAttr('hero-desc', '요약 설명', 'item') + '>' + esc(description) + '</p>\\n');
+    }
     if (meta.length) {
-      buf.push('<div class="meta-chips"' + inspectAttr('hero-meta', '메타 칩 모음', 'item') + '>' + meta.map(function(m){ return '<span class="meta-chip"><b>' + esc(m.label) + ':</b> ' + esc(m.value) + '</span>'; }).join('') + '</div>');
+      buf.push('  <div class="meta-chips"' + inspectAttr('meta-chips', '핵심 메타 정보 칩', 'container') + '>\\n');
+      meta.forEach(function(m, i){
+        buf.push('    <div class="meta-chip"' + inspectAttr('meta-' + i, '메타 칩: ' + m.label, 'item') + '><b>' + esc(m.label) + ':</b> ' + esc(m.value) + '</div>\\n');
+      });
+      buf.push('  </div>\\n');
     }
     buf.push('</header>\\n');
 
-    // 추천 검색 칩 (index.html 스타일)
-    if (tb.showSuggestChips && tb.suggestChips && tb.suggestChips.length) {
-      buf.push('<div class="suggest-chips-bar"' + inspectAttr('suggestChips', '추천 검색어 칩', 'container') + '>\\n');
-      buf.push('  <span class="chip-label">⚡ 추천 키워드:</span>\\n');
-      tb.suggestChips.forEach(function(c, i){
-        buf.push('  <span class="suggest-chip" onclick="applySearchQuery(\\'' + esc(c) + '\\')"' + inspectAttr('chip-' + i, '키워드: #' + c, 'item') + '>' + esc(c) + '</span>\\n');
-      });
-      buf.push('</div>\\n');
-    }
-
-    // 카테고리 탭 (index.html 스타일)
-    if (tb.showCategoryTabs && tb.categoryTabs && tb.categoryTabs.length) {
-      buf.push('<div class="category-tabs-bar"' + inspectAttr('categoryTabs', '카테고리 탭', 'container') + '>\\n');
-      tb.categoryTabs.forEach(function(t, idx){
-        buf.push('  <button class="category-tab ' + (idx===0?'active':'') + '" onclick="filterCategory(this, \\'' + esc(t) + '\\')"' + inspectAttr('tab-' + idx, '탭: ' + t, 'item') + '>' + esc(t) + '</button>\\n');
-      });
-      buf.push('</div>\\n');
-    }
-
-    // Why 인트로 박스 (모듈 2, 3, 4)
+    // Why 인트로 박스
     if (whyBox && whyBox.enabled) {
       buf.push('<div class="why-box"' + inspectAttr('whyBox', 'Why 인트로 박스', 'container') + '>\\n');
-      buf.push('  <span class="why-eyebrow">✦ WHY WE NEED THIS</span>\\n');
-      buf.push('  <h3' + inspectAttr('why-title', 'Why 박스 제목', 'item') + '>' + esc(whyBox.title || '왜 이 워크플로우를 도입해야 하는가?') + '</h3>\\n');
-      buf.push('  <p' + inspectAttr('why-desc', 'Why 박스 상세 설명', 'item') + '>' + esc(whyBox.desc) + '</p>\\n');
+      buf.push('  <span class="wbadge">✦ WHY WE NEED THIS</span>\\n');
+      buf.push('  <h3' + inspectAttr('why-title', 'Why 박스 제목: ' + (whyBox.title||''), 'item') + '>' + esc(whyBox.title || '왜 이 워크플로우를 도입해야 하는가?') + '</h3>\\n');
+      buf.push('  <p' + inspectAttr('why-desc', 'Why 박스 설명 문구', 'item') + '>' + esc(whyBox.desc || '') + '</p>\\n');
       buf.push('</div>\\n');
     }
 
-    // 프로세스 플로우 바 (모듈 3, 4)
+    // 프로세스 플로우 바
     if (procBox && procBox.enabled) {
       buf.push('<div class="procbox"' + inspectAttr('procBox', '프로세스 플로우 바', 'container') + '>\\n');
-      buf.push('  <span class="proc-badge"' + inspectAttr('proc-badge', '파이프라인 뱃지', 'item') + '>' + esc(procBox.badge || 'AUTOMATION PIPELINE') + '</span>\\n');
-      buf.push('  <span class="proc-text"' + inspectAttr('proc-title', '파이프라인 흐름 문구', 'item') + '>' + esc(procBox.title) + '</span>\\n');
+      buf.push('  <span class="badge"' + inspectAttr('proc-badge', '플로우 뱃지: ' + (procBox.badge||''), 'item') + '>' + esc(procBox.badge || 'PIPELINE') + '</span>\\n');
+      buf.push('  <span' + inspectAttr('proc-title', '파이프라인 흐름 문구', 'item') + '>' + esc(procBox.title || '') + '</span>\\n');
       buf.push('</div>\\n');
     }
 
-    // KPI 지표 스코어보드 (모듈 3)
-    if (kpiStats && kpiStats.length) {
-      buf.push('<div class="kpi-grid"' + inspectAttr('kpiStats', 'KPI 스코어보드', 'container') + '>\\n');
+    // KPI 대시보드
+    if (kpiStats.length) {
+      buf.push('<div class="kpi-grid"' + inspectAttr('kpiStats', 'KPI 지표 스코어보드', 'container') + '>\\n');
       kpiStats.forEach(function(k, idx){
         buf.push('  <div class="kpi-card"' + inspectAttr('kpi-' + idx, 'KPI 지표 #' + (idx+1), 'container') + '>\\n');
         buf.push('    <div class="kpi-num" style="color:' + esc(k.color || '#1967d2') + ';"' + inspectAttr('kpi-' + idx + '-num', '지표 수치 (' + k.num + ')', 'item') + '>' + esc(k.num) + '</div>\\n');
@@ -1048,7 +1434,7 @@ function buildStudio() {
 
     // 1줄 흐름 지도
     if (flowmap.length) {
-      buf.push('<section' + inspectAttr('flowmap', '진행 흐름 지도', 'container') + '><div class="eyebrow">PROCESS FLOW</div><h2 class="sec">🗺️ 전체 진행 흐름</h2><p class="lead" style="font-size:.95rem;">단계별 핵심 목표와 산출물입니다.</p><div class="flowmap">');
+      buf.push('<section' + inspectAttr('flowmap', '1줄 진행 흐름 지도', 'container') + '><div class="eyebrow">PROCESS FLOW</div><h2 class="sec">🗺️ 전체 진행 흐름</h2><p class="lead" style="font-size:.95rem;">단계별 핵심 목표와 산출물입니다.</p><div class="flowmap">');
       buf.push(flowmap.map(function(f, i){
         return '<div class="fstep" id="flowStep_' + i + '"' + inspectAttr('flow-' + i, '흐름 단계 #' + (i+1), 'container') + ' style="--accent:' + esc(f.color||'#1967d2') + '"><span class="fnum">' + esc(f.num||(i+1)) + '</span><div class="fmeta"><b' + inspectAttr('flow-' + i + '-title', '단계명 (' + f.title + ')', 'item') + '>' + esc(f.title) + '</b><span class="ft"' + inspectAttr('flow-' + i + '-desc', '단계 설명 (' + f.desc + ')', 'item') + '>' + esc(f.desc) + '</span></div></div>' +
           (i < flowmap.length - 1 ? '<span class="farrow">→</span>' : '');
@@ -1058,7 +1444,7 @@ function buildStudio() {
 
     // 3D 플립 카드
     if (cards.length) {
-      buf.push('<section' + inspectAttr('cards', '핵심 모듈 카드', 'container') + '><div class="eyebrow">OVERVIEW CARDS</div><h2 class="sec">📌 핵심 모듈 &amp; 테마</h2><p class="lead" style="font-size:.95rem;">카드를 클릭하면 상세 세부 계획을 볼 수 있습니다.</p><div class="modgrid">');
+      buf.push('<section' + inspectAttr('cards', '3D 플립 핵심 모듈 카드', 'container') + '><div class="eyebrow">OVERVIEW CARDS</div><h2 class="sec">📌 핵심 모듈 &amp; 테마</h2><p class="lead" style="font-size:.95rem;">카드를 클릭하면 상세 세부 계획을 볼 수 있습니다.</p><div class="modgrid">');
       buf.push(cards.map(function(c, i){
         return '<div class="flip" id="cardFlip_' + i + '"' + inspectAttr('card-' + i, '모듈 카드 #' + (i+1) + ' ' + esc(c.frontTitle), 'container') + ' style="--accent:' + esc(c.color||'#1967d2') + '"><div class="flip-inner"><div class="face front"><div><span class="card-badge">✦ ' + esc(c.badge||'MODULE') + '</span><h3' + inspectAttr('card-' + i + '-title', '카드 제목 (' + c.frontTitle + ')', 'item') + '>' + esc(c.frontTitle) + '</h3></div><div class="tags">' +
           (c.tags||[]).map(function(t){ return '<span class="tag">' + esc(t) + '</span>'; }).join('') +
@@ -1069,7 +1455,7 @@ function buildStudio() {
 
     // 상세 실행 단계
     if (steps.length) {
-      buf.push('<section' + inspectAttr('steps', '실행 단계 목록', 'container') + '><div class="eyebrow">STEP-BY-STEP WORKFLOW</div><h2 class="sec">🛠️ 단계별 실행 및 프롬프트</h2><p class="lead" style="font-size:.95rem;">프롬프트와 가이드를 복사하여 즉시 실행하세요.</p><div class="step-list">');
+      buf.push('<section' + inspectAttr('steps', '상세 실행 단계 (Steps)', 'container') + '><div class="eyebrow">STEP-BY-STEP WORKFLOW</div><h2 class="sec">🛠️ 단계별 실행 및 프롬프트</h2><p class="lead" style="font-size:.95rem;">프롬프트와 가이드를 복사하여 즉시 실행하세요.</p><div class="step-list">');
       buf.push(steps.map(function(s, idx){
         return '<div class="step-card" id="stepCard_' + idx + '"' + inspectAttr('step-' + idx, '실행 단계 #' + (idx+1), 'container') + '><div class="step-top" onclick="toggleStep(' + idx + ')"><div class="step-title-group"><div class="step-num">' + esc(s.num||(idx+1)) + '</div><h3 class="step-title"' + inspectAttr('step-' + idx + '-title', '단계 제목: ' + s.title, 'item') + '>' + esc(s.title) + '</h3>' +
           (s.tool ? '<span class="tool-tag"' + inspectAttr('step-' + idx + '-tool', '사용 도구: ' + s.tool, 'item') + '>' + esc(s.tool) + '</span>' : '') +
@@ -1098,74 +1484,70 @@ function buildStudio() {
 
     buf.push('<footer>' + esc(title) + ' · Google Tone Workflow Architecture</footer></div>\\n');
 
-    // ── 클라이언트 스크립트 ──
+    // ── 클라이언트 스크립트 (카드 플립, 복사, 체크, 검색) ──
     buf.push('<script>\\n');
-    buf.push('document.querySelectorAll(".flip").forEach(function(c){ c.addEventListener("click", function(){ c.classList.toggle("flipped"); }); });\\n');
-    buf.push('function toggleStep(i){ var b = document.getElementById("stepBody_" + i); if(b) b.style.display = (b.style.display==="none") ? "block" : "none"; }\\n');
-    buf.push('function toggleDone(i){ var c = document.getElementById("stepCard_" + i); if(c) c.classList.toggle("done"); }\\n');
-    buf.push('function copySnippet(btn){ var pre = btn.parentElement.parentElement.querySelector("pre"); if(!pre) return; navigator.clipboard.writeText(pre.innerText).then(function(){ var o = btn.textContent; btn.textContent="✅ 복사됨"; setTimeout(function(){ btn.textContent=o; }, 1600); }); }\\n');
-    buf.push('function saveChecklist(i, c){}\\n');
-    buf.push('function applySearchQuery(q){ var inp = document.getElementById("reportSearchInput"); if(inp){ inp.value = q; inp.dispatchEvent(new Event("input")); inp.focus(); } }\\n');
-    buf.push('function filterCategory(btn, cat){ document.querySelectorAll(".category-tab").forEach(function(b){ b.classList.remove("active"); }); btn.classList.add("active"); }\\n');
+    buf.push('function toggleStep(idx){ var b = document.getElementById("stepBody_" + idx); if(b) b.style.display = b.style.display === "none" ? "block" : "none"; }\\n');
+    buf.push('function toggleDone(idx){ var c = document.getElementById("stepCard_" + idx); if(c) c.classList.toggle("completed"); }\\n');
+    buf.push('function copySnippet(btn){\\n');
+    buf.push('  var pre = btn.closest(".prompt-box").querySelector("pre");\\n');
+    buf.push('  if(!pre) return;\\n');
+    buf.push('  navigator.clipboard.writeText(pre.innerText).then(function(){\\n');
+    buf.push('    var old = btn.textContent;\\n');
+    buf.push('    btn.textContent = "✅ 복사됨!";\\n');
+    buf.push('    setTimeout(function(){ btn.textContent = old; }, 1800);\\n');
+    buf.push('  });\\n');
+    buf.push('}\\n');
+    buf.push('document.querySelectorAll(".flip").forEach(function(el){\\n');
+    buf.push('  el.addEventListener("click", function(){ el.classList.toggle("is-flipped"); });\\n');
+    buf.push('});\\n');
+    buf.push('function saveChecklist(i, checked){\\n');
+    buf.push('  var item = document.getElementById("checkItem_" + i);\\n');
+    buf.push('  if(item) item.classList.toggle("done", checked);\\n');
+    buf.push('}\\n');
 
-    if (tb.enabled && tb.showProgress) {
+    // 진행률 표시줄 스크립트
+    if (tb.showProgress) {
       buf.push('window.addEventListener("scroll", function(){\\n');
-      buf.push('  var h = document.documentElement;\\n');
-      buf.push('  var pct = (h.scrollTop || document.body.scrollTop) / ((h.scrollHeight || document.body.scrollHeight) - h.clientHeight) * 100;\\n');
-      buf.push('  var bar = document.getElementById("reportProgressBar"); if(bar) bar.style.width = Math.min(100, Math.max(0, pct)) + "%";\\n');
+      buf.push('  var bar = document.getElementById("reportProgressBar");\\n');
+      buf.push('  if(!bar) return;\\n');
+      buf.push('  var total = document.documentElement.scrollHeight - window.innerHeight;\\n');
+      buf.push('  var pct = total > 0 ? (window.scrollY / total) * 100 : 0;\\n');
+      buf.push('  bar.style.width = Math.min(100, Math.max(0, pct)) + "%";\\n');
       buf.push('});\\n');
     }
 
-    if (tb.enabled && tb.showSearch) {
+    // 실시간 검색엔진 스크립트
+    if (tb.showSearch) {
       buf.push('(function(){\\n');
       buf.push('  var inp = document.getElementById("reportSearchInput");\\n');
       buf.push('  var drop = document.getElementById("reportSearchDropdown");\\n');
       buf.push('  if(!inp || !drop) return;\\n');
-      buf.push('  var items = [];\\n');
-      buf.push('  document.querySelectorAll(".fstep").forEach(function(el, i){\\n');
-      buf.push('    items.push({ target:"#flowStep_" + i, badge:"흐름", title: el.querySelector("b") ? el.querySelector("b").innerText : "", desc: el.querySelector(".ft") ? el.querySelector(".ft").innerText : "" });\\n');
-      buf.push('  });\\n');
-      buf.push('  document.querySelectorAll(".flip").forEach(function(el, i){\\n');
-      buf.push('    items.push({ target:"#cardFlip_" + i, badge:"모듈 카드", title: el.querySelector("h3") ? el.querySelector("h3").innerText : "", desc: el.querySelector(".backbody p") ? el.querySelector(".backbody p").innerText : "" });\\n');
-      buf.push('  });\\n');
-      buf.push('  document.querySelectorAll(".step-card").forEach(function(el, i){\\n');
-      buf.push('    var t = el.querySelector(".step-title") ? el.querySelector(".step-title").innerText : "";\\n');
-      buf.push('    var d = el.querySelector(".step-desc") ? el.querySelector(".step-desc").innerText : "";\\n');
-      buf.push('    var p = el.querySelector("pre") ? el.querySelector("pre").innerText : "";\\n');
-      buf.push('    items.push({ target:"#stepCard_" + i, stepIdx: i, badge:"실행 단계", title: t, desc: d + " " + p });\\n');
-      buf.push('  });\\n');
-      buf.push('  document.querySelectorAll(".check-item").forEach(function(el, i){\\n');
-      buf.push('    items.push({ target:"#checkItem_" + i, badge:"체크리스트", title: el.querySelector("span") ? el.querySelector("span").innerText : "", desc:"" });\\n');
-      buf.push('  });\\n');
-      buf.push('  function pulse(el){\\n');
-      buf.push('    if(!el) return;\\n');
-      buf.push('    el.scrollIntoView({ behavior:"smooth", block:"center" });\\n');
-      buf.push('    var orig = el.style.outline; el.style.transition = "outline .25s ease, box-shadow .25s ease";\\n');
-      buf.push('    el.style.outline = "4px solid #1967d2"; el.style.boxShadow = "0 0 24px rgba(25,103,210,.5)";\\n');
-      buf.push('    setTimeout(function(){ el.style.outline = orig; el.style.boxShadow = ""; }, 2400);\\n');
-      buf.push('  }\\n');
       buf.push('  inp.addEventListener("input", function(){\\n');
-      buf.push('    var q = (inp.value || "").trim().toLowerCase();\\n');
-      buf.push('    if(!q){ drop.style.display = "none"; return; }\\n');
-      buf.push('    var matched = items.filter(function(it){\\n');
-      buf.push('      return it.title.toLowerCase().indexOf(q) !== -1 || it.desc.toLowerCase().indexOf(q) !== -1;\\n');
+      buf.push('    var q = inp.value.trim().toLowerCase();\\n');
+      buf.push('    if(!q){ drop.style.display = "none"; drop.innerHTML = ""; return; }\\n');
+      buf.push('    var matches = [];\\n');
+      buf.push('    document.querySelectorAll(".step-card, .fstep, .flip, .kpi-card, .check-item").forEach(function(el){\\n');
+      buf.push('      var txt = el.innerText || "";\\n');
+      buf.push('      if(txt.toLowerCase().indexOf(q) !== -1){\\n');
+      buf.push('        var title = (el.querySelector("h3, b, .kpi-num, span") || {}).innerText || "항목";\\n');
+      buf.push('        var type = el.classList.contains("step-card") ? "실행 단계" : el.classList.contains("fstep") ? "흐름 단계" : el.classList.contains("flip") ? "핵심 모듈" : el.classList.contains("kpi-card") ? "KPI 지표" : "체크 항목";\\n');
+      buf.push('        matches.push({ el: el, title: title.substring(0, 32), type: type });\\n');
+      buf.push('      }\\n');
       buf.push('    });\\n');
-      buf.push('    drop.innerHTML = "";\\n');
-      buf.push('    if(matched.length === 0){\\n');
-      buf.push('      drop.innerHTML = "<div style=\\\'padding:12px;text-align:center;color:#80868b;font-size:.82rem;\\\'>검색 결과 없음</div>";\\n');
+      buf.push('    if(matches.length === 0){\\n');
+      buf.push('      drop.innerHTML = "<div style=\\"padding:12px;color:#70757a;text-align:center;font-size:.82rem;\\">일치하는 항목이 없습니다.</div>";\\n');
       buf.push('    } else {\\n');
-      buf.push('      matched.forEach(function(m){\\n');
-      buf.push('        var div = document.createElement("div"); div.className = "tb-search-item";\\n');
-      buf.push('        div.innerHTML = "<span class=\\\'tb-search-badge\\\'>" + m.badge + "</span><span class=\\\'tb-search-title\\\'>" + m.title + "</span>";\\n');
-      buf.push('        div.addEventListener("click", function(){\\n');
-      buf.push('          if(m.stepIdx !== undefined){\\n');
-      buf.push('            var body = document.getElementById("stepBody_" + m.stepIdx); if(body) body.style.display = "block";\\n');
-      buf.push('          }\\n');
-      buf.push('          var targetEl = document.querySelector(m.target);\\n');
-      buf.push('          pulse(targetEl);\\n');
+      buf.push('      drop.innerHTML = matches.slice(0, 8).map(function(m, idx){\\n');
+      buf.push('        return "<div class=\\"tb-search-item\\" data-match-idx=\\"" + idx + "\\"><span>" + m.title + "</span><span class=\\"tb-search-badge\\">" + m.type + "</span></div>";\\n');
+      buf.push('      }).join("");\\n');
+      buf.push('      drop.querySelectorAll(".tb-search-item").forEach(function(item, idx){\\n');
+      buf.push('        item.addEventListener("click", function(){\\n');
       buf.push('          drop.style.display = "none";\\n');
+      buf.push('          var target = matches[idx].el;\\n');
+      buf.push('          target.scrollIntoView({ behavior: "smooth", block: "center" });\\n');
+      buf.push('          target.style.outline = "3px solid #1967d2";\\n');
+      buf.push('          setTimeout(function(){ target.style.outline = ""; }, 2000);\\n');
       buf.push('        });\\n');
-      buf.push('        drop.appendChild(div);\\n');
       buf.push('      });\\n');
       buf.push('    }\\n');
       buf.push('    drop.style.display = "block";\\n');
@@ -1288,6 +1670,59 @@ function buildStudio() {
 
     syncToolbarButtons();
 
+    // 툴바 도구 도크 상태 배지 갱신
+    var pillHeader = document.getElementById('pillTool_header');
+    if(pillHeader) pillHeader.textContent = '필수';
+
+    var pillToolbar = document.getElementById('pillTool_toolbar');
+    if(pillToolbar){
+      var tbActive = currentData.toolbar && (currentData.toolbar.showSearch || currentData.toolbar.showProgress || currentData.toolbar.showPrint || currentData.toolbar.showThemeToggle);
+      pillToolbar.textContent = tbActive ? 'ON' : 'OFF';
+      var btn = document.getElementById('dockTool_toolbar');
+      if(btn) btn.classList.toggle('active', !!tbActive);
+    }
+
+    var pillKpi = document.getElementById('pillTool_kpiStats');
+    if(pillKpi){
+      var hasKpi = currentData.kpiStats && currentData.kpiStats.length > 0;
+      pillKpi.textContent = hasKpi ? currentData.kpiStats.length + '개' : 'OFF';
+      var btn = document.getElementById('dockTool_kpiStats');
+      if(btn) btn.classList.toggle('active', hasKpi);
+    }
+
+    var pillFlow = document.getElementById('pillTool_flowmap');
+    if(pillFlow){
+      var hasFlow = currentData.flowmap && currentData.flowmap.length > 0;
+      pillFlow.textContent = hasFlow ? currentData.flowmap.length + '단계' : 'OFF';
+      var btn = document.getElementById('dockTool_flowmap');
+      if(btn) btn.classList.toggle('active', hasFlow);
+    }
+
+    var pillCards = document.getElementById('pillTool_cards');
+    if(pillCards){
+      var hasCards = currentData.cards && currentData.cards.length > 0;
+      pillCards.textContent = hasCards ? currentData.cards.length + '장' : 'OFF';
+      var btn = document.getElementById('dockTool_cards');
+      if(btn) btn.classList.toggle('active', hasCards);
+    }
+
+    var pillSteps = document.getElementById('pillTool_steps');
+    if(pillSteps){
+      var count = (currentData.steps || []).length;
+      pillSteps.textContent = count + '단계';
+      var btn = document.getElementById('dockTool_steps');
+      if(btn) btn.classList.add('active');
+    }
+
+    var pillCheck = document.getElementById('pillTool_checklist');
+    if(pillCheck){
+      var hasCheck = currentData.checklist && currentData.checklist.length > 0;
+      pillCheck.textContent = hasCheck ? currentData.checklist.length + '개' : 'OFF';
+      var btn = document.getElementById('dockTool_checklist');
+      if(btn) btn.classList.toggle('active', hasCheck);
+    }
+
+    // 기본 정보 인풋
     document.getElementById('fTitle').value = currentData.title || '';
     document.getElementById('fBadge').value = currentData.badge || '';
     document.getElementById('fDesc').value = currentData.description || '';
@@ -1330,10 +1765,7 @@ function buildStudio() {
       div.className = 'item-card';
       div.setAttribute('data-editor-id', 'kpiStats');
       div.setAttribute('data-editor-level', 'container');
-      var kpiHtml = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">' +
-        '<div style="font-weight:700;font-size:.85rem;color:var(--navy);">📊 KPI 지표 스코어보드 (모듈 3 스타일)</div>' +
-        '<button class="add-item-btn" onclick="insertWidget(\\'kpiStats\\')">+ 지표 추가</button>' +
-        '</div>';
+      var kpiHtml = '<div style="font-weight:700;font-size:.85rem;color:var(--navy);margin-bottom:8px;">📊 KPI 지표 항목 리스트</div>';
       currentData.kpiStats.forEach(function(k, idx){
         kpiHtml += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;" data-editor-id="kpi-' + idx + '" data-editor-level="container">' +
           '<input type="text" style="width:75px;font-weight:800;" value="' + (k.num||'') + '" placeholder="수치" data-editor-id="kpi-' + idx + '-num" data-editor-level="item" oninput="updateKpiStat(' + idx + ', \\'num\\', this.value)">' +
@@ -1394,7 +1826,8 @@ function buildStudio() {
         '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-tip" data-editor-level="item"><label>💡 실습 꿀팁 (아코디언)</label><input type="text" value="' + (s.tip||'') + '" placeholder="선택사항" oninput="updateStepItem(' + idx + ', \\'tip\\', this.value)"></div>' +
         '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-note" data-editor-level="item"><label>ℹ️ 핵심 참고 노트 (블루 콜아웃)</label><input type="text" value="' + (s.note||'') + '" placeholder="선택사항" oninput="updateStepItem(' + idx + ', \\'note\\', this.value)"></div>' +
         '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-warn" data-editor-level="item"><label>⚠️ 주의사항 (레드 콜아웃)</label><input type="text" value="' + (s.warn||'') + '" placeholder="선택사항" oninput="updateStepItem(' + idx + ', \\'warn\\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:0;" data-editor-id="step-' + idx + '-url" data-editor-level="item"><label>🔗 외부 리소스 URL 링크</label><input type="text" value="' + (s.url||'') + '" placeholder="예: https://docs.google.com/..." oninput="updateStepItem(' + idx + ', \\'url\\', this.value)"></div>';
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-url" data-editor-level="item"><label>🔗 외부 리소스 URL 링크</label><input type="text" value="' + (s.url||'') + '" placeholder="예: https://docs.google.com/..." oninput="updateStepItem(' + idx + ', \\'url\\', this.value)"></div>' +
+        '<button class="add-subblock-btn" onclick="openBlockPicker(event, \\'step-sub\\', ' + idx + ')">+ 서브 블록 추가 (프롬프트/팁/노트/경고/URL) ▾</button>';
       stepBox.appendChild(div);
     });
 
@@ -1418,7 +1851,6 @@ function buildStudio() {
   }
 
   function updateLivePreview() {
-    // 라이브 미리보기는 isExport = false (인스펙터 활성화)
     var html = renderReportHtml(currentData, false);
     var frame = document.getElementById('previewFrame');
     var doc = frame.contentDocument || frame.contentWindow.document;
@@ -1467,7 +1899,7 @@ function buildStudio() {
     }
   };
 
-  // ── Chrome DevTools 스타일 2단계 요소 검사 연동 (요구사항 1: 컨테이너 Blue / 세부 항목 Orange) ──
+  // ── Chrome DevTools 스타일 2단계 요소 검사 연동 (컨테이너 Blue / 세부 항목 Orange) ──
   var currentHighlightedContainer = null;
   var currentHighlightedSubitem = null;
 
@@ -1478,7 +1910,6 @@ function buildStudio() {
       if(level === 'item'){
         currentHighlightedSubitem = target;
         target.classList.add('editor-inspect-subitem-active');
-        // 부모 컨테이너도 부드럽게 강조
         var parentCard = target.closest('.item-card') || target.closest('[data-editor-level="container"]');
         if(parentCard && parentCard !== target){
           currentHighlightedContainer = parentCard;
@@ -1515,7 +1946,6 @@ function buildStudio() {
     }
   }
 
-  // 에디터 카드 및 개별 인풋 요소 바인딩
   function bindEditorInspectEvents(){
     document.querySelectorAll('[data-editor-id]').forEach(function(el){
       var id = el.getAttribute('data-editor-id');
@@ -1547,7 +1977,6 @@ function buildStudio() {
         }
       };
 
-      // 입력 중에도 실시간 하이라이트 유지
       var inp = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ? el : el.querySelector('input, textarea');
       if(inp){
         inp.onfocus = function(){
@@ -1591,17 +2020,17 @@ function buildStudio() {
   // Cards 조작
   window.addCardItem = function(){
     currentData.cards = currentData.cards || [];
-    currentData.cards.push({ badge: "MODULE", frontTitle: "신규 모듈 카드", tags: ["태그1", "태그2"], color: "#1967d2", backDesc: "카드 뒷면 세부 설명" });
+    currentData.cards.push({ badge: "MODULE", frontTitle: "신규 모듈 카드", tags: ["태그1", "태그2"], color: "#1967d2", backDesc: "카드 뒷면 상세 설명" });
     syncFormFromData();
   };
   window.updateCardItem = function(i, k, v){ currentData.cards[i][k] = v; updateLivePreview(); document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2); };
-  window.updateCardTags = function(i, v){ currentData.cards[i].tags = v.split(',').map(function(s){ return s.trim(); }).filter(Boolean); updateLivePreview(); document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2); };
+  window.updateCardTags = function(i, val){ currentData.cards[i].tags = val.split(',').map(function(s){ return s.trim(); }).filter(Boolean); updateLivePreview(); document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2); };
   window.removeCardItem = function(i){ currentData.cards.splice(i, 1); syncFormFromData(); };
 
   // Steps 조작
   window.addStepItem = function(){
     currentData.steps = currentData.steps || [];
-    currentData.steps.push({ num: String(currentData.steps.length+1), title: "새로운 실행 단계", tool: "도구명", goal: "실행 목표", desc: "실행 방법 안내" });
+    currentData.steps.push({ num: String(currentData.steps.length+1), title: "새로운 실행 단계", tool: "도구", goal: "실행 목표", desc: "상세 안내" });
     syncFormFromData();
   };
   window.updateStepItem = function(i, k, v){ currentData.steps[i][k] = v; updateLivePreview(); document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2); };
@@ -1610,20 +2039,20 @@ function buildStudio() {
   // Checklist 조작
   window.addCheckItem = function(){
     currentData.checklist = currentData.checklist || [];
-    currentData.checklist.push("점검할 세부 항목 내용");
+    currentData.checklist.push("새 점검 항목 내용");
     syncFormFromData();
   };
   window.updateCheckItem = function(i, v){ currentData.checklist[i] = v; updateLivePreview(); document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2); };
   window.removeCheckItem = function(i){ currentData.checklist.splice(i, 1); syncFormFromData(); };
 
-  // ── 에디터 탭 전환 ──
+  // ── JSON 편집기 양방향 동기화 ──
   document.getElementById('tabForm').addEventListener('click', function(){
     document.getElementById('tabForm').classList.add('active');
     document.getElementById('tabJson').classList.remove('active');
     document.getElementById('formView').style.display = 'block';
     document.getElementById('jsonView').style.display = 'none';
-    syncFormFromData();
   });
+
   document.getElementById('tabJson').addEventListener('click', function(){
     document.getElementById('tabJson').classList.add('active');
     document.getElementById('tabForm').classList.remove('active');
@@ -1631,21 +2060,100 @@ function buildStudio() {
     document.getElementById('jsonView').style.display = 'block';
     document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2);
   });
-  document.getElementById('jsonEditor').addEventListener('input', function(e){
+
+  document.getElementById('jsonEditor').addEventListener('input', function(){
     try {
-      currentData = JSON.parse(e.target.value);
+      var parsed = JSON.parse(document.getElementById('jsonEditor').value);
+      currentData = parsed;
+      syncToolbarButtons();
       updateLivePreview();
-    } catch(err){}
+    } catch(e) {
+      // JSON 파싱 중에는 조용히 대기
+    }
   });
 
-  // ── 내보내기 & 복사 (요구사항 3: isExport = true로 하이라이트 및 인스펙터 완전 제거) ──
+  // ── 템플릿/작업 불러오기 셀렉트 이벤트 ──
+  document.getElementById('presetSelect').addEventListener('change', function(e){
+    var val = e.target.value;
+    if (val.startsWith('preset:')) {
+      var pKey = val.split(':')[1];
+      if (PRESETS[pKey]) {
+        currentData = JSON.parse(JSON.stringify(PRESETS[pKey]));
+        currentLoadedWorkKey = null;
+        syncFormFromData();
+        updatePresetDropdown(val);
+        showToast('🌟 ' + (pKey === 'weekly' ? '주간 업무 자동화' : pKey === 'meeting' ? '스마트 회의록' : '온보딩 가이드') + ' 템플릿이 로드되었습니다.');
+      }
+    } else if (val.startsWith('saved:')) {
+      var sKey = val.substring(6);
+      var saved = getSavedWorks();
+      if (saved[sKey]) {
+        currentData = JSON.parse(JSON.stringify(saved[sKey].data));
+        currentLoadedWorkKey = sKey;
+        syncFormFromData();
+        updatePresetDropdown(val);
+        showToast('📂 저장된 작업 [' + (saved[sKey].name || sKey) + ']을 불러왔습니다.');
+      }
+    }
+  });
+
+  // ── 작업 저장 모달 열기/닫기 ──
+  document.getElementById('openSaveBtn').addEventListener('click', function(){
+    var nameInp = document.getElementById('saveWorkName');
+    nameInp.value = currentLoadedWorkKey || currentData.title || '';
+    document.getElementById('saveModal').style.display = 'flex';
+    nameInp.focus();
+  });
+
+  window.closeSaveModal = function(){
+    document.getElementById('saveModal').style.display = 'none';
+  };
+
+  // ── 작업 저장 실행 ──
+  document.getElementById('confirmSaveBtn').addEventListener('click', function(){
+    var name = document.getElementById('saveWorkName').value.trim();
+    if (!name) {
+      alert('작업 이름을 입력해주세요.');
+      return;
+    }
+    var saved = getSavedWorks();
+    var key = name;
+    saved[key] = {
+      name: name,
+      updatedAt: new Date().toISOString(),
+      data: currentData
+    };
+    setSavedWorks(saved);
+    currentLoadedWorkKey = key;
+    closeSaveModal();
+    updatePresetDropdown('saved:' + key);
+    showToast('💾 [' + name + '] 작업이 브라우저에 안전하게 저장되었습니다!');
+  });
+
+  // ── 현재 저장 작업 삭제 ──
+  document.getElementById('deleteWorkBtn').addEventListener('click', function(){
+    if (!currentLoadedWorkKey) return;
+    if (confirm('[' + currentLoadedWorkKey + '] 작업을 영구 삭제하시겠습니까?')) {
+      var saved = getSavedWorks();
+      delete saved[currentLoadedWorkKey];
+      setSavedWorks(saved);
+      showToast('🗑️ 저장된 작업이 삭제되었습니다.');
+      currentLoadedWorkKey = null;
+      currentData = JSON.parse(JSON.stringify(PRESETS.weekly));
+      updatePresetDropdown('preset:weekly');
+      syncFormFromData();
+    }
+  });
+
+  // ── 배포용 순수 HTML 복사 (isExport = true: 하이라이트 및 인스펙터 스크립트 제거) ──
   document.getElementById('copyHtmlBtn').addEventListener('click', function(){
     var html = renderReportHtml(currentData, true);
     navigator.clipboard.writeText(html).then(function(){
-      showToast('📋 순수 배포용 HTML 코드가 클립보드에 복사되었습니다! (하이라이트 스크립트 제거됨)');
+      showToast('📋 순수 배포용 HTML이 클립보드에 복사되었습니다. (하이라이트 스크립트 제거됨)');
     });
   });
 
+  // ── 배포용 순수 HTML 다운로드 (isExport = true: 하이라이트 및 인스펙터 스크립트 제거) ──
   document.getElementById('downloadHtmlBtn').addEventListener('click', function(){
     var html = renderReportHtml(currentData, true);
     var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
@@ -1678,105 +2186,89 @@ function buildStudio() {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gemini Style Workflow Studio · 비주얼 리포트 제작기</title>
+<title>Gemini Studio - 비주얼 폼 워크플로우 제작 엔진</title>
 <link rel="preload" href="./assets/subset-Pretendard-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./assets/subset-Pretendard-Bold.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="./assets/subset-Pretendard-Medium.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="./assets/subset-Pretendard-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="./assets/subset-Pretendard-ExtraBold.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-  @font-face { font-family:'Pretendard'; font-weight:400; font-display:swap; src:url('./assets/subset-Pretendard-Regular.woff2') format('woff2'); }
-  @font-face { font-family:'Pretendard'; font-weight:500; font-display:swap; src:url('./assets/subset-Pretendard-Medium.woff2') format('woff2'); }
-  @font-face { font-family:'Pretendard'; font-weight:600; font-display:swap; src:url('./assets/subset-Pretendard-SemiBold.woff2') format('woff2'); }
-  @font-face { font-family:'Pretendard'; font-weight:700; font-display:swap; src:url('./assets/subset-Pretendard-Bold.woff2') format('woff2'); }
-  @font-face { font-family:'Pretendard'; font-weight:800; font-display:swap; src:url('./assets/subset-Pretendard-ExtraBold.woff2') format('woff2'); }
+  @font-face { font-family: "Pretendard"; font-weight: 400; font-display: swap; src: url("./assets/subset-Pretendard-Regular.woff2") format("woff2"); }
+  @font-face { font-family: "Pretendard"; font-weight: 600; font-display: swap; src: url("./assets/subset-Pretendard-SemiBold.woff2") format("woff2"); }
+  @font-face { font-family: "Pretendard"; font-weight: 700; font-display: swap; src: url("./assets/subset-Pretendard-Bold.woff2") format("woff2"); }
+  @font-face { font-family: "Pretendard"; font-weight: 800; font-display: swap; src: url("./assets/subset-Pretendard-ExtraBold.woff2") format("woff2"); }
 
   :root {
+    --primary: #1a73e8;
     --navy: #0b1a2c;
     --navy-2: #243551;
-    --white: #ffffff;
-    --paper: #ffffff;
     --bg: #f8fafd;
-    --text: #1f2328;
+    --paper: #ffffff;
+    --text: #202124;
     --muted: #5f6368;
     --line: #dadce0;
-    --primary: #1967d2;
-    --teal: #137333;
-    --terra: #c5221f;
-    --amber: #f9ab00;
     --orange: #ea580c;
-    --sidebar-w: 490px;
   }
 
   * { box-sizing: border-box; }
   body {
-    margin: 0; padding: 0; font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
-    color: var(--text); background: var(--bg); display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+    margin: 0; padding: 0; font-family: "Pretendard", system-ui, sans-serif;
+    background: #f1f3f4; color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden;
   }
 
-  /* ── 상단 글로벌 헤더 ── */
-  header.toolbar {
-    height: 58px; background: var(--white); border-bottom: 1px solid var(--line);
-    display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
-    box-shadow: 0 1px 3px rgba(60,64,67,.08); z-index: 10;
+  /* 상단 헤더 */
+  .studio-header {
+    background: #ffffff; border-bottom: 1px solid var(--line);
+    padding: 10px 20px; display: flex; align-items: center; justify-content: space-between;
+    height: 56px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(60,64,67,.08); z-index: 10;
   }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.05rem; color: var(--navy); white-space: nowrap; }
-  .brand .dot {
-    width: 12px; height: 12px; border-radius: 50%;
-    background: linear-gradient(135deg, #4a90e8, #ee4d5d);
-    box-shadow: 0 0 0 3px rgba(25,103,210,.15);
-  }
-  .actions { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.05rem; color: var(--navy); }
+  .brand .dot { width: 10px; height: 10px; border-radius: 50%; background: #1a73e8; display: inline-block; }
+  .actions { display: flex; align-items: center; gap: 8px; }
   .btn {
-    display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
-    font-size: .86rem; font-weight: 600; padding: 8px 14px; border-radius: 8px;
-    border: 1px solid var(--line); background: var(--white); color: var(--text);
-    cursor: pointer; transition: .16s; white-space: nowrap;
+    font-family: inherit; font-size: .84rem; font-weight: 600; padding: 7px 14px;
+    border-radius: 8px; border: 1px solid var(--line); background: #ffffff;
+    color: var(--text); cursor: pointer; transition: all .15s ease;
+    display: inline-flex; align-items: center; gap: 6px;
   }
-  .btn:hover { background: #f1f3f4; border-color: #c6dafc; }
-  .btn.primary {
-    background: var(--primary); color: #fff; border-color: var(--primary);
-    box-shadow: 0 1px 3px rgba(25,103,210,.3);
-  }
+  .btn:hover { background: #f8f9fa; border-color: #c6dafc; }
+  .btn.primary { background: #1a73e8; color: #ffffff; border-color: #1a73e8; }
   .btn.primary:hover { background: #174ea6; }
 
-  select.preset-select {
-    font-family: inherit; font-size: .88rem; padding: 7px 12px; border-radius: 8px;
-    border: 1px solid var(--line); background: #fff; font-weight: 600; color: var(--navy-2);
-    max-width: 270px; text-overflow: ellipsis; outline: none;
+  /* 템플릿 셀렉트 */
+  .preset-select {
+    font-family: inherit; font-size: .84rem; font-weight: 600; padding: 7px 12px;
+    border-radius: 8px; border: 1px solid #c6dafc; background: #f8faff; color: #1a73e8;
+    outline: none; cursor: pointer; transition: border-color .15s;
   }
-  select.preset-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(25,103,210,.14); }
+  .preset-select:focus { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,.15); }
 
-  /* ── 메인 스플릿 뷰 ── */
-  .workspace { flex: 1; display: flex; overflow: hidden; }
+  /* 워크스페이스 분할 */
+  .workspace { display: flex; flex: 1; height: calc(100vh - 56px); overflow: hidden; }
 
-  /* ── 좌측 에디터 패널 ── */
+  /* 좌측 에디터 */
   .editor-pane {
-    width: var(--sidebar-w); min-width: 380px; max-width: 600px;
-    background: var(--white); border-right: 1px solid var(--line);
-    display: flex; flex-direction: column; overflow: hidden;
+    width: 480px; flex-shrink: 0; background: #ffffff; border-right: 1px solid var(--line);
+    display: flex; flex-direction: column; height: 100%;
   }
   .editor-tabs {
-    display: flex; border-bottom: 1px solid var(--line); background: #fafbfd;
+    display: flex; border-bottom: 1px solid var(--line); background: #f8f9fa; padding: 4px 8px 0;
   }
   .tab-btn {
-    flex: 1; padding: 12px 14px; border: none; background: transparent; font-family: inherit;
-    font-size: .88rem; font-weight: 600; color: var(--muted); cursor: pointer;
-    border-bottom: 2px solid transparent; transition: .15s; text-align: center;
+    padding: 9px 18px; border: none; background: transparent; font-family: inherit;
+    font-size: .86rem; font-weight: 600; color: var(--muted); cursor: pointer;
+    border-bottom: 2px solid transparent; transition: all .15s;
   }
-  .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: #fff; }
+  .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; background: #ffffff; }
 
-  .editor-scroll {
-    flex: 1; overflow-y: auto; padding: 18px 20px;
-    scroll-behavior: smooth;
+  .editor-scroll { flex: 1; overflow-y: auto; padding: 18px 20px; }
+  
+  /* 폼 요소 공통 */
+  .form-group { margin-bottom: 14px; position: relative; }
+  .form-group label {
+    display: block; font-size: .80rem; font-weight: 700; color: var(--muted);
+    margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em;
   }
-  .form-group {
-    margin-bottom: 16px; border-radius: 8px; transition: all .16s ease;
-  }
-  .form-group label { display: block; font-size: .82rem; font-weight: 700; color: var(--navy-2); margin-bottom: 6px; }
   .form-group input, .form-group textarea, .form-group select {
     width: 100%; font-family: inherit; font-size: .88rem; padding: 9px 12px;
-    border: 1px solid var(--line); border-radius: 8px; background: #fff;
+    border-radius: 8px; border: 1px solid var(--line); background: #ffffff;
     color: var(--text); box-sizing: border-box; transition: border-color .15s, box-shadow .15s;
   }
   .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
@@ -1784,17 +2276,40 @@ function buildStudio() {
   }
   .form-group textarea { resize: vertical; min-height: 70px; }
 
-  .section-divider {
-    font-size: .82rem; font-weight: 800; color: var(--navy); text-transform: uppercase;
-    letter-spacing: .08em; padding: 14px 0 8px; margin-top: 14px; border-top: 1px dashed var(--line);
+  /* ── 권역 구분 헤더 바 (섹션 타이틀 + [+ 컴포넌트 추가 ▾] 신설) ── */
+  .section-divider-bar {
     display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; margin-top: 18px; margin-bottom: 8px;
+    background: #f1f3f4; border-radius: 10px; border-left: 4px solid var(--primary);
   }
-  .section-divider:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
-  .add-item-btn {
-    font-size: .78rem; font-weight: 700; color: var(--primary); background: #e8f0fe;
-    border: 1px solid #c6dafc; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: .14s;
+  .section-divider-bar:first-of-type { margin-top: 0; }
+  .section-divider-left { display: flex; align-items: center; gap: 8px; }
+  .sec-icon { font-size: 1.15rem; line-height: 1; }
+  .sec-title { font-size: .88rem; font-weight: 800; color: var(--navy); }
+  .sec-type-badge { font-size: .66rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
+  .sec-type-badge.layout { background: #e8f0fe; color: #1967d2; }
+  .sec-type-badge.blocks { background: #f3e8fd; color: #7627bb; }
+
+  .add-block-btn {
+    display: inline-flex; align-items: center; gap: 4px; font-family: inherit;
+    font-size: .78rem; font-weight: 700; color: #ffffff; background: #1967d2;
+    border: 1px solid #1967d2; padding: 5px 12px; border-radius: 7px; cursor: pointer;
+    transition: all .15s ease; box-shadow: 0 1px 3px rgba(25,103,210,.2);
   }
-  .add-item-btn:hover { background: #d2e3fc; }
+  .add-block-btn:hover {
+    background: #185abc; border-color: #185abc; transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(25,103,210,.3);
+  }
+
+  .add-subblock-btn {
+    display: inline-flex; align-items: center; gap: 5px; font-family: inherit;
+    font-size: .75rem; font-weight: 700; color: #1967d2; background: #eef5fe;
+    border: 1px dashed #8ab4f8; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+    transition: all .15s ease; width: 100%; justify-content: center; margin-top: 8px;
+  }
+  .add-subblock-btn:hover {
+    background: #d2e3fc; border-color: #1967d2; color: #174ea6;
+  }
 
   .item-card {
     background: #f8fafd; border: 1px solid var(--line); border-radius: 12px;
@@ -1807,7 +2322,7 @@ function buildStudio() {
   }
   .item-delete-btn:hover { background: #fad2cf; }
 
-  /* ── 툴바 & 도구 모음 섹션 (Collapsible Card) ── */
+  /* ── 🛠️ 툴바 & 도구 모음 섹션 (Collapsible Card) ── */
   .tool-section-card {
     background: #ffffff; border: 1px solid #d2e3fc; border-radius: 16px;
     margin-bottom: 20px; overflow: hidden; box-shadow: 0 2px 10px rgba(25,103,210,.06);
@@ -1855,13 +2370,13 @@ function buildStudio() {
   .tool-button-rack {
     display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px;
   }
-  .dock-tool-btn, .dock-widget-btn {
+  .dock-tool-btn {
     position: relative; display: flex; align-items: center; gap: 8px; padding: 9px 11px;
     background: #f8f9fa; border: 1px solid var(--line); border-radius: 10px;
     cursor: pointer; font-family: inherit; color: var(--navy-2);
     transition: all .16s ease; text-align: left;
   }
-  .dock-tool-btn:hover, .dock-widget-btn:hover {
+  .dock-tool-btn:hover {
     background: #ffffff; border-color: #c6dafc;
     box-shadow: 0 2px 8px rgba(25,103,210,.08); transform: translateY(-1px);
   }
@@ -1869,10 +2384,10 @@ function buildStudio() {
     background: #eef5fe; border-color: #8ab4f8; color: #1967d2;
     box-shadow: 0 0 0 2px rgba(25,103,210,.14);
   }
-  .dock-tool-btn .dock-icon, .dock-widget-btn .dock-icon { font-size: 1.15rem; line-height: 1; flex-shrink: 0; }
-  .dock-tool-btn .dock-label-group, .dock-widget-btn .dock-label-group { display: flex; flex-direction: column; flex: 1; min-width: 0; padding-right: 18px; }
-  .dock-tool-btn .dock-name, .dock-widget-btn .dock-name { font-size: .82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .dock-tool-btn .dock-sub, .dock-widget-btn .dock-sub { font-size: .70rem; color: #70757a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dock-tool-btn .dock-icon { font-size: 1.15rem; line-height: 1; flex-shrink: 0; }
+  .dock-tool-btn .dock-label-group { display: flex; flex-direction: column; flex: 1; min-width: 0; padding-right: 48px; }
+  .dock-tool-btn .dock-name { font-size: .82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dock-tool-btn .dock-sub { font-size: .70rem; color: #70757a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .dock-tool-btn.active .dock-sub { color: #1a73e8; font-weight: 600; }
   .dock-tool-btn .dock-pill {
     font-size: .66rem; font-weight: 800; padding: 2px 5px; border-radius: 5px;
@@ -1880,7 +2395,19 @@ function buildStudio() {
   }
   .dock-tool-btn.active .dock-pill { background: #1967d2; color: #ffffff; }
 
-  /* 툴 우측 상단 '?' 도움말 아이콘 (요구사항 2) */
+  /* 툴바 도크 내 '+' 하위 블록 추가 버튼 (요구사항 2) */
+  .dock-add-btn {
+    position: absolute; top: 6px; right: 28px; width: 18px; height: 18px; border-radius: 50%;
+    border: 1px solid #c6dafc; background: #e8f0fe; color: #1967d2; font-size: 13px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; line-height: 1;
+    transition: all .14s ease; z-index: 2; padding: 0;
+  }
+  .dock-add-btn:hover {
+    background: #1967d2; color: #fff; border-color: #1967d2; transform: scale(1.15);
+    box-shadow: 0 2px 6px rgba(25,103,210,.25);
+  }
+
+  /* 툴 우측 상단 '?' 도움말 아이콘 */
   .tool-help-btn {
     position: absolute; top: 6px; right: 6px; width: 18px; height: 18px; border-radius: 50%;
     border: 1px solid #dadce0; background: #fff; color: #5f6368; font-size: 11px; font-weight: 800;
@@ -1892,8 +2419,15 @@ function buildStudio() {
     box-shadow: 0 2px 6px rgba(25,103,210,.25);
   }
 
+  .tb-sub-chip {
+    font-family: inherit; font-size: .75rem; font-weight: 600; padding: 5px 10px;
+    border-radius: 999px; border: 1px solid var(--line); background: #ffffff; color: #5f6368;
+    cursor: pointer; transition: all .14s;
+  }
+  .tb-sub-chip.active { background: #e8f0fe; color: #1967d2; border-color: #c6dafc; font-weight: 700; }
+  .tb-sub-chip:hover { border-color: #1967d2; }
+
   /* ── 2단계 하이라이트 스타일 (Chrome DevTools Elements 스타일) ── */
-  /* 1) 상위 컨테이너 하이라이트 (Blue) */
   .editor-inspect-active {
     border-color: #1a73e8 !important;
     box-shadow: 0 0 0 3px rgba(26,115,232,0.28), 0 8px 24px rgba(26,115,232,0.12) !important;
@@ -1901,7 +2435,6 @@ function buildStudio() {
     transform: translateY(-1px);
     transition: all .15s ease-out !important;
   }
-  /* 2) 하위 세부 항목 하이라이트 (Vivid Orange / Coral) (요구사항 1) */
   .editor-inspect-subitem-active {
     border-color: #ea580c !important;
     box-shadow: 0 0 0 3px rgba(234,88,12,0.28), 0 4px 14px rgba(234,88,12,0.15) !important;
@@ -1910,72 +2443,105 @@ function buildStudio() {
     transition: all .15s ease-out !important;
   }
 
-  /* JSON 에디터 */
-  #jsonEditor {
-    width: 100%; height: 100%; border: none; padding: 16px; font-family: 'Consolas', 'Menlo', monospace;
-    font-size: .84rem; line-height: 1.5; color: #202124; background: #fdfdfd; resize: none; outline: none;
-    box-sizing: border-box;
-  }
-
-  /* ── 우측 프리뷰 패널 ── */
-  .preview-pane {
-    flex: 1; display: flex; flex-direction: column; background: #e9eef6; overflow: hidden; position: relative;
-  }
+  /* 우측 미리보기 */
+  .preview-pane { flex: 1; display: flex; flex-direction: column; height: 100%; background: #ffffff; }
   .preview-bar {
-    height: 42px; background: #f1f3f4; border-bottom: 1px solid var(--line);
-    display: flex; align-items: center; justify-content: space-between; padding: 0 16px;
-    font-size: .82rem; font-weight: 600; color: var(--navy-2);
+    padding: 10px 18px; border-bottom: 1px solid var(--line); background: #ffffff;
+    display: flex; align-items: center; justify-content: space-between; font-size: .84rem;
+    font-weight: 600; color: var(--navy); flex-shrink: 0;
   }
   .preview-dots { display: flex; gap: 6px; }
   .pdot { width: 10px; height: 10px; border-radius: 50%; }
   .pdot.red { background: #ea4335; }
-  .pdot.yellow { background: #fbbc05; }
+  .pdot.yellow { background: #fbbc04; }
   .pdot.green { background: #34a853; }
-  .preview-iframe { flex: 1; border: none; width: 100%; height: 100%; background: #fff; }
+  .preview-iframe { width: 100%; height: 100%; border: none; background: #f8fafd; }
 
-  /* ── 모달 공통 스타일 ── */
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.48); backdrop-filter: blur(4px);
-    display: flex; align-items: center; justify-content: center; z-index: 9999;
-    animation: fadeIn .15s ease-out;
-  }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  .modal-card {
-    background: #ffffff; border-radius: 18px; width: 440px; max-width: 92vw; padding: 24px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.22); border: 1px solid var(--line);
-    animation: slideUp .2s cubic-bezier(.16,1,.3,1);
-  }
-  .modal-card.wide {
-    width: 540px; max-height: 90vh; overflow-y: auto;
-  }
-  @keyframes slideUp { from { transform: translateY(12px) scale(.98); } to { transform: translateY(0) scale(1); } }
-  .modal-header {
-    display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
-  }
-  .modal-header h3 { margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--navy); display: flex; align-items: center; gap: 8px; }
-  .modal-close-btn {
-    width: 28px; height: 28px; border-radius: 50%; border: none; background: #f1f3f4;
-    color: #5f6368; cursor: pointer; display: flex; align-items: center; justify-content: center;
-    font-size: .85rem; font-weight: 700; transition: .15s;
-  }
-  .modal-close-btn:hover { background: #dadce0; color: #202124; }
-  .modal-footer {
-    display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;
+  /* JSON 모드 */
+  #jsonEditor {
+    width: 100%; height: 100%; font-family: "Consolas", monospace; font-size: .82rem;
+    padding: 16px; border: none; background: #1e1e1e; color: #d4d4d4; resize: none; outline: none;
+    box-sizing: border-box; line-height: 1.5;
   }
 
-  /* Toast 알림 */
+  /* 토스트 */
   .toast-notification {
-    position: fixed; bottom: 24px; right: 24px; z-index: 10000;
-    background: #202124; color: #fff; padding: 12px 20px; border-radius: 12px;
-    font-size: .88rem; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-    display: flex; align-items: center; gap: 8px; animation: slideUp .2s ease-out;
+    position: fixed; bottom: 24px; right: 24px; background: #202124; color: #fff;
+    padding: 12px 20px; border-radius: 10px; font-size: .86rem; font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,.25); z-index: 99999; animation: toastIn .2s ease;
+  }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* 팝오버 (블록 선택 메뉴) (요구사항 2) */
+  .block-picker-popover {
+    position: absolute; z-index: 10000; background: #ffffff;
+    border: 1px solid #dadce0; border-radius: 12px; padding: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08);
+    min-width: 320px; max-width: 380px; display: none; flex-direction: column; gap: 4px;
+    font-family: inherit; animation: popoverFadeIn .15s ease-out;
+  }
+  @keyframes popoverFadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .picker-header {
+    padding: 6px 8px 8px; border-bottom: 1px solid #f1f3f4; margin-bottom: 4px;
+  }
+  .picker-title { font-size: .82rem; font-weight: 800; color: var(--navy); display: flex; align-items: center; gap: 6px; }
+  .picker-desc { font-size: .70rem; color: #5f6368; margin-top: 2px; }
+  .picker-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 8px 10px; border-radius: 8px; cursor: pointer; transition: all .12s ease;
+    border: 1px solid transparent; background: #f8f9fa;
+  }
+  .picker-item:hover {
+    background: #eef5fe; border-color: #c6dafc;
+  }
+  .picker-item-left {
+    display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;
+  }
+  .picker-item-icon { font-size: 1.15rem; line-height: 1; flex-shrink: 0; }
+  .picker-item-text { display: flex; flex-direction: column; min-width: 0; }
+  .picker-item-name { font-size: .80rem; font-weight: 700; color: #202124; }
+  .picker-item-sub { font-size: .68rem; color: #70757a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .picker-help-btn {
+    width: 20px; height: 20px; border-radius: 50%; border: 1px solid #dadce0;
+    background: #fff; color: #5f6368; font-size: 11px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    flex-shrink: 0; transition: .14s;
+  }
+  .picker-help-btn:hover {
+    background: #1967d2; color: #fff; border-color: #1967d2; transform: scale(1.1);
+  }
+
+  /* 모달 오버레이 */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,.45); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center; z-index: 100000;
+  }
+  .modal-card {
+    background: #ffffff; border-radius: 16px; width: 440px; max-width: 90vw;
+    box-shadow: 0 16px 48px rgba(0,0,0,.22); overflow: hidden; animation: popoverFadeIn .18s ease-out;
+  }
+  .modal-card.wide { width: 560px; max-height: 85vh; display: flex; flex-direction: column; }
+  .modal-header {
+    padding: 16px 20px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-header h3 { margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+  .modal-close-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--muted); padding: 4px; }
+  .modal-body { padding: 20px; overflow-y: auto; }
+  .modal-footer {
+    padding: 12px 20px; border-top: 1px solid var(--line); background: #f8f9fa;
+    display: flex; justify-content: flex-end; gap: 8px;
   }
 </style>
 </head>
 <body>
 
-<!-- 상단 헤더 -->
-<header class="toolbar">
+<!-- 상단 헤더 바 -->
+<header class="studio-header">
   <div class="brand">
     <span class="dot"></span> Gemini Style Workflow Studio
   </div>
@@ -2001,7 +2567,7 @@ function buildStudio() {
     <!-- 폼 모드 -->
     <div class="editor-scroll" id="formView">
       
-      <!-- ── 🛠️ 툴바 & 도구 모음 팔레트 (펼침/숨김 지원) ── -->
+      <!-- ── 🛠️ 툴바 & 도구 모음 팔레트 (요구사항 2: 구조&레이아웃 도구만 노출) ── -->
       <div class="tool-section-card" id="toolbarSectionCard" data-editor-id="toolbar" data-editor-level="container">
         <div class="tool-section-header" id="toolbarSectionToggle" onclick="toggleToolbarSection()">
           <div class="tool-section-title-wrap">
@@ -2015,70 +2581,113 @@ function buildStudio() {
         </div>
 
         <div class="tool-section-body" id="toolbarSectionBody">
-          <!-- 1) [구조 & 레이아웃 (Structure & Layout)] 도구군 -->
+          <!-- [구조 & 레이아웃 (Structure & Layout)] 도구군 7선 -->
           <div class="dock-group-title">
-            <span>🌐 구조 &amp; 레이아웃 도구 (Structure &amp; Layout)</span>
-            <span class="dock-group-tag layout">LAYOUT</span>
+            <span>📐 구조 &amp; 레이아웃 도구 (Structure &amp; Layout)</span>
+            <span class="dock-group-tag layout">LAYOUT ONLY</span>
           </div>
           <div class="tool-button-rack">
-            <div class="dock-tool-btn active" id="btnToolSearch" onclick="toggleToolbarFeature('showSearch')">
-              <span class="dock-icon">🔍</span>
+            <!-- 1. 기본 정보 (헤더 섹션) -->
+            <div class="dock-tool-btn active" id="dockTool_header" onclick="focusLayoutSection('header')">
+              <span class="dock-icon">🏛️</span>
               <div class="dock-label-group">
-                <span class="dock-name">실시간 검색창</span>
-                <span class="dock-sub">인덱싱 &amp; 앵커 점프</span>
+                <span class="dock-name">기본 정보 (헤더)</span>
+                <span class="dock-sub">Hero 컨테이너 래퍼</span>
               </div>
-              <span class="dock-pill" id="pillToolSearch">ON</span>
-              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'search')" title="설명 및 적용 예시 보기">?</button>
+              <span class="dock-pill" id="pillTool_header">필수</span>
+              <button class="dock-add-btn" onclick="openBlockPicker(event, 'header')" title="헤더 하위 컴포넌트 추가">+</button>
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'header')" title="설명 및 적용 예시 보기">?</button>
             </div>
-            <div class="dock-tool-btn active" id="btnToolChips" onclick="toggleToolbarFeature('showSuggestChips')">
-              <span class="dock-icon">⚡</span>
+
+            <!-- 2. 상단 시스템 툴바 -->
+            <div class="dock-tool-btn active" id="dockTool_toolbar" onclick="focusLayoutSection('toolbar')">
+              <span class="dock-icon">🧭</span>
               <div class="dock-label-group">
-                <span class="dock-name">추천 검색어 칩</span>
-                <span class="dock-sub">홈(index) 키워드 태그</span>
+                <span class="dock-name">시스템 툴바</span>
+                <span class="dock-sub">상단 고정 네비게이션</span>
               </div>
-              <span class="dock-pill" id="pillToolChips">ON</span>
-              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'suggestChips')" title="설명 및 적용 예시 보기">?</button>
+              <span class="dock-pill" id="pillTool_toolbar">ON</span>
+              <button class="dock-add-btn" onclick="openBlockPicker(event, 'header')" title="서브 옵션 설정">+</button>
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'toolbar')" title="설명 및 적용 예시 보기">?</button>
             </div>
-            <div class="dock-tool-btn active" id="btnToolTabs" onclick="toggleToolbarFeature('showCategoryTabs')">
-              <span class="dock-icon">🗂️</span>
-              <div class="dock-label-group">
-                <span class="dock-name">카테고리 탭</span>
-                <span class="dock-sub">홈(index) 알약형 필터</span>
-              </div>
-              <span class="dock-pill" id="pillToolTabs">ON</span>
-              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'categoryTabs')" title="설명 및 적용 예시 보기">?</button>
-            </div>
-            <div class="dock-tool-btn active" id="btnToolPrint" onclick="toggleToolbarFeature('showPrint')">
-              <span class="dock-icon">🖨️</span>
-              <div class="dock-label-group">
-                <span class="dock-name">인쇄 / PDF</span>
-                <span class="dock-sub">원클릭 인쇄 호출</span>
-              </div>
-              <span class="dock-pill" id="pillToolPrint">ON</span>
-              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'print')" title="설명 및 적용 예시 보기">?</button>
-            </div>
-            <div class="dock-tool-btn active" id="btnToolProgress" onclick="toggleToolbarFeature('showProgress')">
+
+            <!-- 3. KPI 지표 스코어보드 -->
+            <div class="dock-tool-btn" id="dockTool_kpiStats" onclick="focusLayoutSection('kpiStats')">
               <span class="dock-icon">📊</span>
               <div class="dock-label-group">
-                <span class="dock-name">진행률 표시줄</span>
-                <span class="dock-sub">스크롤 인디케이터</span>
+                <span class="dock-name">KPI 스코어보드</span>
+                <span class="dock-sub">4열 반응형 그리드</span>
               </div>
-              <span class="dock-pill" id="pillToolProgress">ON</span>
-              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'progress')" title="설명 및 적용 예시 보기">?</button>
+              <span class="dock-pill" id="pillTool_kpiStats">OFF</span>
+              <button class="dock-add-btn" onclick="openBlockPicker(event, 'kpiStats')" title="KPI 지표 추가">+</button>
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'kpiStats')" title="설명 및 적용 예시 보기">?</button>
             </div>
-            <div class="dock-tool-btn active" id="btnToolTheme" onclick="toggleToolbarFeature('showThemeToggle')">
-              <span class="dock-icon">🌓</span>
+
+            <!-- 4. 1줄 흐름 지도 -->
+            <div class="dock-tool-btn" id="dockTool_flowmap" onclick="focusLayoutSection('flowmap')">
+              <span class="dock-icon">🗺️</span>
               <div class="dock-label-group">
-                <span class="dock-name">다크모드 전환</span>
-                <span class="dock-sub">구글 다크 테마</span>
+                <span class="dock-name">1줄 흐름 지도</span>
+                <span class="dock-sub">가로 Flexbox 파이프라인</span>
               </div>
-              <span class="dock-pill" id="pillToolTheme">ON</span>
-              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'theme')" title="설명 및 적용 예시 보기">?</button>
+              <span class="dock-pill" id="pillTool_flowmap">OFF</span>
+              <button class="dock-add-btn" onclick="openBlockPicker(event, 'flowmap')" title="진행 단계 추가">+</button>
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'flowmap')" title="설명 및 적용 예시 보기">?</button>
+            </div>
+
+            <!-- 5. 3D 플립 카드 -->
+            <div class="dock-tool-btn" id="dockTool_cards" onclick="focusLayoutSection('cards')">
+              <span class="dock-icon">📌</span>
+              <div class="dock-label-group">
+                <span class="dock-name">3D 플립 카드</span>
+                <span class="dock-sub">3열 원근 모듈 그리드</span>
+              </div>
+              <span class="dock-pill" id="pillTool_cards">OFF</span>
+              <button class="dock-add-btn" onclick="openBlockPicker(event, 'cards')" title="플립 카드 추가">+</button>
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'cards')" title="설명 및 적용 예시 보기">?</button>
+            </div>
+
+            <!-- 6. 상세 실행 단계 -->
+            <div class="dock-tool-btn active" id="dockTool_steps" onclick="focusLayoutSection('steps')">
+              <span class="dock-icon">🛠️</span>
+              <div class="dock-label-group">
+                <span class="dock-name">상세 실행 단계</span>
+                <span class="dock-sub">수직 워크플로우 스택</span>
+              </div>
+              <span class="dock-pill" id="pillTool_steps">0단계</span>
+              <button class="dock-add-btn" onclick="openBlockPicker(event, 'steps')" title="새 실행 단계 추가">+</button>
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'steps')" title="설명 및 적용 예시 보기">?</button>
+            </div>
+
+            <!-- 7. 최종 점검 체크리스트 -->
+            <div class="dock-tool-btn" id="dockTool_checklist" onclick="focusLayoutSection('checklist')">
+              <span class="dock-icon">✅</span>
+              <div class="dock-label-group">
+                <span class="dock-name">최종 점검 체크</span>
+                <span class="dock-sub">점검 그룹 래퍼 카드</span>
+              </div>
+              <span class="dock-pill" id="pillTool_checklist">OFF</span>
+              <button class="dock-add-btn" onclick="openBlockPicker(event, 'checklist')" title="점검 항목 추가">+</button>
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'checklist')" title="설명 및 적용 예시 보기">?</button>
             </div>
           </div>
 
+          <!-- 시스템 툴바 서브 컨트롤러 토글 바 -->
+          <div class="dock-group-title" style="margin-top:14px;">
+            <span>🧭 시스템 툴바 세부 컨트롤러 토글</span>
+            <span class="dock-group-tag layout">SUB CONTROLLERS</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+            <button class="tb-sub-chip active" id="chipToolSearch" onclick="toggleToolbarFeature('showSearch')">🔍 검색창 (ON)</button>
+            <button class="tb-sub-chip active" id="chipToolChips" onclick="toggleToolbarFeature('showSuggestChips')">⚡ 추천 칩 (ON)</button>
+            <button class="tb-sub-chip active" id="chipToolTabs" onclick="toggleToolbarFeature('showCategoryTabs')">🗂️ 탭 바 (ON)</button>
+            <button class="tb-sub-chip active" id="chipToolPrint" onclick="toggleToolbarFeature('showPrint')">🖨️ 인쇄 (ON)</button>
+            <button class="tb-sub-chip active" id="chipToolProgress" onclick="toggleToolbarFeature('showProgress')">📊 진행률 (ON)</button>
+            <button class="tb-sub-chip active" id="chipToolTheme" onclick="toggleToolbarFeature('showThemeToggle')">🌓 다크모드 (ON)</button>
+          </div>
+
           <!-- 확장 옵션 입력 (검색어 칩 및 카테고리 탭 설정) -->
-          <div id="subToolbarSettings" style="background:#f8fafd; border:1px solid #e1ecfa; border-radius:10px; padding:12px; margin-bottom:14px;">
+          <div id="subToolbarSettings" style="background:#f8fafd; border:1px solid #e1ecfa; border-radius:10px; padding:12px; margin-bottom:10px;">
             <div class="form-group" style="margin-bottom:8px;" data-editor-id="tb-search-box" data-editor-level="item">
               <label style="font-size:.78rem;">검색창 안내 문구 (Placeholder)</label>
               <input type="text" id="tbSearchPlaceholder" placeholder="보고서 내 키워드 검색..." oninput="updateToolbarText('searchPlaceholder', this.value)">
@@ -2092,87 +2701,21 @@ function buildStudio() {
               <input type="text" id="tbCategoryTabs" placeholder="전체, 1단계: 기획, 2단계: 실습, 3단계: 검증" oninput="updateCategoryTabs(this.value)">
             </div>
           </div>
-
-          <!-- 2) [컴포넌트 & 블록 (Components & Blocks)] 위젯군 (홈, 모듈 2, 3, 4 기반) -->
-          <div class="dock-group-title">
-            <span>✨ 컴포넌트 &amp; 블록 라이브러리 (Components &amp; Blocks)</span>
-            <span class="dock-group-tag blocks">BLOCKS</span>
-          </div>
-          <div class="tool-button-rack">
-            <div class="dock-widget-btn" onclick="insertWidget('whyBox')" title="모듈 2, 3, 4에 적용된 네이비 그라데이션 인트로 박스를 추가합니다.">
-              <span class="dock-icon">🌌</span>
-              <div class="dock-label-group">
-                <span class="dock-name">Why 인트로 박스</span>
-                <span class="dock-sub">모듈 2/3/4 네이비 카드</span>
-              </div>
-              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'whyBox')" title="설명 및 적용 예시 보기">?</button>
-            </div>
-            <div class="dock-widget-btn" onclick="insertWidget('procBox')" title="모듈 3, 4의 캡슐형 프로세스 파이프라인 흐름 바를 추가합니다.">
-              <span class="dock-icon">🔄</span>
-              <div class="dock-label-group">
-                <span class="dock-name">프로세스 플로우 바</span>
-                <span class="dock-sub">모듈 3/4 캡슐 파이프라인</span>
-              </div>
-              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'procBox')" title="설명 및 적용 예시 보기">?</button>
-            </div>
-            <div class="dock-widget-btn" onclick="insertWidget('kpiStats')" title="모듈 3에 적용된 3분할 통계 수치 스코어보드를 추가합니다.">
-              <span class="dock-icon">📊</span>
-              <div class="dock-label-group">
-                <span class="dock-name">KPI 스코어보드</span>
-                <span class="dock-sub">모듈 3 3분할 통계 지표</span>
-              </div>
-              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'kpiStats')" title="설명 및 적용 예시 보기">?</button>
-            </div>
-            <div class="dock-widget-btn" onclick="insertWidget('prompt')" title="원클릭 복사 버튼이 달린 Gemini 프롬프트 카드를 추가합니다.">
-              <span class="dock-icon">📋</span>
-              <div class="dock-label-group">
-                <span class="dock-name">Gemini 프롬프트 카드</span>
-                <span class="dock-sub">모듈 2/4 원클릭 복사 박스</span>
-              </div>
-              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'prompt')" title="설명 및 적용 예시 보기">?</button>
-            </div>
-            <div class="dock-widget-btn" onclick="insertWidget('tip')" title="클릭 시 펼쳐지는 실습 팁 아코디언을 추가합니다.">
-              <span class="dock-icon">💡</span>
-              <div class="dock-label-group">
-                <span class="dock-name">접이식 팁 아코디언</span>
-                <span class="dock-sub">모듈 3/4 Details 팁</span>
-              </div>
-              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'tip')" title="설명 및 적용 예시 보기">?</button>
-            </div>
-            <div class="dock-widget-btn" onclick="insertWidget('note')" title="왼쪽 블루 액센트 보더가 있는 핵심 안내 카드를 추가합니다.">
-              <span class="dock-icon">ℹ️</span>
-              <div class="dock-label-group">
-                <span class="dock-name">핵심 안내 노트</span>
-                <span class="dock-sub">모듈 2/3/4 블루 콜아웃</span>
-              </div>
-              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'note')" title="설명 및 적용 예시 보기">?</button>
-            </div>
-            <div class="dock-widget-btn" onclick="insertWidget('warn')" title="왼쪽 레드/테라코타 보더가 있는 주의 경고 카드를 추가합니다.">
-              <span class="dock-icon">⚠️</span>
-              <div class="dock-label-group">
-                <span class="dock-name">주의 경고 박스</span>
-                <span class="dock-sub">모듈 3/4 레드 경고 콜아웃</span>
-              </div>
-              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'warn')" title="설명 및 적용 예시 보기">?</button>
-            </div>
-            <div class="dock-widget-btn" onclick="insertWidget('urlbox')" title="스프레드시트나 웹 API 링크를 강조하는 전용 URL 리소스 카드를 추가합니다.">
-              <span class="dock-icon">🌐</span>
-              <div class="dock-label-group">
-                <span class="dock-name">URL 리소스 상자</span>
-                <span class="dock-sub">모듈 2/3 링크 &amp; 이동 버튼</span>
-              </div>
-              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'urlbox')" title="설명 및 적용 예시 보기">?</button>
-            </div>
-          </div>
         </div>
       </div>
 
-      <!-- 기본 정보 (헤더 설정) -->
-      <div class="section-divider" data-editor-id="header" data-editor-level="container">
-        <span>기본 정보 (헤더 설정)</span>
+      <!-- 🏛️ 1. 기본 정보 (헤더 설정) -->
+      <div class="section-divider-bar" data-editor-id="header" data-editor-level="container">
+        <div class="section-divider-left">
+          <span class="sec-icon">🏛️</span>
+          <span class="sec-title">기본 정보 (헤더 설정)</span>
+          <span class="sec-type-badge layout">구조 &amp; 레이아웃</span>
+        </div>
+        <div class="section-divider-actions">
+          <button class="add-block-btn" onclick="openBlockPicker(event, 'header')">+ 컴포넌트 추가 ▾</button>
+        </div>
       </div>
       <div class="item-card" data-editor-id="header" data-editor-level="container">
-        <!-- 개별 하위 항목: 제목, 뱃지, 요약 설명 (Orange 하이라이트 대응) -->
         <div class="form-group" data-editor-id="hero-title" data-editor-level="item">
           <label>보고서 / 워크플로우 제목</label>
           <input type="text" id="fTitle" placeholder="예: AI 기반 주간 업무 자동화 보고서">
@@ -2193,34 +2736,68 @@ function buildStudio() {
       <!-- 🔄 프로세스 플로우 바 설정 (선택적) -->
       <div id="procBoxEditorContainer"></div>
 
-      <!-- 📊 KPI 지표 스코어보드 (선택적) -->
+      <!-- 📊 2. KPI 지표 스코어보드 -->
+      <div class="section-divider-bar" data-editor-id="kpiStats" data-editor-level="container">
+        <div class="section-divider-left">
+          <span class="sec-icon">📊</span>
+          <span class="sec-title">KPI 지표 스코어보드</span>
+          <span class="sec-type-badge layout">구조 &amp; 레이아웃</span>
+        </div>
+        <div class="section-divider-actions">
+          <button class="add-block-btn" onclick="openBlockPicker(event, 'kpiStats')">+ 지표 카드 추가 ▾</button>
+        </div>
+      </div>
       <div id="kpiStatsEditorContainer"></div>
 
-      <!-- 🗺️ 1줄 흐름 지도 -->
-      <div class="section-divider" data-editor-id="flowmap" data-editor-level="container">
-        <span>1줄 흐름 지도 (Flow Map)</span>
-        <button class="add-item-btn" onclick="addFlowItem()">+ 단계 추가</button>
+      <!-- 🗺️ 3. 1줄 흐름 지도 -->
+      <div class="section-divider-bar" data-editor-id="flowmap" data-editor-level="container">
+        <div class="section-divider-left">
+          <span class="sec-icon">🗺️</span>
+          <span class="sec-title">1줄 흐름 지도 (Flow Map)</span>
+          <span class="sec-type-badge layout">구조 &amp; 레이아웃</span>
+        </div>
+        <div class="section-divider-actions">
+          <button class="add-block-btn" onclick="openBlockPicker(event, 'flowmap')">+ 단계 노드 추가 ▾</button>
+        </div>
       </div>
       <div id="flowItemsContainer"></div>
 
-      <!-- 📌 3D 플립 카드 (핵심 모듈) -->
-      <div class="section-divider" data-editor-id="cards" data-editor-level="container">
-        <span>3D 플립 카드 (핵심 모듈)</span>
-        <button class="add-item-btn" onclick="addCardItem()">+ 카드 추가</button>
+      <!-- 📌 4. 3D 플립 카드 (핵심 모듈) -->
+      <div class="section-divider-bar" data-editor-id="cards" data-editor-level="container">
+        <div class="section-divider-left">
+          <span class="sec-icon">📌</span>
+          <span class="sec-title">3D 플립 카드 (핵심 모듈)</span>
+          <span class="sec-type-badge layout">구조 &amp; 레이아웃</span>
+        </div>
+        <div class="section-divider-actions">
+          <button class="add-block-btn" onclick="openBlockPicker(event, 'cards')">+ 모듈 카드 추가 ▾</button>
+        </div>
       </div>
       <div id="cardItemsContainer"></div>
 
-      <!-- 🛠️ 상세 실행 단계 (스텝 & 프롬프트) -->
-      <div class="section-divider" data-editor-id="steps" data-editor-level="container">
-        <span>상세 실행 단계 (스텝 &amp; 프롬프트)</span>
-        <button class="add-item-btn" onclick="addStepItem()">+ 실행 단계 추가</button>
+      <!-- 🛠️ 5. 상세 실행 단계 (스텝 & 프롬프트) -->
+      <div class="section-divider-bar" data-editor-id="steps" data-editor-level="container">
+        <div class="section-divider-left">
+          <span class="sec-icon">🛠️</span>
+          <span class="sec-title">상세 실행 단계 (스텝 &amp; 프롬프트)</span>
+          <span class="sec-type-badge layout">구조 &amp; 레이아웃</span>
+        </div>
+        <div class="section-divider-actions">
+          <button class="add-block-btn" onclick="openBlockPicker(event, 'steps')">+ 실행 단계 추가 ▾</button>
+        </div>
       </div>
       <div id="stepItemsContainer"></div>
 
-      <!-- ✅ 체크리스트 -->
-      <div class="section-divider" data-editor-id="checklist" data-editor-level="container">
-        <span>체크리스트</span>
-        <button class="add-item-btn" onclick="addCheckItem()">+ 항목 추가</button>
+      <!-- ✅ 6. 최종 점검 체크리스트 -->
+      <div class="section-divider-bar" data-editor-id="checklist" data-editor-level="container">
+        <div class="section-divider-left">
+          <span class="sec-icon">✅</span>
+          <span class="sec-title">최종 점검 체크리스트</span>
+          <span class="sec-type-badge layout">구조 &amp; 레이아웃</span>
+        </div>
+        <div class="section-divider-actions">
+          <button class="add-block-btn" onclick="openBlockPicker(event, 'checklist')">+ 항목 추가 ▾</button>
+        </div>
       </div>
       <div id="checkItemsContainer"></div>
     </div>
@@ -2249,7 +2826,10 @@ function buildStudio() {
   </main>
 </div>
 
-<!-- ── 도구 설명 및 적용 예시 모달 (요구사항 2) ── -->
+<!-- ── 컴포넌트 & 블록 선택 팝오버 (요구사항 2: + 버튼 클릭 시 해당 구조에 속한 블록 추가) ── -->
+<div id="blockPickerPopover" class="block-picker-popover"></div>
+
+<!-- ── 도구 설명 및 적용 예시 모달 (요구사항 2 + Decision Matrix 판정 표시) ── -->
 <div id="toolHelpModal" class="modal-overlay" style="display:none;">
   <div class="modal-card wide">
     <div class="modal-header">
@@ -2261,6 +2841,12 @@ function buildStudio() {
       <button class="modal-close-btn" onclick="closeToolHelpModal()">✕</button>
     </div>
     <div class="modal-body" style="font-size:.90rem;color:#3c4043;line-height:1.65;">
+      <!-- Decision Matrix 판정 정보 영역 -->
+      <div style="margin-bottom:14px;background:#fef7e0;border:1px solid #f9ab00;border-radius:10px;padding:12px 14px;">
+        <b style="color:#b06000;display:block;margin-bottom:6px;font-size:.86rem;">⚖️ Decision Matrix 판정 결과 (구조 vs 블록)</b>
+        <div id="toolHelpDecisionDetails"></div>
+      </div>
+
       <div style="margin-bottom:14px;">
         <b style="color:var(--navy);display:block;margin-bottom:4px;font-size:.92rem;">📌 기능 설명</b>
         <p id="toolHelpDesc" style="margin:0;color:#4a5056;font-size:.88rem;"></p>
@@ -2293,22 +2879,22 @@ function buildStudio() {
     <div class="modal-body">
       <p style="font-size:.85rem;color:var(--muted);margin:0 0 14px;line-height:1.5;">
         현재 편집 중인 워크플로우/보고서의 이름을 입력하세요.<br>
-        저장된 작업은 상단 <b>"템플릿:"</b> 드롭다운 목록에 즉시 등록되어 언제든지 다시 불러올 수 있습니다.
+        저장 후 상단의 <b>"템플릿: "</b> 드롭다운에서 언제든 다시 불러올 수 있습니다.
       </p>
       <div class="form-group" style="margin-bottom:0;">
         <label>작업 이름</label>
-        <input type="text" id="saveWorkName" placeholder="예: 2026 3분기 마케팅 전략 보고서" onkeydown="if(event.key==='Enter') confirmSaveWork()">
+        <input type="text" id="saveWorkName" placeholder="예: 2026 주간 회의 자동화 보고서 (최종안)">
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeSaveModal()">취소</button>
-      <button class="btn primary" onclick="confirmSaveWork()">저장하기</button>
+      <button class="btn primary" id="confirmSaveBtn">저장하기</button>
     </div>
   </div>
 </div>
 `;
 
-  const fullHtml = htmlHead + '<script>' + clientScript + '</script>\n</body>\n</html>\n';
+  const fullHtml = htmlHead + '<script>' + clientScript + '</' + 'script>\n</body>\n</html>\n';
   fs.writeFileSync('builder.html', fullHtml, 'utf8');
   console.log('🎉 builder.html successfully generated! Total bytes:', fullHtml.length);
 }
