@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Gemini 스타일 워크플로우 & 보고서 제작 스튜디오</title>
+<link rel="stylesheet" href="fonts/pretendard.css">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" as="style" crossorigin
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<style>
+  :root {
+    --primary: #1967d2; --primary-hover: #174ea6;
+    --navy: #243551; --navy-2: #34496b;
+    --line: #dadce0; --bg: #f8f9fa; --white: #ffffff;
+    --text: #202124; --muted: #5f6368;
+    --green: #1e8e3e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column;
+    font-family: "Pretendard Variable", "Pretendard", -apple-system, sans-serif;
+    color: var(--text); background: var(--bg); overflow: hidden;
+  }
+  /* ── 상단 툴바 ── */
+  header.toolbar {
+    flex: none; height: 60px; background: var(--white); border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+    box-shadow: 0 1px 3px rgba(60,64,67,.08); z-index: 10;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.05rem; color: var(--navy); }
+  .brand .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: linear-gradient(135deg, #4a90e8, #ee4d5d);
+    box-shadow: 0 0 0 3px rgba(25,103,210,.15);
+  }
+  .actions { display: flex; align-items: center; gap: 10px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+    font-size: .88rem; font-weight: 600; padding: 8px 16px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--white); color: var(--text);
+    cursor: pointer; transition: .16s;
+  }
+  .btn:hover { background: #f1f3f4; border-color: #c6dafc; }
+  .btn.primary {
+    background: var(--primary); color: #fff; border-color: var(--primary);
+    box-shadow: 0 1px 3px rgba(25,103,210,.3);
+  }
+  .btn.primary:hover { background: var(--primary-hover); }
+  select.preset-select {
+    font-family: inherit; font-size: .88rem; padding: 7px 12px; border-radius: 8px;
+    border: 1px solid var(--line); background: #fff; font-weight: 600; color: var(--navy-2);
+  }
+
+  /* ── 메인 스플릿 뷰 ── */
+  .workspace { flex: 1; display: flex; overflow: hidden; }
+  .editor-pane {
+    width: 480px; flex: none; background: var(--white); border-right: 1px solid var(--line);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .preview-pane {
+    flex: 1; background: #eef2f6; display: flex; flex-direction: column; position: relative;
+  }
+  .preview-bar {
+    height: 38px; background: #e8eaed; border-bottom: 1px solid #dadce0;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 16px;
+    font-size: .80rem; font-weight: 600; color: var(--muted);
+  }
+  .preview-dots { display: flex; gap: 6px; }
+  .pdot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
+  .pdot.red { background: #ff5f56; } .pdot.yellow { background: #ffbd2e; } .pdot.green { background: #27c93f; }
+  iframe#previewFrame { flex: 1; width: 100%; border: none; background: #fff; }
+
+  /* ── 에디터 컨트롤 ── */
+  .editor-tabs {
+    display: flex; border-bottom: 1px solid var(--line); background: #f8f9fa;
+  }
+  .tab-btn {
+    flex: 1; padding: 12px; font-size: .88rem; font-weight: 600; border: none;
+    background: transparent; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent;
+  }
+  .tab-btn.active {
+    color: var(--primary); border-bottom-color: var(--primary); background: #fff;
+  }
+  .editor-scroll {
+    flex: 1; overflow-y: auto; padding: 20px;
+  }
+  .form-group { margin-bottom: 18px; }
+  .form-group label {
+    display: block; font-size: .84rem; font-weight: 700; color: var(--navy); margin-bottom: 6px;
+  }
+  .form-group input, .form-group textarea {
+    width: 100%; font-family: inherit; font-size: .90rem; padding: 9px 12px;
+    border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--text);
+  }
+  .form-group textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
+  .form-group input:focus, .form-group textarea:focus {
+    outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(25,103,210,.12);
+  }
+  .section-divider {
+    font-size: .90rem; font-weight: 700; color: var(--primary); margin: 24px 0 12px;
+    padding-bottom: 6px; border-bottom: 1px dashed var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .add-item-btn {
+    font-size: .76rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--primary); background: #e8f0fe; color: var(--primary); cursor: pointer;
+  }
+  .item-card {
+    background: #f8f9fa; border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px; margin-bottom: 10px; position: relative;
+  }
+  .item-delete-btn {
+    position: absolute; top: 8px; right: 8px; font-size: .72rem; padding: 2px 7px;
+    border-radius: 4px; border: 1px solid #f5c6cb; background: #fff; color: #dc3545; cursor: pointer;
+  }
+  textarea#jsonEditor {
+    width: 100%; height: 100%; min-height: 520px; font-family: monospace; font-size: .84rem;
+    padding: 14px; border: none; background: #202124; color: #a8dab5; line-height: 1.5; resize: none;
+  }
+</style>
+</head>
+<body>
+
+<header class="toolbar">
+  <div class="brand">
+    <span class="dot"></span> Gemini Style Workflow Studio
+  </div>
+  <div class="actions">
+    <select class="preset-select" id="presetSelect">
+      <option value="weekly">📂 템플릿: AI 주간 업무 보고서</option>
+      <option value="project">📂 템플릿: 신규 프로젝트 런칭 로드맵</option>
+      <option value="onboarding">📂 템플릿: AI 도구 온보딩 &amp; 가이드</option>
+    </select>
+    <button class="btn" id="copyHtmlBtn">📋 HTML 복사</button>
+    <button class="btn primary" id="exportHtmlBtn">💾 HTML 다운로드</button>
+  </div>
+</header>
+
+<div class="workspace">
+  <!-- 좌측 편집창 -->
+  <aside class="editor-pane">
+    <nav class="editor-tabs">
+      <button class="tab-btn active" id="tabForm">비주얼 폼 편집</button>
+      <button class="tab-btn" id="tabJson">JSON 직접 편집</button>
+    </nav>
+    
+    <!-- 폼 모드 -->
+    <div class="editor-scroll" id="formView">
+      <div class="section-divider">기본 정보</div>
+      <div class="form-group">
+        <label>보고서 / 워크플로우 제목</label>
+        <input type="text" id="fTitle" placeholder="예: AI 기반 주간 업무 자동화 보고서">
+      </div>
+      <div class="form-group">
+        <label>상단 배지 문구</label>
+        <input type="text" id="fBadge" placeholder="예: 🚀 2026 스마트 워크 플레이북">
+      </div>
+      <div class="form-group">
+        <label>요약 설명</label>
+        <textarea id="fDesc" placeholder="워크플로우의 목적과 기대 효과를 입력하세요."></textarea>
+      </div>
+
+      <div class="section-divider">
+        <span>1줄 흐름 지도 (Flow Map)</span>
+        <button class="add-item-btn" onclick="addFlowItem()">+ 단계 추가</button>
+      </div>
+      <div id="flowItemsContainer"></div>
+
+      <div class="section-divider">
+        <span>3D 플립 카드 (핵심 모듈)</span>
+        <button class="add-item-btn" onclick="addCardItem()">+ 카드 추가</button>
+      </div>
+      <div id="cardItemsContainer"></div>
+
+      <div class="section-divider">
+        <span>상세 실행 단계 (스텝 &amp; 프롬프트)</span>
+        <button class="add-item-btn" onclick="addStepItem()">+ 실행 단계 추가</button>
+      </div>
+      <div id="stepItemsContainer"></div>
+
+      <div class="section-divider">
+        <span>체크리스트</span>
+        <button class="add-item-btn" onclick="addCheckItem()">+ 항목 추가</button>
+      </div>
+      <div id="checkItemsContainer"></div>
+    </div>
+
+    <!-- JSON 모드 -->
+    <div id="jsonView" style="display: none; height: 100%;">
+      <textarea id="jsonEditor" spellcheck="false"></textarea>
+    </div>
+  </aside>
+
+  <!-- 우측 실시간 프리뷰 -->
+  <main class="preview-pane">
+    <div class="preview-bar">
+      <div class="preview-dots">
+        <span class="pdot red"></span>
+        <span class="pdot yellow"></span>
+        <span class="pdot green"></span>
+      </div>
+      <span>실시간 미리보기 (Live Preview)</span>
+      <span style="font-size: .75rem; color: #1967d2;">Pretendard + Google Tone</span>
+    </div>
+    <iframe id="previewFrame" title="미리보기 화면"></iframe>
+  </main>
+</div>
+
+<script>
+  // 기본 프리셋 데이터
+  var PRESETS = {
+    weekly: {
+      "title": "AI 기반 주간 업무 자동화 워크플로우 보고서",
+      "badge": "🚀 2026 스마트 워크 플레이북",
+      "description": "반복적인 주간 회의록 정리, 데이터 수집, 고객 피드백 분석을 AI와 자동화 스크립트로 10분 안에 완료하는 워크플로우입니다.",
+      "meta": [
+        { "label": "적용 조직", "value": "전략기획 / 운영팀" },
+        { "label": "소요 시간 단축", "value": "주당 6시간 → 10분" },
+        { "label": "핵심 도구", "value": "Gemini 2.5, Google Sheets, Apps Script" }
+      ],
+      "flowmap": [
+        { "num": "1", "title": "데이터 수집", "desc": "설문 & 회의 음성 녹음", "color": "#174ea6" },
+        { "num": "2", "title": "구조화 요약", "desc": "AI 핵심 안건·액션아이템", "color": "#1967d2" },
+        { "num": "3", "title": "자동 보고서", "desc": "스프레드시트 & 슬라이드 생성", "color": "#4a90e8" },
+        { "num": "4", "title": "슬랙/메일 공유", "desc": "관계자 자동 알림", "color": "#34a853" }
+      ],
+      "cards": [
+        {
+          "badge": "PHASE 01",
+          "frontTitle": "음성 회의록 3초 구조화",
+          "tags": ["음성 인식", "Gemini", "회의록"],
+          "color": "#174ea6",
+          "backDesc": "회의 음성 파일 또는 텍스트 스크립트를 입력하면 발언자별 핵심 의견, 합의된 결정 사항, 차주 R&R을 불릿 포인트로 즉시 추출합니다."
+        },
+        {
+          "badge": "PHASE 02",
+          "frontTitle": "고객 피드백 감성 & 패턴 분석",
+          "tags": ["정량 분석", "VOC", "클러스터링"],
+          "color": "#1967d2",
+          "backDesc": "주간 접수된 수백 건의 VOC 데이터를 5가지 핵심 카테고리(버그, 기능 제안, UX 불만 등)로 분류하고 긴급 대응 우선순위를 산출합니다."
+        },
+        {
+          "badge": "PHASE 03",
+          "frontTitle": "KPI 대시보드 실시간 반영",
+          "tags": ["Apps Script", "스프레드시트", "자동 차트"],
+          "color": "#4a90e8",
+          "backDesc": "구글 시트의 Apps Script를 통해 요약된 지표를 주간 실적 대시보드와 자동 동기화하고 변동 폭이 큰 지표에 하이라이트를 표시합니다."
+        },
+        {
+          "badge": "PHASE 04",
+          "frontTitle": "경영진 요약 브리프 자동 발송",
+          "tags": ["자동화", "이메일", "Slack Webhook"],
+          "color": "#34a853",
+          "backDesc": "작성된 최종 주간 보고서를 PDF로 변환해 지정된 팀 채널과 담당자 이메일로 매주 금요일 오후 5시에 예약 발송합니다."
+        }
+      ],
+      "steps": [
+        {
+          "num": "1",
+          "title": "회의 녹음 텍스트 프롬프트로 가공하기",
+          "tool": "Gemini 2.5 Pro",
+          "toolClass": "gemini",
+          "goal": "🎯 목표: 1시간 분량 회의 텍스트에서 액션 플랜 5개 도출",
+          "desc": "아래 프롬프트 템플릿을 복사하여 Gemini에 회의록 전문과 함께 입력하세요. 발언자별 결정 사항과 마감 기한이 표 형태로 정리됩니다.",
+          "prompt": "당신은 전략기획팀의 수석 PM입니다. 아래 제공되는 [주간 회의 녹취록]을 읽고 다음 형식으로 정리해 주세요:\n\n1. 3줄 핵심 요약\n2. 주요 결정 사항 (결정 내용 / 합의 배경)\n3. 액션 아이템 목록 (작업명 | 담당자 | 마감일 | 우선순위 표 형식)\n4. 해결되지 않은 리스크 및 추가 논의 필요 안건\n\n[주간 회의 녹취록]:\n(여기에 회의록 내용을 붙여넣으세요)",
+          "tip": "💡 팁: 발언자가 여러 명일 경우 각자 이름을 식별할 수 있도록 사전 가이드 프롬프트를 함께 주면 정확도가 40% 이상 향상됩니다."
+        },
+        {
+          "num": "2",
+          "title": "구글 스프레드시트 자동 동기화 Apps Script 설정",
+          "tool": "Google Apps Script",
+          "toolClass": "gas",
+          "goal": "🎯 목표: 요약 데이터를 시트에 행 단위로 누적",
+          "desc": "스프레드시트 > 확장 프로그램 > Apps Script에 아래 함수를 등록하고 매주 실행하도록 트리거를 설정합니다.",
+          "prompt": "function syncWeeklyReport(data) {\n  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('주간보고');\n  var now = new Date();\n  sheet.appendRow([\n    Utilities.formatDate(now, 'GMT+9', 'yyyy-MM-dd HH:mm'),\n    data.summary,\n    data.decisions,\n    data.actionItems\n  ]);\n  Logger.log('주간 데이터 동기화 완료: ' + now);\n}",
+          "tip": "⚠️ 주의: 시트 탭 이름이 '주간보고'와 정확히 일치해야 합니다."
+        }
+      ],
+      "checklist": [
+        "구글 드라이브 주간 보고 폴더 권한 확인",
+        "회의 음성 녹음본 텍스트 변환(STT) 완료",
+        "Gemini 분석 결과 검토 및 액션 아이템 일정 조율",
+        "스프레드시트 누적 데이터 및 슬랙 알림 발송 확인"
+      ]
+    },
+    project: {
+      "title": "2026 Q2 신규 AI 서비스 런칭 프로젝트 로드맵",
+      "badge": "🎯 PROJECT BLUEPRINT",
+      "description": "사용자 조사부터 MVP 배포, 마케팅 캠페인까지 전사 협업을 위한 통합 워크플로우 로드맵입니다.",
+      "meta": [
+        { "label": "프로젝트 리드", "value": "프로덕트 총괄팀" },
+        { "label": "목표 출시일", "value": "2026. 06. 30" }
+      ],
+      "flowmap": [
+        { "num": "1", "title": "기획 & 사용자 조사", "desc": "인터뷰 & 페르소나", "color": "#174ea6" },
+        { "num": "2", "title": "MVP 프로토타입", "desc": "와이어프레임 & AI 프롬프트", "color": "#1967d2" },
+        { "num": "3", "title": "베타 테스트", "desc": "100인 클로즈드 베타", "color": "#4a90e8" },
+        { "num": "4", "title": "글로벌 런칭", "desc": "GA 배포 및 마케팅", "color": "#34a853" }
+      ],
+      "cards": [
+        {
+          "badge": "TRACK 01",
+          "frontTitle": "고객 리서치 & 니즈 검증",
+          "tags": ["User Interview", "데이터 분석"],
+          "color": "#174ea6",
+          "backDesc": "잠재 고객 50명 대상 심층 인터뷰를 진행하고 핵심 페인포인트 top 3를 명문화합니다."
+        },
+        {
+          "badge": "TRACK 02",
+          "frontTitle": "AI 에이전트 아키텍처 설계",
+          "tags": ["LLM", "Cloudflare Workers", "D1"],
+          "color": "#1967d2",
+          "backDesc": "지연 시간 500ms 미만의 고속 응답 파이프라인 및 백엔드 데이터베이스를 설계합니다."
+        }
+      ],
+      "steps": [
+        {
+          "num": "1",
+          "title": "고객 인터뷰 내용 분석 및 페르소나 생성",
+          "tool": "Gemini 2.5 Flash",
+          "toolClass": "gemini",
+          "goal": "🎯 목표: 3가지 핵심 사용자 페르소나 도출",
+          "desc": "인터뷰 녹취록에서 공통된 문제점과 기대 가치를 추출합니다.",
+          "prompt": "아래 인터뷰 녹취록을 분석하여 우리 제품의 3가지 핵심 페르소나를 정의해 주세요:\n- 이름 및 직무\n- 핵심 페인포인트\n- 우리 솔루션에 기대하는 1순위 가치\n\n[녹취록 전문]: ...",
+          "tip": "💡 팁: 실제 인용구(Quote)를 포함시키면 기획 설득력이 높아집니다."
+        }
+      ],
+      "checklist": [
+        "핵심 기능 사양서(PRD) 확정",
+        "클라우드 인프라 보안 및 비용 견적 승인",
+        "베타 테스터 모집 랜딩 페이지 오픈"
+      ]
+    },
+    onboarding: {
+      "title": "전사 생성형 AI 실무 활용 온보딩 가이드",
+      "badge": "🎓 AGY & GEMINI GUIDE",
+      "description": "신규 입사자 및 임직원이 실무에서 AI를 가장 안전하고 생산적으로 다루기 위한 단계별 핸드북입니다.",
+      "meta": [
+        { "label": "대상", "value": "전 임직원" },
+        { "label": "수료 시간", "value": "약 40분" }
+      ],
+      "flowmap": [
+        { "num": "1", "title": "보안 가이드라인", "desc": "민감 정보 취급 수칙", "color": "#d93025" },
+        { "num": "2", "title": "프롬프트 기본기", "desc": "PARTS 원칙 마스터", "color": "#1967d2" },
+        { "num": "3", "title": "도구 실습", "desc": "Gemini Canvas & 시트", "color": "#4a90e8" },
+        { "num": "4", "title": "실무 적용", "desc": "나만의 자동화 봇", "color": "#34a853" }
+      ],
+      "cards": [
+        {
+          "badge": "RULE 01",
+          "frontTitle": "안전하고 책임감 있는 AI",
+          "tags": ["보안", "컴플라이언스", "필수"],
+          "color": "#d93025",
+          "backDesc": "개인정보(주민번호, 비밀번호 등) 및 미공개 기밀 데이터는 절대 프롬프트에 직접 입력하지 않습니다."
+        },
+        {
+          "badge": "RULE 02",
+          "frontTitle": "PARTS 프롬프트 공식",
+          "tags": ["역할", "상황", "목적", "형식"],
+          "color": "#1967d2",
+          "backDesc": "Persona, Context, Goal, Output, Style 5단계를 거치면 실패 없는 답변을 얻을 수 있습니다."
+        }
+      ],
+      "steps": [
+        {
+          "num": "1",
+          "title": "사내 기본 PARTS 프롬프트 실습",
+          "tool": "Gemini Web",
+          "toolClass": "gemini",
+          "goal": "🎯 목표: 원하는 규격의 이메일 초안 작성",
+          "desc": "아래 템플릿에 맞추어 상황과 수신자를 기입해 보세요.",
+          "prompt": "[역할]: 5년차 IT 솔루션 영업 팀장\n[상황]: 파트너사에게 차주 미팅 일정을 제안해야 함\n[목적]: 부드러우면서도 명확한 3개 후보 시간 제시\n[형식]: 비즈니스 이메일 (제목 + 본문)\n[스타일]: 정중하고 간결한 톤",
+          "tip": "💡 팁: '질문해 줘'를 추가하면 AI가 부족한 정보를 먼저 역질문합니다."
+        }
+      ],
+      "checklist": [
+        "사내 AI 보안 서약서 확인",
+        "PARTS 템플릿 북마크 등록",
+        "첫 실무 프롬프트 테스트 완료"
+      ]
+    }
+  };
+
+  var currentData = JSON.parse(JSON.stringify(PRESETS.weekly));
+
+  // ── HTML 생성 엔진 (렌더러) ──
+  function renderReportHtml(config) {
+    var title = config.title || '워크플로우 보고서';
+    var badge = config.badge || '✨ WORKFLOW & REPORT';
+    var description = config.description || '';
+    var meta = config.meta || [];
+    var flowmap = config.flowmap || [];
+    var cards = config.cards || [];
+    var steps = config.steps || [];
+    var checklist = config.checklist || [];
+
+    function esc(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function fmtTitle(t){
+      var p = t.split(/[·:]/);
+      if(p.length > 1) return esc(p[0].trim()) + ' <span class="hl">' + esc(p.slice(1).join(' · ').trim()) + '</span>';
+      return esc(t);
+    }
+
+    return '<!DOCTYPE html>\n<html lang="ko">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>' + esc(title) + '</title>\n' +
+      '<link rel="stylesheet" href="fonts/pretendard.css">\n' +
+      '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>\n' +
+      '<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">\n' +
+      '<style>\n' +
+      ':root { --cream:#ffffff; --navy:#243551; --navy-2:#34496b; --teal:#1e8e3e; --terra:#1967d2; --gold:#4a90e8; --ink:#202124; --muted:#7a7064; --line:#e8eaed; --blue-s:#e8f0fe; --green:#1e8e3e; }\n' +
+      '* { box-sizing:border-box; } body { margin:0; background:#fff; color:var(--ink); font-family:"Pretendard Variable","Pretendard",sans-serif; line-height:1.72; }\n' +
+      '.wrap { max-width:1080px; margin:0 auto; padding:0 20px 80px; }\n' +
+      '.hero { position:relative; text-align:center; padding:54px 0 24px; }\n' +
+      '.hero::before { content:""; position:absolute; inset:-40px 0 -10px; z-index:0; pointer-events:none; background:radial-gradient(620px 360px at 20% 30%, rgba(233,242,255,.95) 0%, rgba(233,242,255,0) 70%), radial-gradient(560px 340px at 70% 20%, rgba(238,226,248,.85) 0%, rgba(238,226,248,0) 70%); }\n' +
+      '.hero > * { position:relative; z-index:1; }\n' +
+      '.stamp-badge { display:inline-flex; align-items:center; gap:8px; color:#5f6368; padding:6px 15px; border-radius:999px; font-weight:600; font-size:.82rem; letter-spacing:.08em; text-transform:uppercase; background:rgba(255,255,255,.82); box-shadow:0 1px 3px rgba(60,64,67,.09); border:1px solid rgba(60,64,67,.08); }\n' +
+      '.hero h1 { font-size:clamp(2rem, 3.8vw, 2.9rem); line-height:1.2; margin:18px 0 12px; color:var(--navy); font-weight:700; letter-spacing:-.03em; }\n' +
+      '.hero h1 .hl { background:linear-gradient(100deg, #4a90e8 0%, #4aa8f5 38%, #ac87eb 70%, #ee4d5d 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }\n' +
+      '.hero p { font-size:1.06rem; color:var(--navy-2); max-width:720px; margin:0 auto; line-height:1.7; }\n' +
+      '.meta-chips { display:flex; gap:9px; justify-content:center; flex-wrap:wrap; margin-top:20px; }\n' +
+      '.meta-chip { background:#fff; border:1px solid var(--line); border-radius:999px; padding:6px 15px; font-size:.85rem; font-weight:600; color:var(--navy-2); box-shadow:0 1px 2px rgba(60,64,67,.06); }\n' +
+      '.meta-chip b { color:var(--terra); }\n' +
+      'section { padding:28px 0 16px; }\n' +
+      '.eyebrow { display:inline-flex; align-items:center; gap:8px; font-size:.78rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#80868b; margin-bottom:6px; }\n' +
+      'h2.sec { font-size:1.48rem; margin:0 0 6px; color:var(--navy); font-weight:700; letter-spacing:-.02em; }\n' +
+      '.lead { font-size:1rem; color:var(--muted); margin:0 0 20px; }\n' +
+      '.flowmap { display:flex; align-items:stretch; flex-wrap:wrap; gap:12px; margin-bottom:32px; }\n' +
+      '.fstep { flex:1 1 180px; min-width:140px; display:flex; align-items:center; gap:12px; background:linear-gradient(180deg,#fff,#f8f9fa); border:1px solid rgba(33,123,254,.35); border-left:4px solid var(--accent,#1967d2); border-radius:15px; padding:11px 13px; box-shadow:0 3px 12px rgba(36,53,81,.06); }\n' +
+      '.fnum { flex:none; width:28px; height:28px; border-radius:50%; display:grid; place-items:center; font-size:.84rem; font-weight:700; color:#fff; background:var(--accent,#1967d2); }\n' +
+      '.fmeta b { display:block; font-size:.92rem; color:var(--navy); font-weight:700; }\n' +
+      '.fmeta .ft { display:block; font-size:.76rem; color:var(--muted); }\n' +
+      '.farrow { align-self:center; color:var(--terra); font-weight:700; font-size:1.1rem; }\n' +
+      '.modgrid { display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:18px; }\n' +
+      '.flip { perspective:1400px; cursor:pointer; }\n' +
+      '.flip-inner { position:relative; width:100%; height:270px; transition:transform .6s cubic-bezier(.2,.7,.2,1); transform-style:preserve-3d; }\n' +
+      '.flip.flipped .flip-inner { transform:rotateY(180deg); }\n' +
+      '.face { position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden; display:flex; flex-direction:column; justify-content:space-between; border-radius:18px; padding:20px; background:linear-gradient(157deg,#ffffff 0%,#f8f9fa 55%,#e8eaed 100%); box-shadow:0 10px 24px rgba(36,53,81,.09), inset 0 0 0 1px rgba(33,123,254,.30); }\n' +
+      '.face::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:linear-gradient(180deg, var(--accent,#1967d2), #4a90e8); }\n' +
+      '.back { transform:rotateY(180deg); }\n' +
+      '.flip.flipped .front { pointer-events:none; } .flip:not(.flipped) .back { pointer-events:none; }\n' +
+      '.card-badge { font-size:.72rem; font-weight:700; letter-spacing:.15em; color:var(--accent,#1967d2); text-transform:uppercase; }\n' +
+      '.front h3 { margin:10px 0 0; font-size:1.32rem; color:var(--navy); font-weight:700; }\n' +
+      '.back p { margin:8px 0 10px; font-size:.88rem; color:var(--navy-2); line-height:1.6; }\n' +
+      '.tags { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:6px; }\n' +
+      '.tag { font-size:.70rem; font-weight:600; padding:3px 9px; border-radius:999px; background:#fff; border:1px solid rgba(33,123,254,.35); color:var(--navy-2); }\n' +
+      '.flip-hint { text-align:center; font-size:.74rem; font-weight:600; color:var(--muted); }\n' +
+      '.step-list { display:flex; flex-direction:column; gap:16px; margin-top:12px; }\n' +
+      '.step-card { background:#fff; border:1px solid var(--line); border-radius:20px; padding:22px 24px; box-shadow:0 2px 5px rgba(60,64,67,.05); transition:.2s; }\n' +
+      '.step-card.done { border-color:#a8dab5; background:#fafdfb; }\n' +
+      '.step-top { display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:pointer; user-select:none; }\n' +
+      '.step-title-group { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }\n' +
+      '.step-num { width:32px; height:32px; border-radius:50%; background:#1967d2; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.9rem; }\n' +
+      '.step-card.done .step-num { background:var(--green); }\n' +
+      '.step-title { margin:0; font-size:1.15rem; font-weight:700; color:var(--navy); }\n' +
+      '.tool-tag { font-size:.72rem; font-weight:700; padding:3px 10px; border-radius:999px; background:var(--blue-s); color:var(--terra); }\n' +
+      '.done-btn { font-family:inherit; font-size:.80rem; font-weight:700; padding:5px 13px; border-radius:999px; border:1px solid var(--line); background:#fff; color:var(--navy-2); cursor:pointer; }\n' +
+      '.step-card.done .done-btn { background:var(--green); color:#fff; border-color:var(--green); }\n' +
+      '.step-body { margin-top:16px; padding-top:14px; border-top:1px solid var(--line); }\n' +
+      '.step-goal { font-size:.90rem; font-weight:700; color:var(--terra); margin-bottom:8px; }\n' +
+      '.step-desc { font-size:.93rem; color:var(--navy-2); margin-bottom:12px; }\n' +
+      '.prompt-box { position:relative; background:#f8f9fa; border:1px solid #dadce0; border-radius:13px; padding:16px; margin:10px 0; }\n' +
+      '.prompt-box pre { margin:0; font-family:monospace; font-size:.86rem; line-height:1.65; white-space:pre-wrap; word-break:break-all; }\n' +
+      '.copy-btn { position:absolute; top:10px; right:10px; font-family:inherit; font-size:.76rem; font-weight:700; padding:5px 11px; border-radius:7px; border:1px solid #dadce0; background:#fff; color:var(--navy-2); cursor:pointer; }\n' +
+      '.copy-btn:hover { background:var(--blue-s); border-color:#c6dafc; color:var(--terra); }\n' +
+      '.tip-box { background:var(--blue-s); border-radius:11px; padding:11px 15px; font-size:.86rem; color:#174ea6; margin-top:10px; }\n' +
+      '.checklist-card { background:#fff; border:1px solid var(--line); border-radius:18px; padding:22px; }\n' +
+      '.check-item { display:flex; align-items:center; gap:11px; padding:9px 0; border-bottom:1px solid #f1f3f4; font-size:.93rem; color:var(--navy-2); cursor:pointer; }\n' +
+      '.check-item input[type="checkbox"] { width:19px; height:19px; accent-color:var(--terra); cursor:pointer; }\n' +
+      'footer { text-align:center; color:var(--muted); font-size:.83rem; padding:36px 0 18px; border-top:1px solid var(--line); margin-top:44px; }\n' +
+      'body::after { content:""; position:fixed; left:0; right:0; bottom:0; height:3px; z-index:9999; pointer-events:none; background:linear-gradient(90deg,#3186ff 0%,#3186ff 24%,#2b8ee7 33%,#1fa1ad 41%,#12b572 50%,#91c52b 58%,#ffae0e 66%,#ff6c2e 75%,#c85774 84%,#4380ee 93%,#3186ff 100%); }\n' +
+      '</style>\n</head>\n<body>\n<div class="wrap">\n' +
+      '<header class="hero"><span class="stamp-badge">' + esc(badge) + '</span><h1>' + fmtTitle(title) + '</h1><p>' + esc(description) + '</p>' +
+      (meta.length ? '<div class="meta-chips">' + meta.map(function(m){ return '<span class="meta-chip"><b>' + esc(m.label) + ':</b> ' + esc(m.value) + '</span>'; }).join('') + '</div>' : '') +
+      '</header>\n' +
+      (flowmap.length ? '<section><div class="eyebrow">PROCESS FLOW</div><h2 class="sec">🗺️ 전체 진행 흐름</h2><p class="lead">단계별 핵심 목표와 산출물입니다.</p><div class="flowmap">' +
+        flowmap.map(function(f, i){
+          return '<div class="fstep" style="--accent:' + esc(f.color||'#1967d2') + '"><span class="fnum">' + esc(f.num||(i+1)) + '</span><div class="fmeta"><b>' + esc(f.title) + '</b><span class="ft">' + esc(f.desc) + '</span></div></div>' +
+            (i < flowmap.length - 1 ? '<span class="farrow">→</span>' : '');
+        }).join('') + '</div></section>\n' : '') +
+      (cards.length ? '<section><div class="eyebrow">OVERVIEW CARDS</div><h2 class="sec">📌 핵심 모듈 &amp; 테마</h2><p class="lead">카드를 클릭하면 상세 세부 계획을 볼 수 있습니다.</p><div class="modgrid">' +
+        cards.map(function(c){
+          return '<div class="flip" style="--accent:' + esc(c.color||'#1967d2') + '"><div class="flip-inner"><div class="face front"><div><span class="card-badge">✦ ' + esc(c.badge||'MODULE') + '</span><h3>' + esc(c.frontTitle) + '</h3></div><div class="tags">' +
+            (c.tags||[]).map(function(t){ return '<span class="tag">' + esc(t) + '</span>'; }).join('') +
+            '</div><div class="flip-hint">카드를 누르면 상세 내용 ↻</div></div><div class="face back"><div class="backbody"><span class="card-badge">✦ ' + esc(c.badge||'MODULE') + '</span><p>' + esc(c.backDesc) + '</p></div><div class="flip-hint">카드를 누르면 앞면으로 ↻</div></div></div></div>';
+        }).join('') + '</div></section>\n' : '') +
+      (steps.length ? '<section><div class="eyebrow">STEP-BY-STEP WORKFLOW</div><h2 class="sec">🛠️ 단계별 실행 및 프롬프트</h2><p class="lead">프롬프트와 가이드를 복사하여 즉시 실행하세요.</p><div class="step-list">' +
+        steps.map(function(s, idx){
+          return '<div class="step-card" id="stepCard_' + idx + '"><div class="step-top" onclick="toggleStep(' + idx + ')"><div class="step-title-group"><div class="step-num">' + esc(s.num||(idx+1)) + '</div><h3 class="step-title">' + esc(s.title) + '</h3>' +
+            (s.tool ? '<span class="tool-tag">' + esc(s.tool) + '</span>' : '') +
+            '</div><button class="done-btn" onclick="event.stopPropagation(); toggleDone(' + idx + ')">완료 체크</button></div>' +
+            '<div class="step-body" id="stepBody_' + idx + '">' +
+            (s.goal ? '<div class="step-goal">' + esc(s.goal) + '</div>' : '') +
+            (s.desc ? '<div class="step-desc">' + esc(s.desc) + '</div>' : '') +
+            (s.prompt ? '<div class="prompt-box"><button class="copy-btn" onclick="copySnippet(this)">복사</button><pre>' + esc(s.prompt) + '</pre></div>' : '') +
+            (s.tip ? '<div class="tip-box">' + esc(s.tip) + '</div>' : '') +
+            '</div></div>';
+        }).join('') + '</div></section>\n' : '') +
+      (checklist.length ? '<section><div class="eyebrow">FINAL CHECKLIST</div><h2 class="sec">✅ 최종 점검 항목</h2><div class="checklist-card">' +
+        checklist.map(function(item, i){
+          return '<label class="check-item"><input type="checkbox" onchange="saveChecklist(' + i + ', this.checked)" id="check_' + i + '"><span>' + esc(item) + '</span></label>';
+        }).join('') + '</div></section>\n' : '') +
+      '<footer>' + esc(title) + ' · Google Tone Workflow Architecture</footer></div>\n' +
+      '<script>\n' +
+      'document.querySelectorAll(".flip").forEach(function(c){ c.addEventListener("click", function(){ c.classList.toggle("flipped"); }); });\n' +
+      'function toggleStep(i){ var b = document.getElementById("stepBody_" + i); if(b) b.style.display = (b.style.display==="none") ? "block" : "none"; }\n' +
+      'function toggleDone(i){ var c = document.getElementById("stepCard_" + i); if(c) c.classList.toggle("done"); }\n' +
+      'function copySnippet(btn){ var pre = btn.parentElement.querySelector("pre"); if(!pre) return; navigator.clipboard.writeText(pre.innerText).then(function(){ var o = btn.textContent; btn.textContent="✅ 복사됨"; setTimeout(function(){ btn.textContent=o; }, 1600); }); }\n' +
+      'function saveChecklist(i, c){}\n' +
+      '<\/script>\n</body>\n</html>';
+  }
+
+  // ── UI 동기화 및 폼 렌더링 ──
+  function syncFormFromData() {
+    document.getElementById('fTitle').value = currentData.title || '';
+    document.getElementById('fBadge').value = currentData.badge || '';
+    document.getElementById('fDesc').value = currentData.description || '';
+
+    // Flow Items
+    var flowBox = document.getElementById('flowItemsContainer');
+    flowBox.innerHTML = '';
+    (currentData.flowmap || []).forEach(function(f, idx){
+      var div = document.createElement('div');
+      div.className = 'item-card';
+      div.innerHTML = '<button class="item-delete-btn" onclick="removeFlowItem(' + idx + ')">삭제</button>' +
+        '<div class="form-group" style="margin-bottom:8px;"><label>단계명</label><input type="text" value="' + (f.title||'') + '" oninput="updateFlowItem(' + idx + ', \'title\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;"><label>요약 설명</label><input type="text" value="' + (f.desc||'') + '" oninput="updateFlowItem(' + idx + ', \'desc\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:0;"><label>강조 색상 (Hex)</label><input type="color" value="' + (f.color||'#1967d2') + '" onchange="updateFlowItem(' + idx + ', \'color\', this.value)"></div>';
+      flowBox.appendChild(div);
+    });
+
+    // Cards
+    var cardBox = document.getElementById('cardItemsContainer');
+    cardBox.innerHTML = '';
+    (currentData.cards || []).forEach(function(c, idx){
+      var div = document.createElement('div');
+      div.className = 'item-card';
+      div.innerHTML = '<button class="item-delete-btn" onclick="removeCardItem(' + idx + ')">삭제</button>' +
+        '<div class="form-group" style="margin-bottom:8px;"><label>앞면 제목</label><input type="text" value="' + (c.frontTitle||'') + '" oninput="updateCardItem(' + idx + ', \'frontTitle\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;"><label>배지 / 페이즈</label><input type="text" value="' + (c.badge||'') + '" oninput="updateCardItem(' + idx + ', \'badge\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;"><label>태그 (쉼표로 구분)</label><input type="text" value="' + (c.tags ? c.tags.join(', ') : '') + '" oninput="updateCardTags(' + idx + ', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:0;"><label>뒷면 상세 설명</label><textarea oninput="updateCardItem(' + idx + ', \'backDesc\', this.value)">' + (c.backDesc||'') + '</textarea></div>';
+      cardBox.appendChild(div);
+    });
+
+    // Steps
+    var stepBox = document.getElementById('stepItemsContainer');
+    stepBox.innerHTML = '';
+    (currentData.steps || []).forEach(function(s, idx){
+      var div = document.createElement('div');
+      div.className = 'item-card';
+      div.innerHTML = '<button class="item-delete-btn" onclick="removeStepItem(' + idx + ')">삭제</button>' +
+        '<div class="form-group" style="margin-bottom:8px;"><label>단계 제목</label><input type="text" value="' + (s.title||'') + '" oninput="updateStepItem(' + idx + ', \'title\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;"><label>사용 도구</label><input type="text" value="' + (s.tool||'') + '" oninput="updateStepItem(' + idx + ', \'tool\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;"><label>목표 (Goal)</label><input type="text" value="' + (s.goal||'') + '" oninput="updateStepItem(' + idx + ', \'goal\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;"><label>실행 프롬프트 또는 코드</label><textarea style="min-height:90px;" oninput="updateStepItem(' + idx + ', \'prompt\', this.value)">' + (s.prompt||'') + '</textarea></div>' +
+        '<div class="form-group" style="margin-bottom:0;"><label>팁 / 주의사항</label><input type="text" value="' + (s.tip||'') + '" oninput="updateStepItem(' + idx + ', \'tip\', this.value)"></div>';
+      stepBox.appendChild(div);
+    });
+
+    // Checklist
+    var checkContainer = document.getElementById('checkItemsContainer');
+    checkContainer.innerHTML = '';
+    (currentData.checklist || []).forEach(function(item, idx){
+      var div = document.createElement('div');
+      div.className = 'item-card';
+      div.style.padding = '8px 12px';
+      div.innerHTML = '<button class="item-delete-btn" style="top:5px;" onclick="removeCheckItem(' + idx + ')">삭제</button>' +
+        '<input type="text" style="width:calc(100% - 50px);" value="' + item + '" oninput="updateCheckItem(' + idx + ', this.value)">';
+      checkContainer.appendChild(div);
+    });
+
+    // JSON editor sync
+    document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2);
+    updateLivePreview();
+  }
+
+  function updateLivePreview() {
+    var html = renderReportHtml(currentData);
+    var frame = document.getElementById('previewFrame');
+    var doc = frame.contentDocument || frame.contentWindow.document;
+    doc.open();
+    doc.write(html);
+    doc.close();
+  }
+
+  // 기본 폼 입력 이벤트
+  ['fTitle', 'fBadge', 'fDesc'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', function(){
+      currentData.title = document.getElementById('fTitle').value;
+      currentData.badge = document.getElementById('fBadge').value;
+      currentData.description = document.getElementById('fDesc').value;
+      document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2);
+      updateLivePreview();
+    });
+  });
+
+  // Flow Helper
+  window.addFlowItem = function(){
+    currentData.flowmap = currentData.flowmap || [];
+    currentData.flowmap.push({ num: String(currentData.flowmap.length + 1), title: "새로운 단계", desc: "단계 설명", color: "#1967d2" });
+    syncFormFromData();
+  };
+  window.removeFlowItem = function(idx){ currentData.flowmap.splice(idx, 1); syncFormFromData(); };
+  window.updateFlowItem = function(idx, key, val){ currentData.flowmap[idx][key] = val; updateLivePreview(); };
+
+  // Card Helper
+  window.addCardItem = function(){
+    currentData.cards = currentData.cards || [];
+    currentData.cards.push({ badge: "PHASE 0" + (currentData.cards.length + 1), frontTitle: "새로운 모듈", tags: ["핵심", "전략"], color: "#1967d2", backDesc: "상세 실행 계획" });
+    syncFormFromData();
+  };
+  window.removeCardItem = function(idx){ currentData.cards.splice(idx, 1); syncFormFromData(); };
+  window.updateCardItem = function(idx, key, val){ currentData.cards[idx][key] = val; updateLivePreview(); };
+  window.updateCardTags = function(idx, val){ currentData.cards[idx].tags = val.split(',').map(function(t){ return t.trim(); }); updateLivePreview(); };
+
+  // Step Helper
+  window.addStepItem = function(){
+    currentData.steps = currentData.steps || [];
+    currentData.steps.push({ num: String(currentData.steps.length + 1), title: "새로운 실행 스텝", tool: "Gemini", goal: "🎯 목표 입력", desc: "실행 가이드", prompt: "프롬프트 내용", tip: "💡 팁" });
+    syncFormFromData();
+  };
+  window.removeStepItem = function(idx){ currentData.steps.splice(idx, 1); syncFormFromData(); };
+  window.updateStepItem = function(idx, key, val){ currentData.steps[idx][key] = val; updateLivePreview(); };
+
+  // Check Helper
+  window.addCheckItem = function(){
+    currentData.checklist = currentData.checklist || [];
+    currentData.checklist.push("신규 점검 항목");
+    syncFormFromData();
+  };
+  window.removeCheckItem = function(idx){ currentData.checklist.splice(idx, 1); syncFormFromData(); };
+  window.updateCheckItem = function(idx, val){ currentData.checklist[idx] = val; updateLivePreview(); };
+
+  // ── 탭 전환 (폼 vs JSON) ──
+  document.getElementById('tabForm').addEventListener('click', function(){
+    document.getElementById('tabForm').classList.add('active');
+    document.getElementById('tabJson').classList.remove('active');
+    document.getElementById('formView').style.display = 'block';
+    document.getElementById('jsonView').style.display = 'none';
+    syncFormFromData();
+  });
+  document.getElementById('tabJson').addEventListener('click', function(){
+    document.getElementById('tabJson').classList.add('active');
+    document.getElementById('tabForm').classList.remove('active');
+    document.getElementById('formView').style.display = 'none';
+    document.getElementById('jsonView').style.display = 'block';
+    document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2);
+  });
+  document.getElementById('jsonEditor').addEventListener('input', function(){
+    try {
+      currentData = JSON.parse(document.getElementById('jsonEditor').value);
+      updateLivePreview();
+    } catch(e){}
+  });
+
+  // ── 프리셋 변경 ──
+  document.getElementById('presetSelect').addEventListener('change', function(e){
+    var k = e.target.value;
+    if(PRESETS[k]){
+      currentData = JSON.parse(JSON.stringify(PRESETS[k]));
+      syncFormFromData();
+    }
+  });
+
+  // ── 내보내기 & 복사 ──
+  document.getElementById('copyHtmlBtn').addEventListener('click', function(){
+    var html = renderReportHtml(currentData);
+    navigator.clipboard.writeText(html).then(function(){
+      alert('✅ 생성된 HTML 코드가 클립보드에 복사되었습니다!');
+    });
+  });
+
+  document.getElementById('exportHtmlBtn').addEventListener('click', function(){
+    var html = renderReportHtml(currentData);
+    var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = (currentData.title || 'workflow-report').replace(/\s+/g, '_') + '.html';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // 초기 렌더링
+  syncFormFromData();
+</script>
+</body>
+</html>
