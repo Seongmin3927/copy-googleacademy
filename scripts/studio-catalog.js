@@ -8,6 +8,7 @@
  * 1. 절대 좌표(left, top, width, height, zIndex) 속성 완전 배제
  * 2. 수직 순서(order) 기반 flex/block 자동 흐름 배치
  * 3. 각 노드는 경량화된 { id, type, order, data, settings } 구조 준수
+ * 4. 캔버스 위에서 contenteditable="true"를 통한 인라인 직접 편집 지원
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
@@ -23,7 +24,7 @@
 
   const STUDIO_CATALOG = {
     meta: {
-      version: "3.0.0-linear",
+      version: "3.1.0-linear",
       architecture: "Linear Block Stack (Vertical Flow)",
       description: "Google Academy 핵심 UI 수직 스택형 표준 컴포넌트 카탈로그 (JSON AST)"
     },
@@ -252,14 +253,16 @@
     },
 
     /**
-     * 선형 스택 노드를 순수 정적 HTML로 컴파일 렌더링
+     * 선형 스택 노드를 HTML로 컴파일 렌더링
      * @param {object} node { id, type, order, data, settings }
+     * @param {boolean} [isEditable=false] true일 경우 contenteditable="true" 적용
      * @returns {string} 렌더링된 HTML 문자열
      */
-    renderBlockHtml: function (node) {
+    renderBlockHtml: function (node, isEditable) {
       if (!node || !node.type) return '';
       const d = node.data || {};
       const s = node.settings || {};
+      const editAttr = (field) => isEditable ? ` contenteditable="true" spellcheck="false" data-field="${field}" oninput="onContentEdited(this, '${node.id}', '${field}')" title="클릭하여 직접 텍스트 수정"` : '';
 
       const maxW = s.maxWidth || '880px';
       const marginH = s.align === 'left' ? '0 auto 0 0' : s.align === 'right' ? '0 0 0 auto' : '0 auto';
@@ -270,33 +273,33 @@
         case 'flipCard': {
           const accent = d.accentColor || '#1967d2';
           return `
-<div class="stack-block stack-flipcard" data-block-id="${node.id}" style="max-width:${maxW};margin:${marginH};padding:16px 0;">
+<div class="stack-block stack-flipcard" data-block-id="${node.id}" style="max-width:${maxW};margin:${marginH};padding:10px 0;">
   <div style="perspective:1400px;width:100%;min-height:360px;">
-    <div class="fcard" style="position:relative;width:100%;min-height:360px;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.2,.85,.32,1.2);border-radius:20px;box-shadow:0 8px 24px rgba(36,53,81,.08);cursor:pointer;" onclick="this.classList.toggle('flipped')">
+    <div class="fcard" style="position:relative;width:100%;min-height:360px;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.2,.85,.32,1.2);border-radius:20px;box-shadow:0 8px 24px rgba(36,53,81,.08);cursor:pointer;" onclick="if(!event.target.isContentEditable) this.classList.toggle('flipped')">
       <!-- FRONT -->
       <div class="face front" style="position:absolute;inset:0;backface-visibility:hidden;background:#ffffff;border:1px solid #dadce0;border-radius:20px;padding:24px;display:flex;flex-direction:column;justify-content:space-between;text-align:${textAlign};">
         <div>
-          <span style="display:inline-block;font-size:11px;font-weight:700;color:${accent};background:${accent}15;padding:4px 10px;border-radius:999px;">${d.badge || 'MODULE'}</span>
-          <h3 style="margin:12px 0 6px;font-size:1.25rem;font-weight:800;color:#0b1a2c;">${d.frontTitle || ''}</h3>
-          <p style="margin:0;font-size:.9rem;color:#5f6368;line-height:1.5;">${d.frontDesc || ''}</p>
+          <span style="display:inline-block;font-size:11px;font-weight:700;color:${accent};background:${accent}15;padding:4px 10px;border-radius:999px;"${editAttr('badge')}>${d.badge || 'MODULE'}</span>
+          <h3 style="margin:12px 0 6px;font-size:1.25rem;font-weight:800;color:#0b1a2c;"${editAttr('frontTitle')}>${d.frontTitle || ''}</h3>
+          <p style="margin:0;font-size:.9rem;color:#5f6368;line-height:1.5;"${editAttr('frontDesc')}>${d.frontDesc || ''}</p>
         </div>
         <div>
-          <button type="button" style="width:100%;background:${accent};color:#fff;border:none;border-radius:12px;padding:12px;font-size:.92rem;font-weight:700;cursor:pointer;">${d.frontBtnText || '자세히 보기 →'}</button>
-          <span style="display:block;text-align:center;font-size:.76rem;color:#80868b;margin-top:8px;">${d.frontHint || ''}</span>
+          <button type="button" style="width:100%;background:${accent};color:#fff;border:none;border-radius:12px;padding:12px;font-size:.92rem;font-weight:700;cursor:pointer;"${editAttr('frontBtnText')}>${d.frontBtnText || '자세히 보기 →'}</button>
+          <span style="display:block;text-align:center;font-size:.76rem;color:#80868b;margin-top:8px;"${editAttr('frontHint')}>${d.frontHint || ''}</span>
         </div>
       </div>
       <!-- BACK -->
       <div class="face back" style="position:absolute;inset:0;backface-visibility:hidden;transform:rotateY(180deg);background:#ffffff;border:1px solid ${accent}40;border-radius:20px;padding:24px;display:flex;flex-direction:column;justify-content:space-between;text-align:${textAlign};">
         <div>
-          <span style="display:inline-block;font-size:11px;font-weight:700;color:${accent};background:${accent}15;padding:4px 10px;border-radius:999px;">${d.badge || 'DETAIL'}</span>
-          <h4 style="margin:10px 0 6px;font-size:1.1rem;font-weight:800;color:#0b1a2c;">${d.backTitle || ''}</h4>
-          <p style="margin:0 0 12px;font-size:.88rem;color:#243551;line-height:1.6;">${d.backDesc || ''}</p>
+          <span style="display:inline-block;font-size:11px;font-weight:700;color:${accent};background:${accent}15;padding:4px 10px;border-radius:999px;"${editAttr('badge')}>${d.badge || 'DETAIL'}</span>
+          <h4 style="margin:10px 0 6px;font-size:1.1rem;font-weight:800;color:#0b1a2c;"${editAttr('backTitle')}>${d.backTitle || ''}</h4>
+          <p style="margin:0 0 12px;font-size:.88rem;color:#243551;line-height:1.6;"${editAttr('backDesc')}>${d.backDesc || ''}</p>
           <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:${s.align === 'center' ? 'center' : 'flex-start'};">
-            ${(d.backTags || []).map(t => `<span style="font-size:.74rem;background:#f1f3f4;color:#243551;padding:3px 8px;border-radius:6px;font-weight:600;">#${t}</span>`).join('')}
+            ${(d.backTags || []).map((t, idx) => `<span style="font-size:.74rem;background:#f1f3f4;color:#243551;padding:3px 8px;border-radius:6px;font-weight:600;"${editAttr('backTags.' + idx)}>#${t}</span>`).join('')}
           </div>
         </div>
         <div>
-          <button type="button" style="width:100%;background:${accent};color:#fff;border:none;border-radius:12px;padding:12px;font-size:.92rem;font-weight:700;cursor:pointer;">${d.backBtnText || '확인 →'}</button>
+          <button type="button" style="width:100%;background:${accent};color:#fff;border:none;border-radius:12px;padding:12px;font-size:.92rem;font-weight:700;cursor:pointer;"${editAttr('backBtnText')}>${d.backBtnText || '확인 →'}</button>
         </div>
       </div>
     </div>
@@ -310,15 +313,15 @@
           const textCol = s.theme === 'navy' ? '#ffffff' : '#0b1a2c';
           return `
 <div class="stack-block stack-partsprompt" data-block-id="${node.id}" style="max-width:${maxW};margin:${marginH};padding:22px 24px;background:${bg};border:1px solid #d4e2ff;border-radius:18px;box-shadow:0 6px 20px rgba(66,133,244,.08);text-align:${textAlign};">
-  <h4 style="margin:0 0 4px;font-size:1.15rem;font-weight:800;color:${textCol};">${d.title || ''}</h4>
-  <p style="margin:0 0 16px;font-size:.88rem;color:#5f6368;">${d.desc || ''}</p>
+  <h4 style="margin:0 0 4px;font-size:1.15rem;font-weight:800;color:${textCol};"${editAttr('title')}>${d.title || ''}</h4>
+  <p style="margin:0 0 16px;font-size:.88rem;color:#5f6368;"${editAttr('desc')}>${d.desc || ''}</p>
   
-  ${(d.categories || []).map(cat => `
+  ${(d.categories || []).map((cat, catIdx) => `
     <div style="margin-bottom:12px;text-align:${textAlign};">
       <div style="font-size:.82rem;font-weight:700;color:#1967d2;margin-bottom:6px;">${cat.name}</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:${s.align === 'center' ? 'center' : 'flex-start'};">
         ${(cat.chips || []).map(c => `
-          <span style="background:${c === cat.selected ? '#1967d2' : '#ffffff'};color:${c === cat.selected ? '#ffffff' : '#243551'};border:1px solid ${c === cat.selected ? '#1967d2' : '#dadce0'};padding:5px 12px;border-radius:999px;font-size:.80rem;font-weight:600;display:inline-block;">${c}</span>
+          <button type="button" onclick="selectPartsChip('${node.id}', '${cat.key}', '${c}')" style="background:${c === cat.selected ? '#1967d2' : '#ffffff'};color:${c === cat.selected ? '#ffffff' : '#243551'};border:1px solid ${c === cat.selected ? '#1967d2' : '#dadce0'};padding:5px 12px;border-radius:999px;font-size:.80rem;font-weight:600;cursor:pointer;display:inline-block;transition:.12s;">${c}</button>
         `).join('')}
       </div>
     </div>
@@ -329,7 +332,7 @@
       <span style="font-size:.80rem;font-weight:700;color:#5f6368;">조립된 프롬프트 결과</span>
       <button type="button" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.innerText);this.innerText='✓ 복사됨!';setTimeout(()=>this.innerText='${d.copyBtnText || '복사'}',2000);" style="background:#1967d2;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:.76rem;font-weight:700;cursor:pointer;">${d.copyBtnText || '복사'}</button>
     </div>
-    <pre style="background:#1f2d44;color:#e6edf3;border-radius:10px;padding:14px;font-size:.84rem;line-height:1.6;margin:0;white-space:pre-wrap;word-break:break-word;font-family:monospace;">${d.assembledPrompt || ''}</pre>
+    <pre style="background:#1f2d44;color:#e6edf3;border-radius:10px;padding:14px;font-size:.84rem;line-height:1.6;margin:0;white-space:pre-wrap;word-break:break-word;font-family:monospace;"${editAttr('assembledPrompt')}>${d.assembledPrompt || ''}</pre>
   </div>
 </div>`.trim();
         }
@@ -337,18 +340,18 @@
         // 3. GAS 아코디언
         case 'gasAccordion': {
           return `
-<div class="stack-block stack-accordion" data-block-id="${node.id}" style="max-width:${maxW};margin:${marginH};padding:8px 0;">
+<div class="stack-block stack-accordion" data-block-id="${node.id}" style="max-width:${maxW};margin:${marginH};padding:6px 0;">
   <details class="gasfold" ${d.isOpen ? 'open' : ''} style="background:#ffffff;border:1px solid #dadce0;border-left:4px solid #1967d2;border-radius:0 18px 18px 0;box-shadow:0 4px 16px rgba(36,53,81,.06);overflow:hidden;">
     <summary style="cursor:pointer;list-style:none;padding:18px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
       ${d.logoSrc ? `<div style="flex:none;width:140px;max-width:35vw;"><img src="${d.logoSrc}" alt="GAS Logo" style="width:100%;display:block;" onerror="this.parentElement.style.display='none';"></div>` : ''}
       <div style="flex:1;min-width:200px;text-align:left;">
-        <h4 style="margin:0 0 4px;font-size:1.15rem;font-weight:800;color:#0b1a2c;">${d.title || ''}</h4>
-        <p style="margin:0;font-size:.86rem;color:#5f6368;line-height:1.5;">${d.subtitle || ''}</p>
-        <span style="display:inline-flex;align-items:center;gap:4px;margin-top:8px;background:#1967d2;color:#fff;border-radius:999px;padding:4px 12px;font-size:.76rem;font-weight:700;">${d.badgeText || '코드 보기 ▾'}</span>
+        <h4 style="margin:0 0 4px;font-size:1.15rem;font-weight:800;color:#0b1a2c;"${editAttr('title')}>${d.title || ''}</h4>
+        <p style="margin:0;font-size:.86rem;color:#5f6368;line-height:1.5;"${editAttr('subtitle')}>${d.subtitle || ''}</p>
+        <span style="display:inline-flex;align-items:center;gap:4px;margin-top:8px;background:#1967d2;color:#fff;border-radius:999px;padding:4px 12px;font-size:.76rem;font-weight:700;"${editAttr('badgeText')}>${d.badgeText || '코드 보기 ▾'}</span>
       </div>
     </summary>
     <div style="padding:0 22px 20px;border-top:1px solid #dadce0;">
-      <pre style="background:#1f2d44;color:#e6edf3;border-radius:10px;padding:14px;overflow:auto;font-family:monospace;font-size:.80rem;line-height:1.6;margin-top:12px;">${d.code || ''}</pre>
+      <pre style="background:#1f2d44;color:#e6edf3;border-radius:10px;padding:14px;overflow:auto;font-family:monospace;font-size:.80rem;line-height:1.6;margin-top:12px;"${editAttr('code')}>${d.code || ''}</pre>
     </div>
   </details>
 </div>`.trim();
@@ -358,8 +361,8 @@
         case 'postcardSimulator': {
           return `
 <div class="stack-block stack-simulator" data-block-id="${node.id}" style="max-width:${maxW};margin:${marginH};padding:24px;background:#ffffff;border:1px solid #dadce0;border-radius:20px;box-shadow:0 8px 24px rgba(36,53,81,.06);text-align:${textAlign};">
-  <h3 style="margin:0 0 6px;font-size:1.25rem;font-weight:800;color:#0b1a2c;">${d.title || ''}</h3>
-  <p style="margin:0 0 16px;font-size:.88rem;color:#5f6368;line-height:1.5;">${d.desc || ''}</p>
+  <h3 style="margin:0 0 6px;font-size:1.25rem;font-weight:800;color:#0b1a2c;"${editAttr('title')}>${d.title || ''}</h3>
+  <p style="margin:0 0 16px;font-size:.88rem;color:#5f6368;line-height:1.5;"${editAttr('desc')}>${d.desc || ''}</p>
   
   <div style="position:relative;width:100%;aspect-ratio:1630/924;border-radius:12px;overflow:hidden;background:#243551;box-shadow:0 8px 20px rgba(36,53,81,.15);">
     <img src="${d.beforeImg || 'postcard-before.jpg'}" alt="Simulator Stage" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';">
@@ -369,8 +372,8 @@
   </div>
 
   <div style="margin-top:16px;display:flex;gap:10px;justify-content:${s.align === 'center' ? 'center' : 'flex-start'};flex-wrap:wrap;">
-    <button type="button" style="background:#1967d2;color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:.92rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(25,103,210,.3);">${d.runBtnText || '⚡ 자동화 실행하기'}</button>
-    <button type="button" style="background:#f1f3f4;color:#243551;border:1px solid #dadce0;border-radius:10px;padding:10px 16px;font-size:.92rem;font-weight:700;cursor:pointer;">${d.resetBtnText || '↺ 초기화'}</button>
+    <button type="button" style="background:#1967d2;color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:.92rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(25,103,210,.3);"${editAttr('runBtnText')}>${d.runBtnText || '⚡ 자동화 실행하기'}</button>
+    <button type="button" style="background:#f1f3f4;color:#243551;border:1px solid #dadce0;border-radius:10px;padding:10px 16px;font-size:.92rem;font-weight:700;cursor:pointer;"${editAttr('resetBtnText')}>${d.resetBtnText || '↺ 초기화'}</button>
   </div>
 </div>`.trim();
         }
@@ -396,9 +399,9 @@
 <div class="stack-block stack-infonote" data-block-id="${node.id}" style="max-width:${maxW};margin:${marginH};padding:14px 18px;background:${bgCol};border-left:4px solid ${borderCol};border-radius:0 12px 12px 0;box-shadow:0 2px 8px rgba(0,0,0,.03);text-align:left;">
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
     <span style="font-size:1.1rem;line-height:1;">${d.icon || '💡'}</span>
-    <b style="font-size:.92rem;color:${titleCol};">${d.title || ''}</b>
+    <b style="font-size:.92rem;color:${titleCol};"${editAttr('title')}>${d.title || ''}</b>
   </div>
-  <p style="margin:0;font-size:.88rem;color:#243551;line-height:1.6;">${d.content || ''}</p>
+  <p style="margin:0;font-size:.88rem;color:#243551;line-height:1.6;"${editAttr('content')}>${d.content || ''}</p>
 </div>`.trim();
         }
 
@@ -418,17 +421,17 @@
 
           return `
 <div class="stack-block stack-cta" data-block-id="${node.id}" style="max-width:${maxW};margin:${marginH};padding:36px 24px;background:${bg};border-radius:20px;border:1px solid #dadce0;box-shadow:0 6px 20px rgba(36,53,81,.05);text-align:${textAlign};">
-  ${d.eyebrow ? `<span style="font-size:11px;font-weight:800;letter-spacing:.08em;color:#1967d2;text-transform:uppercase;">${d.eyebrow}</span>` : ''}
-  <h2 style="margin:6px 0 10px;font-size:1.45rem;font-weight:900;color:${textCol};line-height:1.3;">${d.title || ''}</h2>
-  <p style="max-width:620px;margin:${s.align === 'center' ? '0 auto 20px' : '0 0 20px'};font-size:.95rem;color:${subCol};line-height:1.6;">${d.description || ''}</p>
+  ${d.eyebrow ? `<span style="font-size:11px;font-weight:800;letter-spacing:.08em;color:#1967d2;text-transform:uppercase;"${editAttr('eyebrow')}>${d.eyebrow}</span>` : ''}
+  <h2 style="margin:6px 0 10px;font-size:1.45rem;font-weight:900;color:${textCol};line-height:1.3;"${editAttr('title')}>${d.title || ''}</h2>
+  <p style="max-width:620px;margin:${s.align === 'center' ? '0 auto 20px' : '0 0 20px'};font-size:.95rem;color:${subCol};line-height:1.6;"${editAttr('description')}>${d.description || ''}</p>
   
   <div style="display:flex;gap:10px;justify-content:${s.align === 'center' ? 'center' : 'flex-start'};flex-wrap:wrap;">
-    ${(d.buttons || []).map(b => {
+    ${(d.buttons || []).map((b, bIdx) => {
       const isPrimary = b.variant === 'primary';
       const btnBg = isPrimary ? '#1967d2' : '#ffffff';
       const btnCol = isPrimary ? '#ffffff' : '#1967d2';
       const btnBorder = isPrimary ? 'none' : '1px solid #c6dafc';
-      return `<a href="${b.url || '#'}" target="${b.target || '_self'}" style="display:inline-flex;align-items:center;gap:6px;background:${btnBg};color:${btnCol};border:${btnBorder};padding:11px 22px;border-radius:12px;font-size:.92rem;font-weight:700;text-decoration:none;box-shadow:0 3px 10px rgba(25,103,210,.18);transition:.15s;">${b.label || '확인'}</a>`;
+      return `<a href="${b.url || '#'}" target="${b.target || '_self'}" style="display:inline-flex;align-items:center;gap:6px;background:${btnBg};color:${btnCol};border:${btnBorder};padding:11px 22px;border-radius:12px;font-size:.92rem;font-weight:700;text-decoration:none;box-shadow:0 3px 10px rgba(25,103,210,.18);transition:.15s;"${editAttr('buttons.' + bIdx + '.label')}>${b.label || '확인'}</a>`;
     }).join('')}
   </div>
 </div>`.trim();

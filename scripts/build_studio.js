@@ -1482,6 +1482,15 @@ function buildStudio() {
       buf.push('</div></section>\\n');
     }
 
+    // 선형 블록 스택 (Studio Catalog AST)
+    if (config.stackBlocks && config.stackBlocks.length > 0 && typeof STUDIO_CATALOG !== 'undefined') {
+      buf.push('<section class="stack-blocks-section" style="margin:40px 0;"><div class="eyebrow">CUSTOM BLOCK STACK</div><h2 class="sec">🧩 수직 스택 컴포넌트</h2><div style="display:flex;flex-direction:column;gap:20px;">');
+      config.stackBlocks.forEach(function(blk){
+        buf.push(STUDIO_CATALOG.renderBlockHtml(blk, false));
+      });
+      buf.push('</div></section>\\n');
+    }
+
     buf.push('<footer>' + esc(title) + ' · Google Tone Workflow Architecture</footer></div>\\n');
 
     // ── 클라이언트 스크립트 (카드 플립, 복사, 체크, 검색) ──
@@ -1845,18 +1854,29 @@ function buildStudio() {
       checkContainer.appendChild(div);
     });
 
+    if (currentData.stackBlocks && Array.isArray(currentData.stackBlocks)) {
+      canvasBlocks = currentData.stackBlocks;
+      reindexBlockOrders();
+      renderStackCanvas();
+    }
+
     document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2);
     updateLivePreview();
     bindEditorInspectEvents();
   }
 
   function updateLivePreview() {
+    currentData.stackBlocks = canvasBlocks;
     var html = renderReportHtml(currentData, false);
     var frame = document.getElementById('previewFrame');
-    var doc = frame.contentDocument || frame.contentWindow.document;
-    doc.open();
-    doc.write(html);
-    doc.close();
+    if (frame) {
+      try {
+        var doc = frame.contentDocument || frame.contentWindow.document;
+        doc.open();
+        doc.write(html);
+        doc.close();
+      } catch(e) {}
+    }
   }
 
   // ── WhyBox / ProcBox / KpiStats 조작 헬퍼 ──
@@ -2054,6 +2074,7 @@ function buildStudio() {
   });
 
   document.getElementById('tabJson').addEventListener('click', function(){
+    currentData.stackBlocks = canvasBlocks;
     document.getElementById('tabJson').classList.add('active');
     document.getElementById('tabForm').classList.remove('active');
     document.getElementById('formView').style.display = 'none';
@@ -2065,6 +2086,11 @@ function buildStudio() {
     try {
       var parsed = JSON.parse(document.getElementById('jsonEditor').value);
       currentData = parsed;
+      if (parsed.stackBlocks && Array.isArray(parsed.stackBlocks)) {
+        canvasBlocks = parsed.stackBlocks;
+        reindexBlockOrders();
+        renderStackCanvas();
+      }
       syncToolbarButtons();
       updateLivePreview();
     } catch(e) {
@@ -2116,6 +2142,7 @@ function buildStudio() {
       alert('작업 이름을 입력해주세요.');
       return;
     }
+    currentData.stackBlocks = canvasBlocks;
     var saved = getSavedWorks();
     var key = name;
     saved[key] = {
@@ -2147,6 +2174,7 @@ function buildStudio() {
 
   // ── 배포용 순수 HTML 복사 (isExport = true: 하이라이트 및 인스펙터 스크립트 제거) ──
   document.getElementById('copyHtmlBtn').addEventListener('click', function(){
+    currentData.stackBlocks = canvasBlocks;
     var html = renderReportHtml(currentData, true);
     navigator.clipboard.writeText(html).then(function(){
       showToast('📋 순수 배포용 HTML이 클립보드에 복사되었습니다. (하이라이트 스크립트 제거됨)');
@@ -2155,6 +2183,7 @@ function buildStudio() {
 
   // ── 배포용 순수 HTML 다운로드 (isExport = true: 하이라이트 및 인스펙터 스크립트 제거) ──
   document.getElementById('downloadHtmlBtn').addEventListener('click', function(){
+    currentData.stackBlocks = canvasBlocks;
     var html = renderReportHtml(currentData, true);
     var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
     var url = URL.createObjectURL(blob);
@@ -2166,9 +2195,288 @@ function buildStudio() {
     showToast('💾 순수 배포용 HTML 파일이 다운로드되었습니다. (하이라이트 스크립트 제거됨)');
   });
 
+  // ── 수직 스택(Linear Stack) 노션/구글 설문지형 캔버스 조작 엔진 ──
+  var canvasBlocks = [];
+  var selectedBlockId = null;
+  var currentStackView = 'canvas';
+
+  function reindexBlockOrders() {
+    canvasBlocks.forEach(function(blk, idx) {
+      blk.order = idx;
+    });
+    if (typeof currentData !== 'undefined') {
+      currentData.stackBlocks = canvasBlocks;
+    }
+  }
+
+  window.addBlockToStack = function(type, targetBlockId) {
+    if (typeof STUDIO_CATALOG === 'undefined' || !STUDIO_CATALOG.templates[type]) {
+      showToast('⚠️ 지원되지 않는 블록 타입입니다: ' + type);
+      return;
+    }
+
+    var insertIdx = canvasBlocks.length;
+    if (targetBlockId) {
+      var foundIdx = canvasBlocks.findIndex(function(b){ return b.id === targetBlockId; });
+      if (foundIdx !== -1) insertIdx = foundIdx + 1;
+    } else if (selectedBlockId) {
+      var foundIdx = canvasBlocks.findIndex(function(b){ return b.id === selectedBlockId; });
+      if (foundIdx !== -1) insertIdx = foundIdx + 1;
+    }
+
+    var newNode = STUDIO_CATALOG.createNode(type, null, null, insertIdx);
+    canvasBlocks.splice(insertIdx, 0, newNode);
+    reindexBlockOrders();
+    selectedBlockId = newNode.id;
+
+    renderStackCanvas();
+
+    setTimeout(function(){
+      var el = document.getElementById('blockItem_' + newNode.id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 60);
+
+    var blockName = (STUDIO_CATALOG.templates[type] && STUDIO_CATALOG.templates[type].name) || type;
+    showToast('✨ [' + blockName + '] 블록이 추가되었습니다!');
+    updateLivePreview();
+  };
+
+  window.moveBlockUp = function(e, blockId) {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    var idx = canvasBlocks.findIndex(function(b){ return b.id === blockId; });
+    if (idx > 0) {
+      var item = canvasBlocks.splice(idx, 1)[0];
+      canvasBlocks.splice(idx - 1, 0, item);
+      reindexBlockOrders();
+      selectedBlockId = blockId;
+      renderStackCanvas();
+      showToast('🔼 블록이 한 칸 위로 이동했습니다.');
+      updateLivePreview();
+    }
+  };
+
+  window.moveBlockDown = function(e, blockId) {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    var idx = canvasBlocks.findIndex(function(b){ return b.id === blockId; });
+    if (idx !== -1 && idx < canvasBlocks.length - 1) {
+      var item = canvasBlocks.splice(idx, 1)[0];
+      canvasBlocks.splice(idx + 1, 0, item);
+      reindexBlockOrders();
+      selectedBlockId = blockId;
+      renderStackCanvas();
+      showToast('🔽 블록이 한 칸 아래로 이동했습니다.');
+      updateLivePreview();
+    }
+  };
+
+  window.duplicateBlock = function(e, blockId) {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    var idx = canvasBlocks.findIndex(function(b){ return b.id === blockId; });
+    if (idx !== -1) {
+      var original = canvasBlocks[idx];
+      var clone = JSON.parse(JSON.stringify(original));
+      clone.id = original.type + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+      canvasBlocks.splice(idx + 1, 0, clone);
+      reindexBlockOrders();
+      selectedBlockId = clone.id;
+      renderStackCanvas();
+      setTimeout(function(){
+        var el = document.getElementById('blockItem_' + clone.id);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 60);
+      showToast('📋 블록이 복제되었습니다.');
+      updateLivePreview();
+    }
+  };
+
+  window.deleteBlockFromStack = function(e, blockId) {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    var idx = canvasBlocks.findIndex(function(b){ return b.id === blockId; });
+    if (idx !== -1) {
+      var removed = canvasBlocks.splice(idx, 1)[0];
+      reindexBlockOrders();
+      if (selectedBlockId === blockId) {
+        selectedBlockId = (canvasBlocks[Math.min(idx, canvasBlocks.length - 1)]) ? canvasBlocks[Math.min(idx, canvasBlocks.length - 1)].id : null;
+      }
+      renderStackCanvas();
+      showToast('🗑️ 블록이 삭제되었습니다.');
+      updateLivePreview();
+    }
+  };
+
+  window.selectStackBlock = function(blockId, e) {
+    selectedBlockId = blockId;
+    var items = document.querySelectorAll('.stack-block-item');
+    items.forEach(function(it){
+      if (it.getAttribute('data-id') === blockId) {
+        it.classList.add('selected');
+      } else {
+        it.classList.remove('selected');
+      }
+    });
+  };
+
+  window.onCanvasBackgroundClick = function(e) {
+    if (e.target.classList.contains('stack-canvas-scroll') || e.target.id === 'stackCanvasContainer') {
+      selectedBlockId = null;
+      var items = document.querySelectorAll('.stack-block-item');
+      items.forEach(function(it){ it.classList.remove('selected'); });
+    }
+  };
+
+  window.onContentEdited = function(el, blockId, fieldPath) {
+    var blk = canvasBlocks.find(function(b){ return b.id === blockId; });
+    if (!blk || !blk.data) return;
+    var val = el.innerText;
+
+    var parts = fieldPath.split('.');
+    var curr = blk.data;
+    for (var i = 0; i < parts.length - 1; i++) {
+      var p = parts[i];
+      if (curr[p] === undefined || curr[p] === null) {
+        curr[p] = /^\\d+$/.test(parts[i + 1]) ? [] : {};
+      }
+      curr = curr[p];
+    }
+    var last = parts[parts.length - 1];
+    if (Array.isArray(curr) && /^\\d+$/.test(last)) {
+      curr[Number(last)] = val;
+    } else {
+      curr[last] = val;
+    }
+
+    if (typeof currentData !== 'undefined') {
+      currentData.stackBlocks = canvasBlocks;
+      var jsonArea = document.getElementById('jsonEditor');
+      if (jsonArea && document.getElementById('jsonView').style.display !== 'none') {
+        jsonArea.value = JSON.stringify(currentData, null, 2);
+      }
+    }
+  };
+
+  window.selectPartsChip = function(blockId, catKey, chipValue) {
+    var blk = canvasBlocks.find(function(b){ return b.id === blockId; });
+    if (!blk || !blk.data || !blk.data.categories) return;
+    var cat = blk.data.categories.find(function(c){ return c.key === catKey; });
+    if (cat) {
+      cat.selected = chipValue;
+      var role = ((blk.data.categories.find(function(c){ return c.key === 'role'; }) || {}).selected) || '';
+      var obj = ((blk.data.categories.find(function(c){ return c.key === 'objective'; }) || {}).selected) || '';
+      var fmt = ((blk.data.categories.find(function(c){ return c.key === 'format'; }) || {}).selected) || '';
+      var tone = ((blk.data.categories.find(function(c){ return c.key === 'tone'; }) || {}).selected) || '';
+      blk.data.assembledPrompt = '당신은 ' + role + '입니다. ' + obj + '을(를) 완수하세요. 결과는 ' + fmt + ' 형식으로 작성하고, ' + tone + ' 어조를 유지하세요.';
+      renderStackCanvas();
+      updateLivePreview();
+    }
+  };
+
+  window.renderStackCanvas = function() {
+    var container = document.getElementById('stackCanvasContainer');
+    var badge = document.getElementById('canvasBlockCountBadge');
+    if (badge) {
+      badge.innerText = canvasBlocks.length + '개 블록 구성 중';
+    }
+    if (!container) return;
+
+    if (canvasBlocks.length === 0) {
+      container.innerHTML = '<div class="empty-canvas-state">' +
+        '<div style="font-size:2.4rem;margin-bottom:8px;">📝</div>' +
+        '<h3 style="margin:0 0 6px;color:var(--navy);font-size:1.15rem;font-weight:800;">캔버스가 비어 있습니다</h3>' +
+        '<p style="margin:0 0 16px;color:var(--muted);font-size:.88rem;">상단 빠른 추가 바 또는 아래 셸프에서 원하는 블록을 추가하세요.</p>' +
+        '<button class="btn primary" onclick="addBlockToStack(\\'textButtonBlock\\')">+ 첫 블록 추가하기</button>' +
+        '</div>';
+      return;
+    }
+
+    var html = '';
+    canvasBlocks.forEach(function(blk, idx) {
+      var isSelected = blk.id === selectedBlockId;
+      var template = (typeof STUDIO_CATALOG !== 'undefined' && STUDIO_CATALOG.templates[blk.type]) || {};
+      var blockName = template.name || blk.type;
+
+      html += '<div class="stack-block-item' + (isSelected ? ' selected' : '') + '" id="blockItem_' + blk.id + '" data-id="' + blk.id + '" onclick="selectStackBlock(\\'' + blk.id + '\\', event)">' +
+        '<!-- Floating Action Bar -->' +
+        '<div class="block-floating-bar" onclick="event.stopPropagation()">' +
+          '<div class="block-info-tag">' +
+            '<span class="block-order-badge">№ ' + (idx + 1) + '</span>' +
+            '<span class="block-name-tag">' + blockName + '</span>' +
+          '</div>' +
+          '<div class="block-actions-group">' +
+            '<button class="fab-btn" onclick="moveBlockUp(event, \\'' + blk.id + '\\')" title="위로 이동"' + (idx === 0 ? ' disabled style="opacity:0.35;cursor:not-allowed;"' : '') + '>▲</button>' +
+            '<button class="fab-btn" onclick="moveBlockDown(event, \\'' + blk.id + '\\')" title="아래로 이동"' + (idx === canvasBlocks.length - 1 ? ' disabled style="opacity:0.35;cursor:not-allowed;"' : '') + '>▼</button>' +
+            '<button class="fab-btn" onclick="duplicateBlock(event, \\'' + blk.id + '\\')" title="블록 복제 (바로 아래 복사)">📋 복제</button>' +
+            '<button class="fab-btn danger" onclick="deleteBlockFromStack(event, \\'' + blk.id + '\\')" title="블록 삭제">🗑️ 삭제</button>' +
+          '</div>' +
+        '</div>' +
+        '<!-- Block Inner Content -->' +
+        '<div class="block-inner-content">' +
+          (typeof STUDIO_CATALOG !== 'undefined' ? STUDIO_CATALOG.renderBlockHtml(blk, true) : '<div style="padding:20px;">' + blk.type + '</div>') +
+        '</div>' +
+      '</div>';
+    });
+
+    container.innerHTML = html;
+  };
+
+  window.switchStackView = function(view) {
+    currentStackView = view;
+    var canvasView = document.getElementById('stackCanvasView');
+    var previewView = document.getElementById('previewFrameView');
+    var btnCanvas = document.getElementById('viewBtnCanvas');
+    var btnPreview = document.getElementById('viewBtnPreview');
+
+    if (view === 'preview') {
+      if (canvasView) canvasView.style.display = 'none';
+      if (previewView) previewView.style.display = 'flex';
+      if (btnCanvas) btnCanvas.classList.remove('active');
+      if (btnPreview) btnPreview.classList.add('active');
+      updateLivePreview();
+    } else {
+      if (canvasView) canvasView.style.display = 'flex';
+      if (previewView) previewView.style.display = 'none';
+      if (btnCanvas) btnCanvas.classList.add('active');
+      if (btnPreview) btnPreview.classList.remove('active');
+      renderStackCanvas();
+    }
+  };
+
+  function initCanvasBlocks() {
+    if (currentData && currentData.stackBlocks && Array.isArray(currentData.stackBlocks) && currentData.stackBlocks.length > 0) {
+      canvasBlocks = currentData.stackBlocks;
+    } else if (typeof STUDIO_CATALOG !== 'undefined') {
+      canvasBlocks = [
+        STUDIO_CATALOG.createNode('textButtonBlock', {
+          eyebrow: "2026 AI AUTOMATION",
+          title: "스마트 워크플로우 제작 스튜디오",
+          description: "원하는 블록을 순차적으로 쌓고, 실시간으로 텍스트를 인라인 직접 편집하며 최적의 자동화 페이지를 구성하세요."
+        }, { align: "center", theme: "gradient" }, 0),
+        STUDIO_CATALOG.createNode('partsPrompt', null, { align: "center", theme: "blue" }, 1),
+        STUDIO_CATALOG.createNode('flipCard', null, { align: "center", theme: "light" }, 2)
+      ];
+      if (currentData) currentData.stackBlocks = canvasBlocks;
+    }
+    reindexBlockOrders();
+    renderStackCanvas();
+  }
+
   // ── 초기화: 드롭다운 채우기 및 폼 렌더링 ──
   updatePresetDropdown();
   syncFormFromData();
+  initCanvasBlocks();
 `;
 
   // Verify the script syntax before outputting
@@ -2444,11 +2752,11 @@ function buildStudio() {
   }
 
   /* 우측 미리보기 */
-  .preview-pane { flex: 1; display: flex; flex-direction: column; height: 100%; background: #ffffff; }
+  .preview-pane { flex: 1; display: flex; flex-direction: column; height: 100%; background: #ffffff; overflow: hidden; }
   .preview-bar {
     padding: 10px 18px; border-bottom: 1px solid var(--line); background: #ffffff;
     display: flex; align-items: center; justify-content: space-between; font-size: .84rem;
-    font-weight: 600; color: var(--navy); flex-shrink: 0;
+    font-weight: 600; color: var(--navy); flex-shrink: 0; gap: 12px;
   }
   .preview-dots { display: flex; gap: 6px; }
   .pdot { width: 10px; height: 10px; border-radius: 50%; }
@@ -2456,6 +2764,279 @@ function buildStudio() {
   .pdot.yellow { background: #fbbc04; }
   .pdot.green { background: #34a853; }
   .preview-iframe { width: 100%; height: 100%; border: none; background: #f8fafd; }
+
+  /* 뷰 모드 전환 버튼 */
+  .view-tab-group {
+    display: inline-flex;
+    background: #f1f3f4;
+    border-radius: 8px;
+    padding: 3px;
+    gap: 3px;
+  }
+  .view-tab-btn {
+    border: none;
+    background: transparent;
+    padding: 5px 12px;
+    font-size: .78rem;
+    font-weight: 700;
+    color: #5f6368;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .view-tab-btn:hover {
+    color: var(--navy);
+  }
+  .view-tab-btn.active {
+    background: #ffffff;
+    color: #1a73e8;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  }
+
+  /* 스택 캔버스 빠른 추가 툴바 */
+  .canvas-stack-toolbar {
+    padding: 8px 16px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+  .canvas-tool-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    background: #f8fafd;
+    border: 1px solid #d4e2ff;
+    border-radius: 8px;
+    font-size: .76rem;
+    font-weight: 700;
+    color: #1967d2;
+    cursor: pointer;
+    transition: all .12s ease;
+  }
+  .canvas-tool-chip:hover {
+    background: #e8f0fe;
+    border-color: #1a73e8;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(26,115,232,0.15);
+  }
+  .canvas-tool-chip:active {
+    transform: translateY(0);
+  }
+
+  /* 스택 캔버스 스크롤 및 컨테이너 */
+  .stack-canvas-scroll {
+    flex: 1;
+    overflow-y: auto;
+    background: #f4f6fa;
+    padding: 24px 20px 80px;
+    position: relative;
+  }
+  .stack-canvas-container {
+    max-width: 920px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 200px;
+  }
+  .empty-canvas-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: #ffffff;
+    border: 2px dashed #dadce0;
+    border-radius: 16px;
+    margin: 20px 0;
+  }
+
+  /* 노션 / 구글 설문지형 블록 아이템 */
+  .stack-block-item {
+    position: relative;
+    background: #ffffff;
+    border: 1.5px solid #e1e4e8;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    transition: border-color .15s ease, box-shadow .15s ease;
+    cursor: default;
+  }
+  .stack-block-item:hover {
+    border-color: #c6dafc;
+    box-shadow: 0 6px 18px rgba(26,115,232,0.08);
+  }
+  .stack-block-item.selected {
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 3px rgba(26,115,232,0.18), 0 8px 24px rgba(26,115,232,0.12);
+  }
+
+  /* 블록 우측 상단 플로팅 액션 바 (Notion / Google Forms 스타일) */
+  .block-floating-bar {
+    position: absolute;
+    top: -14px;
+    right: 14px;
+    z-index: 50;
+    background: #ffffff;
+    border: 1px solid #dadce0;
+    border-radius: 999px;
+    padding: 3px 6px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity .15s ease, transform .15s ease;
+    pointer-events: none;
+  }
+  .stack-block-item:hover .block-floating-bar,
+  .stack-block-item.selected .block-floating-bar {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .block-info-tag {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-right: 4px;
+    border-right: 1px solid #eee;
+  }
+  .block-order-badge {
+    font-size: 10px;
+    font-weight: 800;
+    background: #f1f3f4;
+    color: #5f6368;
+    padding: 2px 6px;
+    border-radius: 999px;
+  }
+  .block-name-tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: #1967d2;
+    background: #e8f0fe;
+    padding: 2px 7px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .block-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .fab-btn {
+    border: none;
+    background: transparent;
+    color: #5f6368;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    transition: all .1s ease;
+  }
+  .fab-btn:hover {
+    background: #f1f3f4;
+    color: var(--navy);
+  }
+  .fab-btn.danger:hover {
+    background: #fce8e6;
+    color: #d93025;
+  }
+
+  /* 블록 내부 렌더 컨테이너 */
+  .block-inner-content {
+    padding: 8px 12px;
+  }
+
+  /* contenteditable 인라인 직접 편집 포커스 스타일 */
+  [contenteditable="true"] {
+    outline: none;
+    cursor: text;
+    border-radius: 4px;
+    transition: background .12s ease, box-shadow .12s ease;
+  }
+  [contenteditable="true"]:hover {
+    background: rgba(26, 115, 232, 0.06);
+  }
+  [contenteditable="true"]:focus {
+    background: #ffffff;
+    box-shadow: 0 0 0 2px #1a73e8;
+    border-radius: 4px;
+  }
+
+  /* 하단 빠른 블록 추가 셸프 */
+  .canvas-bottom-shelf {
+    max-width: 920px;
+    margin: 28px auto 0;
+  }
+  .shelf-line-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .shelf-line {
+    flex: 1;
+    height: 1px;
+    background: #dadce0;
+  }
+  .shelf-label {
+    font-size: .80rem;
+    font-weight: 800;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .shelf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+  }
+  .shelf-card-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #ffffff;
+    border: 1px solid #dadce0;
+    border-radius: 12px;
+    padding: 10px 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .shelf-card-btn:hover {
+    border-color: #1a73e8;
+    box-shadow: 0 4px 12px rgba(26,115,232,0.12);
+    transform: translateY(-1px);
+    background: #f8fafd;
+  }
+  .shelf-icon {
+    font-size: 1.35rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .shelf-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .shelf-title {
+    font-size: .82rem;
+    font-weight: 800;
+    color: var(--navy);
+  }
+  .shelf-sub {
+    font-size: .70rem;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
   /* JSON 모드 */
   #jsonEditor {
@@ -2808,7 +3389,7 @@ function buildStudio() {
     </div>
   </aside>
 
-  <!-- 우측 실시간 프리뷰 -->
+  <!-- 우측 실시간 프리뷰 & 노션/설문지형 스택 캔버스 -->
   <main class="preview-pane">
     <div class="preview-bar">
       <div class="preview-dots">
@@ -2816,13 +3397,80 @@ function buildStudio() {
         <span class="pdot yellow"></span>
         <span class="pdot green"></span>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span>실시간 미리보기 (Live Preview)</span>
-        <span style="font-size: .74rem; background:#e8f0fe; color:#1967d2; padding:2px 8px; border-radius:999px; font-weight:700;">🎯 2단계 DevTools 요소 검사기 동작 중</span>
+      
+      <!-- 뷰 모드 전환 탭 (노션형 캔버스 vs 완성본 미리보기) -->
+      <div class="view-tab-group">
+        <button class="view-tab-btn active" id="viewBtnCanvas" onclick="switchStackView('canvas')">📝 노션/설문지형 캔버스</button>
+        <button class="view-tab-btn" id="viewBtnPreview" onclick="switchStackView('preview')">📄 완성본 미리보기 (Iframe)</button>
       </div>
-      <span style="font-size: .75rem; color: #5f6368;">Pretendard + Google Tone Architecture</span>
+
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="canvasBlockCountBadge" style="font-size: .74rem; background:#e8f0fe; color:#1967d2; padding:2px 8px; border-radius:999px; font-weight:700;">3개 블록 구성 중</span>
+      </div>
     </div>
-    <iframe id="previewFrame" class="preview-iframe" title="미리보기 화면"></iframe>
+
+    <!-- 1. 노션/설문지형 스택 캔버스 뷰 -->
+    <div id="stackCanvasView" style="display:flex;flex-direction:column;flex:1;height:100%;overflow:hidden;">
+      <!-- 상단 빠른 블록 추가 툴바 -->
+      <div class="canvas-stack-toolbar">
+        <span style="font-size:.78rem;font-weight:800;color:var(--navy);display:flex;align-items:center;gap:4px;">
+          <span>⚡ 빠른 블록 추가:</span>
+        </span>
+        <button class="canvas-tool-chip" onclick="addBlockToStack('flipCard')"><span>📌</span> 3D 플립 카드</button>
+        <button class="canvas-tool-chip" onclick="addBlockToStack('partsPrompt')"><span>🧩</span> PARTS 프롬프트</button>
+        <button class="canvas-tool-chip" onclick="addBlockToStack('gasAccordion')"><span>📑</span> GAS 아코디언</button>
+        <button class="canvas-tool-chip" onclick="addBlockToStack('postcardSimulator')"><span>✉️</span> 엽서 시뮬레이터</button>
+        <button class="canvas-tool-chip" onclick="addBlockToStack('infoNote')"><span>💡</span> 안내 노트</button>
+        <button class="canvas-tool-chip" onclick="addBlockToStack('textButtonBlock')"><span>🎯</span> 텍스트/버튼</button>
+      </div>
+
+      <!-- 중앙 캔버스 스크롤 영역 -->
+      <div class="stack-canvas-scroll" onclick="onCanvasBackgroundClick(event)">
+        <div id="stackCanvasContainer" class="stack-canvas-container">
+          <!-- JS에서 동적으로 블록 스택 렌더링 -->
+        </div>
+
+        <!-- 하단 블록 추가 셸프 -->
+        <div class="canvas-bottom-shelf">
+          <div class="shelf-line-wrap">
+            <div class="shelf-line"></div>
+            <span class="shelf-label">➕ 새 블록 추가하기</span>
+            <div class="shelf-line"></div>
+          </div>
+          <div class="shelf-grid">
+            <button class="shelf-card-btn" onclick="addBlockToStack('flipCard')">
+              <span class="shelf-icon">📌</span>
+              <div class="shelf-text"><span class="shelf-title">3D 플립 카드</span><span class="shelf-sub">입체 회전 핵심 모듈 카드</span></div>
+            </button>
+            <button class="shelf-card-btn" onclick="addBlockToStack('partsPrompt')">
+              <span class="shelf-icon">🧩</span>
+              <div class="shelf-text"><span class="shelf-title">PARTS 프롬프트</span><span class="shelf-sub">역할·목표 칩 조립기</span></div>
+            </button>
+            <button class="shelf-card-btn" onclick="addBlockToStack('gasAccordion')">
+              <span class="shelf-icon">📑</span>
+              <div class="shelf-text"><span class="shelf-title">GAS 아코디언</span><span class="shelf-sub">접이식 스크립트 코드 상자</span></div>
+            </button>
+            <button class="shelf-card-btn" onclick="addBlockToStack('postcardSimulator')">
+              <span class="shelf-icon">✉️</span>
+              <div class="shelf-text"><span class="shelf-title">엽서 시뮬레이터</span><span class="shelf-sub">무인 발송 자동화 모의 실행</span></div>
+            </button>
+            <button class="shelf-card-btn" onclick="addBlockToStack('infoNote')">
+              <span class="shelf-icon">💡</span>
+              <div class="shelf-text"><span class="shelf-title">안내 노트</span><span class="shelf-sub">팁 / 주의 / 참고 강조 상자</span></div>
+            </button>
+            <button class="shelf-card-btn" onclick="addBlockToStack('textButtonBlock')">
+              <span class="shelf-icon">🎯</span>
+              <div class="shelf-text"><span class="shelf-title">텍스트 &amp; 버튼</span><span class="shelf-sub">타이틀, 설명, CTA 액션 버튼</span></div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 완성본 미리보기 Iframe 뷰 -->
+    <div id="previewFrameView" style="display:none;flex:1;height:100%;flex-direction:column;">
+      <iframe id="previewFrame" class="preview-iframe" title="미리보기 화면"></iframe>
+    </div>
   </main>
 </div>
 
@@ -2894,7 +3542,10 @@ function buildStudio() {
 </div>
 `;
 
-  const fullHtml = htmlHead + '<script>' + clientScript + '</' + 'script>\n</body>\n</html>\n';
+  const catalogJs = fs.readFileSync(path.join(__dirname, 'studio-catalog.js'), 'utf8');
+  const fullHtml = htmlHead +
+    '<!-- Linear Block Stack AST Catalog Engine -->\n<script>\n' + catalogJs + '\n</script>\n' +
+    '<script>\n' + clientScript + '\n</script>\n</body>\n</html>\n';
   fs.writeFileSync('builder.html', fullHtml, 'utf8');
   console.log('🎉 builder.html successfully generated! Total bytes:', fullHtml.length);
 }
