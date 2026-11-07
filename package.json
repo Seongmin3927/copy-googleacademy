@@ -5,12 +5,15 @@
   "scripts": {
     "start": "npx serve . -p 8788",
     "dev": "wrangler pages dev . --port 8788",
-    "deploy": "wrangler pages deploy ."
+    "deploy": "wrangler pages deploy .",
+    "build:search": "node scripts/build-search.js",
+    "build:report": "node cli-generator.js"
   },
   "keywords": [
     "cloudflare-pages",
     "gemini-academy",
-    "reverse-engineered"
+    "search-engine",
+    "workflow-builder"
   ],
   "author": "",
   "license": "MIT",

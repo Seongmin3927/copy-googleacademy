@@ -19,26 +19,135 @@
   body{margin:0;display:flex;flex-direction:column;height:100vh;overflow:hidden;
     font-family:"Pretendard Variable","Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;background:var(--cream);color:var(--navy);}
 
-  .topbar{flex:none;display:flex;align-items:center;gap:18px;flex-wrap:wrap;
-    padding:10px 20px;background:rgba(255,255,255,.86);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
-    box-shadow:0 1px 0 rgba(60,64,67,.08);}
-  .brand{font-weight:600;font-size:1.02rem;display:flex;align-items:center;gap:8px;white-space:nowrap;}
+  .topbar{flex:none;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding:8px 20px;background:rgba(255,255,255,.90);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+    box-shadow:0 1px 2px rgba(60,64,67,.08);position:relative;z-index:100;}
+  .brand{font-weight:700;font-size:1.02rem;display:flex;align-items:center;gap:8px;white-space:nowrap;}
   .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--terra);box-shadow:0 0 0 4px rgba(25,103,210,.18);}
-  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;}
+
+  /* ── 통합 검색창 ── */
+  .search-container { position:relative; flex:1; max-width:380px; margin:0 8px; }
+  .search-input-wrap {
+    position:relative; display:flex; align-items:center; width:100%;
+    background:#f1f3f4; border:1.5px solid transparent; border-radius:999px;
+    transition:all .2s cubic-bezier(.2,.8,.2,1);
+  }
+  .search-input-wrap:focus-within {
+    background:#ffffff; border-color:var(--terra);
+    box-shadow:0 2px 10px rgba(25,103,210,.18), 0 0 0 1px rgba(25,103,210,.1);
+  }
+  .search-icon {
+    position:absolute; left:12px; color:#5f6368; pointer-events:none;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .search-input-wrap:focus-within .search-icon { color:var(--terra); }
+  #searchInput {
+    width:100%; height:37px; padding:0 60px 0 36px;
+    border:none; background:transparent; font-family:inherit; font-size:.86rem;
+    font-weight:500; color:#202124; outline:none;
+  }
+  #searchInput::placeholder { color:#80868b; font-weight:400; font-size:.82rem; }
+  .search-kbd {
+    position:absolute; right:10px; font-size:.68rem; font-weight:700;
+    color:#5f6368; background:#ffffff; border:1px solid #dadce0; border-radius:6px;
+    padding:2px 6px; pointer-events:none; letter-spacing:-.02em;
+    box-shadow:0 1px 1px rgba(0,0,0,.06);
+  }
+  .search-input-wrap:focus-within .search-kbd { display:none; }
+  .search-clear-btn {
+    position:absolute; right:10px; width:20px; height:20px; border-radius:50%;
+    border:none; background:#dadce0; color:#5f6368; cursor:pointer;
+    display:none; align-items:center; justify-content:center; font-size:.72rem;
+    transition:.15s;
+  }
+  .search-clear-btn:hover { background:#5f6368; color:#fff; }
+
+  /* ── 검색 결과 드롭다운 ── */
+  .search-dropdown {
+    position:absolute; top:calc(100% + 8px); left:0; width:480px; max-width:92vw;
+    background:#ffffff; border:1px solid #dadce0; border-radius:18px;
+    box-shadow:0 16px 40px rgba(36,53,81,.18), 0 4px 12px rgba(60,64,67,.08);
+    overflow:hidden; z-index:1000; animation:searchFadeIn .16s ease-out;
+  }
+  @keyframes searchFadeIn {
+    from { opacity:0; transform:translateY(-6px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+  .search-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 16px; background:#f8f9fa; border-bottom:1px solid var(--line);
+    font-size:.78rem; font-weight:700; color:#5f6368;
+  }
+  .search-tip { font-size:.72rem; color:#80868b; font-weight:500; }
+  .search-results-list { max-height:420px; overflow-y:auto; padding:6px; }
+  .search-item {
+    display:flex; flex-direction:column; gap:4px; padding:10px 14px;
+    border-radius:12px; cursor:pointer; transition:background .12s, transform .12s;
+  }
+  .search-item:hover, .search-item.active-item {
+    background:#f1f6fd; transform:translateX(3px);
+  }
+  .search-item-top {
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  }
+  .search-cat-badge {
+    font-size:.68rem; font-weight:700; padding:2px 8px; border-radius:999px;
+    background:#e8f0fe; color:#1967d2;
+  }
+  .search-cat-badge.cat-home { background:#e8f0fe; color:#174ea6; }
+  .search-cat-badge.cat-m2 { background:#e8f0fe; color:#1967d2; }
+  .search-cat-badge.cat-m3 { background:#e6f4ea; color:#137333; }
+  .search-cat-badge.cat-m4 { background:#fce8e6; color:#c5221f; }
+  .search-cat-badge.cat-prep { background:#fef7e0; color:#b06000; }
+  .search-cat-badge.cat-studio { background:#f3e8fd; color:#8430ce; }
+  .search-item-title {
+    font-size:.92rem; font-weight:700; color:#202124; line-height:1.35;
+  }
+  .search-item-snippet {
+    font-size:.80rem; color:#5f6368; line-height:1.45; margin-left:2px;
+  }
+  .search-item-arrow {
+    margin-left:auto; font-size:.78rem; font-weight:700; color:var(--terra); opacity:0;
+    transition:opacity .15s;
+  }
+  .search-item:hover .search-item-arrow, .search-item.active-item .search-item-arrow { opacity:1; }
+  mark.hl-match {
+    background:#fef08a; color:#1e3a8a; font-weight:700; padding:1px 3px; border-radius:4px;
+  }
+  .search-empty {
+    padding:28px 18px; text-align:center; color:#5f6368; font-size:.88rem;
+  }
+  .search-empty-suggest {
+    display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:10px;
+  }
+  .search-suggest-chip {
+    font-size:.76rem; font-weight:600; padding:4px 11px; border-radius:999px;
+    background:#f1f3f4; color:#1967d2; border:1px solid #dadce0; cursor:pointer;
+    transition:.15s;
+  }
+  .search-suggest-chip:hover { background:#e8f0fe; border-color:#c6dafc; }
+
+  /* ── 탭 네비게이션 ── */
+  .tabs{display:flex;gap:7px;flex-wrap:wrap;margin-left:auto;}
   .tab{border:1px solid transparent;background:var(--paper);color:var(--navy-2);
-    font-family:inherit;font-weight:600;font-size:.92rem;padding:9px 16px;border-radius:999px;
+    font-family:inherit;font-weight:600;font-size:.88rem;padding:8px 15px;border-radius:999px;
     cursor:pointer;transition:.16s;white-space:nowrap;}
-  .tab .sub{display:block;font-size:.72rem;font-weight:600;color:var(--muted);margin-top:1px;}
+  .tab .sub{display:block;font-size:.70rem;font-weight:600;color:var(--muted);margin-top:1px;}
   .tab:hover{border-color:var(--terra);color:var(--terra);transform:translateY(-1px);}
   .tab.active{background:#f1f3f4;border-color:transparent;color:#202124;box-shadow:none;}
   .tab.active .sub{color:rgba(32,33,36,.62);}
 
   .stage{flex:1;position:relative;background:var(--cream);}
   iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--cream);}
-  @media (max-width:620px){
-    .topbar{gap:10px;}
-    .tabs{margin-left:0;width:100%;justify-content:center;}
+  @media (max-width:880px){
+    .search-container{max-width:240px;}
     .tab .sub{display:none;}
+  }
+  @media (max-width:680px){
+    .topbar{gap:8px;}
+    .search-container{order:3;max-width:100%;width:100%;margin:4px 0 0;}
+    .search-dropdown{width:100%;}
+    .tabs{margin-left:0;width:100%;justify-content:center;}
   }
 </style>
 </head>
@@ -46,6 +155,30 @@
 
 <header class="topbar">
   <div class="brand"><span class="dot"></span>구글 대학생 연수 · MT 프로젝트</div>
+  
+  <!-- 검색창 컨테이너 -->
+  <div class="search-container">
+    <div class="search-input-wrap">
+      <span class="search-icon">
+        <svg viewBox="0 0 24 24" width="16" height="16">
+          <path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+        </svg>
+      </span>
+      <input type="text" id="searchInput" placeholder="키워드 검색 (마스코트, 대시보드, 엽서, Apps Script...)" autocomplete="off">
+      <span class="search-kbd">Ctrl+K</span>
+      <button id="searchClearBtn" class="search-clear-btn">✕</button>
+    </div>
+
+    <!-- 검색 결과 드롭다운 -->
+    <div id="searchDropdown" class="search-dropdown" style="display:none;">
+      <div class="search-header">
+        <span id="searchResultCount">검색 결과</span>
+        <span class="search-tip">↑↓ 이동 · Enter 선택 · Esc 닫기</span>
+      </div>
+      <div id="searchResultsList" class="search-results-list"></div>
+    </div>
+  </div>
+
   <nav class="tabs" id="tabs">
     <button class="tab active" data-src="home.html">🏠 홈<span class="sub">강의 · 패들렛</span></button>
     <button class="tab" data-src="module2.html" data-module="2">모듈 2<span class="sub">나만의 MT 기획</span></button>
@@ -59,15 +192,29 @@
   <iframe id="frame" src="home.html" title="모듈 교안"></iframe>
 </div>
 
+<!-- 검색 인덱스 데이터베이스 -->
+<script src="search-data.js"></script>
+
 <script>
 (function(){
   var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
   var frame = document.getElementById('frame');
+
   function activate(src){
-    tabs.forEach(function(t){ t.classList.toggle('active', t.dataset.src === src); });
-    if(frame.getAttribute('src') !== src) frame.setAttribute('src', src);
+    var baseSrc = (src || '').split('#')[0];
+    tabs.forEach(function(t){
+      t.classList.toggle('active', t.dataset.src === baseSrc);
+    });
+    var currentBase = (frame.getAttribute('src') || '').split('#')[0];
+    if(currentBase !== baseSrc){
+      frame.setAttribute('src', src);
+    }
   }
-  tabs.forEach(function(t){ t.addEventListener('click', function(){ activate(t.dataset.src); }); });
+
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){ activate(t.dataset.src); });
+  });
+
   // 홈 모듈 카드 클릭 → 해당 탭으로 전환
   window.addEventListener('message', function(ev){
     var d = ev.data;
@@ -76,14 +223,280 @@
       if(target){ activate(target.dataset.src); window.scrollTo(0,0); }
     }
   });
-  /* 열 때는 항상 홈부터 — 마지막 탭을 기억하지 않습니다 */
-  /* 모듈 상단 번호(1·2·3…)를 '🏠 홈' 버튼 왼쪽 끝선에 맞추도록 위치를 알려줍니다 */
+
+  // 네비게이션 정렬 좌표 브로드캐스트
   function sendAlign(){
     try{ frame.contentWindow.postMessage({type:'mt-navalign', left: tabs[0].getBoundingClientRect().left}, '*'); }catch(e){}
   }
   frame.addEventListener('load', function(){ sendAlign(); setTimeout(sendAlign,300); });
   window.addEventListener('resize', function(){ setTimeout(sendAlign,30); });
   window.addEventListener('message', function(ev){ if(ev.data && ev.data.type==='mt-navalign-req') sendAlign(); });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // 🔍 실시간 검색엔진 로직 (Search Engine)
+  // ══════════════════════════════════════════════════════════════════════════
+  var searchInput = document.getElementById('searchInput');
+  var searchClearBtn = document.getElementById('searchClearBtn');
+  var searchDropdown = document.getElementById('searchDropdown');
+  var searchResultsList = document.getElementById('searchResultsList');
+  var searchResultCount = document.getElementById('searchResultCount');
+  var activeIndex = -1;
+  var currentResults = [];
+
+  var DB = window.GEMINI_SEARCH_DB || [];
+
+  function highlightText(text, query){
+    if(!query || !text) return text || '';
+    var escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    var re = new RegExp('(' + escaped + ')', 'gi');
+    return text.replace(re, '<mark class="hl-match">$1</mark>');
+  }
+
+  function getCategoryClass(cat){
+    if(cat.indexOf('홈') !== -1) return 'cat-home';
+    if(cat.indexOf('모듈 2') !== -1) return 'cat-m2';
+    if(cat.indexOf('모듈 3') !== -1) return 'cat-m3';
+    if(cat.indexOf('모듈 4') !== -1) return 'cat-m4';
+    if(cat.indexOf('사전 준비') !== -1) return 'cat-prep';
+    if(cat.indexOf('스튜디오') !== -1) return 'cat-studio';
+    return '';
+  }
+
+  function performSearch(query){
+    query = (query || '').trim().toLowerCase();
+    activeIndex = -1;
+    if(!query){
+      searchDropdown.style.display = 'none';
+      searchClearBtn.style.display = 'none';
+      currentResults = [];
+      return;
+    }
+    searchClearBtn.style.display = 'flex';
+
+    var tokens = query.split(/\s+/).filter(Boolean);
+
+    var scored = [];
+    DB.forEach(function(item){
+      var score = 0;
+      var titleLower = (item.title || '').toLowerCase();
+      var snippetLower = (item.snippet || '').toLowerCase();
+      var categoryLower = (item.category || '').toLowerCase();
+      var keywordsStr = (item.keywords || []).join(' ').toLowerCase();
+
+      tokens.forEach(function(tok){
+        if(titleLower.indexOf(tok) !== -1){
+          score += (titleLower.indexOf(tok) === 0 ? 80 : 50);
+        }
+        if(keywordsStr.indexOf(tok) !== -1){
+          score += 35;
+        }
+        if(categoryLower.indexOf(tok) !== -1){
+          score += 20;
+        }
+        if(snippetLower.indexOf(tok) !== -1){
+          score += 15;
+        }
+      });
+
+      if(score > 0){
+        scored.push({ item: item, score: score });
+      }
+    });
+
+    scored.sort(function(a, b){ return b.score - a.score; });
+    currentResults = scored.map(function(s){ return s.item; });
+
+    renderSearchResults(query);
+  }
+
+  function renderSearchResults(query){
+    searchResultsList.innerHTML = '';
+    searchDropdown.style.display = 'block';
+
+    if(currentResults.length === 0){
+      searchResultCount.textContent = '검색 결과 없음';
+      var emptyHtml = '<div class="search-empty">' +
+        '<b>"' + escapeHtml(query) + '"</b> 에 대한 결과를 찾지 못했습니다.<br>' +
+        '<span style="font-size:.80rem;color:#80868b;">추천 검색어를 클릭하여 바로 이동해 보세요:</span>' +
+        '<div class="search-empty-suggest">' +
+        '<span class="search-suggest-chip" onclick="applySuggest(\'마스코트\')">마스코트</span>' +
+        '<span class="search-suggest-chip" onclick="applySuggest(\'대시보드\')">대시보드</span>' +
+        '<span class="search-suggest-chip" onclick="applySuggest(\'Apps Script\')">Apps Script</span>' +
+        '<span class="search-suggest-chip" onclick="applySuggest(\'엽서 자동화\')">엽서 자동화</span>' +
+        '<span class="search-suggest-chip" onclick="applySuggest(\'PARTS\')">PARTS 프롬프트</span>' +
+        '<span class="search-suggest-chip" onclick="applySuggest(\'준비사항\')">사전 준비</span>' +
+        '<span class="search-suggest-chip" onclick="applySuggest(\'스튜디오\')">제작 스튜디오</span>' +
+        '</div></div>';
+      searchResultsList.innerHTML = emptyHtml;
+      return;
+    }
+
+    searchResultCount.textContent = '검색 결과 ' + currentResults.length + '건';
+
+    currentResults.forEach(function(item, idx){
+      var div = document.createElement('div');
+      div.className = 'search-item';
+      div.setAttribute('data-idx', idx);
+
+      var catClass = getCategoryClass(item.category);
+      var titleHtml = highlightText(escapeHtml(item.title), query);
+      var snippetHtml = highlightText(escapeHtml(item.snippet), query);
+
+      div.innerHTML = '<div class="search-item-top">' +
+        '<span class="search-cat-badge ' + catClass + '">' + escapeHtml(item.category) + '</span>' +
+        '<span class="search-item-title">' + titleHtml + '</span>' +
+        '<span class="search-item-arrow">이동 →</span>' +
+        '</div>' +
+        (snippetHtml ? '<div class="search-item-snippet">' + snippetHtml + '</div>' : '');
+
+      div.addEventListener('click', function(){
+        selectResult(item);
+      });
+      searchResultsList.appendChild(div);
+    });
+  }
+
+  function escapeHtml(s){
+    if(!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  window.applySuggest = function(keyword){
+    searchInput.value = keyword;
+    performSearch(keyword);
+  };
+
+  // ── 검색 결과 선택 시 해당 페이지/위치로 스크롤 & 펄스 애니메이션 ──
+  function selectResult(item){
+    var targetPage = item.page;
+    var anchor = item.anchor || '';
+
+    // 상단 탭 활성화
+    activate(targetPage);
+
+    var currentBase = (frame.getAttribute('src') || '').split('#')[0];
+    if(currentBase === targetPage){
+      // 이미 해당 페이지면 즉시 스크롤 및 하이라이트
+      scrollToAnchor(anchor);
+    } else {
+      // 다른 페이지면 로드 후 스크롤
+      frame.setAttribute('src', targetPage + anchor);
+      var onLoaded = function(){
+        setTimeout(function(){ scrollToAnchor(anchor); }, 220);
+        frame.removeEventListener('load', onLoaded);
+      };
+      frame.addEventListener('load', onLoaded);
+    }
+
+    closeSearch();
+  }
+
+  function scrollToAnchor(anchor){
+    if(!anchor) return;
+    try {
+      var doc = frame.contentDocument || frame.contentWindow.document;
+      if(!doc) return;
+      var el = doc.querySelector(anchor);
+      if(el){
+        el.scrollIntoView({ behavior:'smooth', block:'center' });
+        // 시각적 펄스 하이라이트 효과 (2.5초)
+        var origOutline = el.style.outline;
+        var origShadow = el.style.boxShadow;
+        var origTransition = el.style.transition;
+        el.style.transition = 'outline .25s ease, box-shadow .25s ease';
+        el.style.outline = '4px solid #1967d2';
+        el.style.boxShadow = '0 0 28px rgba(25, 103, 210, 0.55)';
+        setTimeout(function(){
+          el.style.outline = origOutline;
+          el.style.boxShadow = origShadow;
+          el.style.transition = origTransition;
+        }, 2600);
+      }
+    } catch(e){
+      console.warn('Scroll error:', e);
+    }
+  }
+
+  function closeSearch(){
+    searchDropdown.style.display = 'none';
+    activeIndex = -1;
+  }
+
+  // ── 입력 이벤트 & 키보드 탐색 ──
+  searchInput.addEventListener('input', function(){
+    performSearch(searchInput.value);
+  });
+
+  searchClearBtn.addEventListener('click', function(){
+    searchInput.value = '';
+    performSearch('');
+    searchInput.focus();
+  });
+
+  searchInput.addEventListener('keydown', function(e){
+    var items = searchResultsList.querySelectorAll('.search-item');
+    if(!items.length) return;
+
+    if(e.key === 'ArrowDown'){
+      e.preventDefault();
+      activeIndex = (activeIndex + 1) % items.length;
+      updateActiveItem(items);
+    } else if(e.key === 'ArrowUp'){
+      e.preventDefault();
+      activeIndex = (activeIndex - 1 + items.length) % items.length;
+      updateActiveItem(items);
+    } else if(e.key === 'Enter'){
+      e.preventDefault();
+      if(activeIndex >= 0 && activeIndex < currentResults.length){
+        selectResult(currentResults[activeIndex]);
+      } else if(currentResults.length > 0){
+        selectResult(currentResults[0]);
+      }
+    } else if(e.key === 'Escape'){
+      closeSearch();
+    }
+  });
+
+  function updateActiveItem(items){
+    items.forEach(function(el, i){
+      el.classList.toggle('active-item', i === activeIndex);
+    });
+    if(activeIndex >= 0 && items[activeIndex]){
+      items[activeIndex].scrollIntoView({ block:'nearest' });
+    }
+  }
+
+  // ── 단축키 Ctrl+K / Cmd+K / 슬래시(/) ──
+  window.addEventListener('keydown', function(e){
+    var tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+    if(tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+    if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){
+      e.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+    } else if(e.key === '/' && !e.ctrlKey && !e.metaKey){
+      e.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+    } else if(e.key === 'Escape'){
+      closeSearch();
+    }
+  });
+
+  // 외부 클릭 시 검색창 닫기
+  document.addEventListener('click', function(e){
+    if(!e.target.closest('.search-container')){
+      closeSearch();
+    }
+  });
+
+  // 검색창 다시 클릭 시 검색어가 있으면 드롭다운 재표시
+  searchInput.addEventListener('focus', function(){
+    if(searchInput.value.trim()){
+      searchDropdown.style.display = 'block';
+    }
+  });
 })();
 </script>
 </body>
