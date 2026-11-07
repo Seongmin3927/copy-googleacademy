@@ -28,18 +28,18 @@
     display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
     box-shadow: 0 1px 3px rgba(60,64,67,.08); z-index: 10;
   }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.05rem; color: var(--navy); }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.05rem; color: var(--navy); white-space: nowrap; }
   .brand .dot {
     width: 12px; height: 12px; border-radius: 50%;
     background: linear-gradient(135deg, #4a90e8, #ee4d5d);
     box-shadow: 0 0 0 3px rgba(25,103,210,.15);
   }
-  .actions { display: flex; align-items: center; gap: 10px; }
+  .actions { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
   .btn {
     display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
-    font-size: .88rem; font-weight: 600; padding: 8px 16px; border-radius: 8px;
+    font-size: .86rem; font-weight: 600; padding: 8px 14px; border-radius: 8px;
     border: 1px solid var(--line); background: var(--white); color: var(--text);
-    cursor: pointer; transition: .16s;
+    cursor: pointer; transition: .16s; white-space: nowrap;
   }
   .btn:hover { background: #f1f3f4; border-color: #c6dafc; }
   .btn.primary {
@@ -50,7 +50,9 @@
   select.preset-select {
     font-family: inherit; font-size: .88rem; padding: 7px 12px; border-radius: 8px;
     border: 1px solid var(--line); background: #fff; font-weight: 600; color: var(--navy-2);
+    max-width: 280px; text-overflow: ellipsis; outline: none;
   }
+  select.preset-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(25,103,210,.14); }
 
   /* ── 메인 스플릿 뷰 ── */
   .workspace { flex: 1; display: flex; overflow: hidden; }
@@ -146,6 +148,40 @@
   }
   input:checked + .slider { background-color: var(--primary); }
   input:checked + .slider:before { transform: translateX(20px); }
+
+  /* ── 작업 저장 모달 ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.48); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center; z-index: 9999;
+    animation: fadeIn .15s ease-out;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal-card {
+    background: #ffffff; border-radius: 18px; width: 440px; max-width: 92vw; padding: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.22); border: 1px solid var(--line);
+    animation: slideUp .2s cubic-bezier(.16,1,.3,1);
+  }
+  @keyframes slideUp { from { transform: translateY(12px) scale(.98); } to { transform: translateY(0) scale(1); } }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+  }
+  .modal-header h3 { margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--navy); }
+  .modal-close-btn {
+    width: 28px; height: 28px; border-radius: 50%; border: none; background: #f1f3f4;
+    color: #5f6368; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: .85rem; font-weight: 700; transition: .15s;
+  }
+  .modal-close-btn:hover { background: #dadce0; color: #202124; }
+  .modal-footer {
+    display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;
+  }
+  /* Toast 알림 */
+  .toast-notification {
+    position: fixed; bottom: 24px; right: 24px; z-index: 10000;
+    background: #202124; color: #fff; padding: 12px 20px; border-radius: 12px;
+    font-size: .88rem; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    display: flex; align-items: center; gap: 8px; animation: slideUp .2s ease-out;
+  }
 </style>
 </head>
 <body>
@@ -155,11 +191,10 @@
     <span class="dot"></span> Gemini Style Workflow Studio
   </div>
   <div class="actions">
-    <select class="preset-select" id="presetSelect">
-      <option value="weekly">📂 템플릿: AI 주간 업무 보고서</option>
-      <option value="project">📂 템플릿: 신규 프로젝트 런칭 로드맵</option>
-      <option value="onboarding">📂 템플릿: AI 도구 온보딩 &amp; 가이드</option>
-    </select>
+    <!-- 작업 & 템플릿 선택 드롭다운 -->
+    <select class="preset-select" id="presetSelect" title="작업 및 템플릿 불러오기"></select>
+    <button class="btn" id="deleteWorkBtn" style="display:none; color:#d93025; border-color:#fce8e6;" title="현재 불러온 저장 작업 삭제">🗑️ 삭제</button>
+    <button class="btn" id="openSaveBtn" style="background:#e8f0fe; color:#1967d2; border-color:#c6dafc;" title="현재 작성 중인 작업 내용을 브라우저에 영구 저장">💾 작업 저장</button>
     <button class="btn" id="copyHtmlBtn">📋 HTML 복사</button>
     <button class="btn primary" id="exportHtmlBtn">💾 HTML 다운로드</button>
   </div>
@@ -176,7 +211,7 @@
     <!-- 폼 모드 -->
     <div class="editor-scroll" id="formView">
       
-      <!-- ── [신규 기능] 툴바 & 검색엔진 도구 설정 ── -->
+      <!-- ── 툴바 & 검색엔진 도구 설정 ── -->
       <div class="section-divider">
         <span>🛠️ 툴바 &amp; 도구 모음 (Toolbar Tools)</span>
       </div>
@@ -303,6 +338,30 @@
     </div>
     <iframe id="previewFrame" title="미리보기 화면"></iframe>
   </main>
+</div>
+
+<!-- ── 작업 저장 모달 ── -->
+<div id="saveModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>💾 작업 내용 저장하기</h3>
+      <button class="modal-close-btn" onclick="closeSaveModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.85rem;color:var(--muted);margin:0 0 14px;line-height:1.5;">
+        현재 편집 중인 워크플로우/보고서의 이름을 입력하세요.<br>
+        저장된 작업은 상단 <b>"템플릿:"</b> 드롭다운 목록에 즉시 등록되어 언제든지 다시 불러올 수 있습니다.
+      </p>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>작업 이름</label>
+        <input type="text" id="saveWorkName" placeholder="예: 2026 3분기 마케팅 전략 보고서" onkeydown="if(event.key==='Enter') confirmSaveWork()">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeSaveModal()">취소</button>
+      <button class="btn primary" onclick="confirmSaveWork()">저장하기</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -950,20 +1009,186 @@
     } catch(e){}
   });
 
-  // ── 프리셋 변경 ──
-  document.getElementById('presetSelect').addEventListener('change', function(e){
-    var k = e.target.value;
-    if(PRESETS[k]){
-      currentData = JSON.parse(JSON.stringify(PRESETS[k]));
+  // ══════════════════════════════════════════════════════════════════════════
+  // 💾 작업 내용 영구 저장 및 템플릿 드롭다운 불러오기 (Save & Load Workspace)
+  // ══════════════════════════════════════════════════════════════════════════
+  var STORAGE_KEY_WORKS = 'gemini_studio_saved_works';
+  var currentLoadedWorkKey = null;
+
+  function getSavedWorks(){
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY_WORKS) || '{}');
+    } catch(e) {
+      return {};
+    }
+  }
+
+  function setSavedWorks(obj){
+    try {
+      localStorage.setItem(STORAGE_KEY_WORKS, JSON.stringify(obj));
+    } catch(e) {
+      console.warn('LocalStorage save failed:', e);
+    }
+  }
+
+  function updatePresetDropdown(selectedVal){
+    var select = document.getElementById('presetSelect');
+    select.innerHTML = '';
+
+    var saved = getSavedWorks();
+    var savedKeys = Object.keys(saved);
+
+    // 1. ✨ 내 저장된 작업 그룹
+    if(savedKeys.length > 0){
+      var optGroupSaved = document.createElement('optgroup');
+      optGroupSaved.label = '✨ 내 저장된 작업 (My Saved Work)';
+      savedKeys.forEach(function(key){
+        var item = saved[key];
+        var opt = document.createElement('option');
+        opt.value = 'saved:' + key;
+        opt.textContent = '💾 ' + item.name + ' (' + (item.updatedAt || '') + ')';
+        optGroupSaved.appendChild(opt);
+      });
+      select.appendChild(optGroupSaved);
+    }
+
+    // 2. 📂 기본 템플릿 그룹
+    var optGroupPresets = document.createElement('optgroup');
+    optGroupPresets.label = '📂 기본 템플릿 (Preset Templates)';
+    optGroupPresets.innerHTML =
+      '<option value="weekly">📂 템플릿: AI 주간 업무 보고서</option>' +
+      '<option value="project">📂 템플릿: 신규 프로젝트 런칭 로드맵</option>' +
+      '<option value="onboarding">📂 템플릿: AI 도구 온보딩 & 가이드</option>';
+    select.appendChild(optGroupPresets);
+
+    if(selectedVal){
+      select.value = selectedVal;
+    } else if(savedKeys.length === 0){
+      select.value = 'weekly';
+    }
+
+    updateDeleteBtnVisibility();
+  }
+
+  function updateDeleteBtnVisibility(){
+    var select = document.getElementById('presetSelect');
+    var delBtn = document.getElementById('deleteWorkBtn');
+    if(!delBtn) return;
+    if(select.value && select.value.startsWith('saved:')){
+      delBtn.style.display = 'inline-flex';
+    } else {
+      delBtn.style.display = 'none';
+    }
+  }
+
+  // ── 작업 저장 모달 열기/닫기 ──
+  document.getElementById('openSaveBtn').addEventListener('click', function(){
+    var nameInput = document.getElementById('saveWorkName');
+    nameInput.value = currentData.title || '나만의 워크플로우 보고서';
+    document.getElementById('saveModal').style.display = 'flex';
+    setTimeout(function(){ nameInput.focus(); nameInput.select(); }, 50);
+  });
+
+  window.closeSaveModal = function(){
+    document.getElementById('saveModal').style.display = 'none';
+  };
+
+  window.confirmSaveWork = function(){
+    var nameInput = document.getElementById('saveWorkName');
+    var workName = (nameInput.value || '').trim();
+    if(!workName){
+      alert('작업 이름을 입력해 주세요.');
+      nameInput.focus();
+      return;
+    }
+
+    var now = new Date();
+    var timeStr = (now.getMonth()+1) + '/' + now.getDate() + ' ' +
+                  String(now.getHours()).padStart(2, '0') + ':' +
+                  String(now.getMinutes()).padStart(2, '0');
+
+    var saved = getSavedWorks();
+    var workId = 'work_' + Date.now();
+
+    // 현재 작업이 이미 저장된 작업이고 이름이 같으면 기존 키로 덮어쓰기
+    if(currentLoadedWorkKey && saved[currentLoadedWorkKey] && saved[currentLoadedWorkKey].name === workName){
+      workId = currentLoadedWorkKey;
+    }
+
+    saved[workId] = {
+      id: workId,
+      name: workName,
+      data: JSON.parse(JSON.stringify(currentData)),
+      updatedAt: timeStr
+    };
+
+    setSavedWorks(saved);
+    currentLoadedWorkKey = workId;
+
+    closeSaveModal();
+    updatePresetDropdown('saved:' + workId);
+    showToast('✅ "' + workName + '" 작업이 안전하게 저장되었습니다!');
+  };
+
+  // ── 저장된 작업 삭제 버튼 ──
+  document.getElementById('deleteWorkBtn').addEventListener('click', function(){
+    var select = document.getElementById('presetSelect');
+    var val = select.value;
+    if(!val || !val.startsWith('saved:')) return;
+
+    var workId = val.replace('saved:', '');
+    var saved = getSavedWorks();
+    var workName = saved[workId] ? saved[workId].name : '선택된 작업';
+
+    if(confirm('정말 "' + workName + '" 저장 작업을 삭제하시겠습니까?')){
+      delete saved[workId];
+      setSavedWorks(saved);
+      currentLoadedWorkKey = null;
+      updatePresetDropdown('weekly');
+      currentData = JSON.parse(JSON.stringify(PRESETS.weekly));
       syncFormFromData();
+      showToast('🗑️ "' + workName + '" 작업이 삭제되었습니다.');
     }
   });
+
+  // ── 템플릿 & 저장 작업 선택 (불러오기) ──
+  document.getElementById('presetSelect').addEventListener('change', function(e){
+    var k = e.target.value;
+    updateDeleteBtnVisibility();
+
+    if(k.startsWith('saved:')){
+      var workId = k.replace('saved:', '');
+      var saved = getSavedWorks();
+      if(saved[workId] && saved[workId].data){
+        currentData = JSON.parse(JSON.stringify(saved[workId].data));
+        currentLoadedWorkKey = workId;
+        syncFormFromData();
+        showToast('📂 "' + saved[workId].name + '" 작업을 불러왔습니다.');
+      }
+    } else if(PRESETS[k]){
+      currentLoadedWorkKey = null;
+      currentData = JSON.parse(JSON.stringify(PRESETS[k]));
+      syncFormFromData();
+      showToast('📂 템플릿을 불러왔습니다.');
+    }
+  });
+
+  // Toast 알림
+  function showToast(msg){
+    var prev = document.querySelector('.toast-notification');
+    if(prev) prev.remove();
+    var toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(function(){ toast.remove(); }, 2400);
+  }
 
   // ── 내보내기 & 복사 ──
   document.getElementById('copyHtmlBtn').addEventListener('click', function(){
     var html = renderReportHtml(currentData);
     navigator.clipboard.writeText(html).then(function(){
-      alert('✅ 생성된 HTML 코드가 클립보드에 복사되었습니다!');
+      showToast('📋 생성된 HTML 코드가 클립보드에 복사되었습니다!');
     });
   });
 
@@ -976,9 +1201,11 @@
     a.download = (currentData.title || 'workflow-report').replace(/\s+/g, '_') + '.html';
     a.click();
     URL.revokeObjectURL(url);
+    showToast('💾 HTML 파일이 다운로드되었습니다.');
   });
 
-  // 초기 렌더링
+  // ── 초기화: 드롭다운 채우기 및 폼 렌더링 ──
+  updatePresetDropdown();
   syncFormFromData();
 </script>
 </body>
