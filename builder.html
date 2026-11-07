@@ -29,7 +29,8 @@
     --teal: #137333;
     --terra: #c5221f;
     --amber: #f9ab00;
-    --sidebar-w: 480px;
+    --orange: #ea580c;
+    --sidebar-w: 490px;
   }
 
   * { box-sizing: border-box; }
@@ -94,15 +95,17 @@
     flex: 1; overflow-y: auto; padding: 18px 20px;
     scroll-behavior: smooth;
   }
-  .form-group { margin-bottom: 16px; }
+  .form-group {
+    margin-bottom: 16px; border-radius: 8px; transition: all .16s ease;
+  }
   .form-group label { display: block; font-size: .82rem; font-weight: 700; color: var(--navy-2); margin-bottom: 6px; }
   .form-group input, .form-group textarea, .form-group select {
     width: 100%; font-family: inherit; font-size: .88rem; padding: 9px 12px;
     border: 1px solid var(--line); border-radius: 8px; background: #fff;
-    color: var(--text); box-sizing: border-box; transition: border-color .15s;
+    color: var(--text); box-sizing: border-box; transition: border-color .15s, box-shadow .15s;
   }
   .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
-    outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(25,103,210,.15);
+    outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(234,88,12,.18);
   }
   .form-group textarea { resize: vertical; min-height: 70px; }
 
@@ -167,19 +170,23 @@
   /* 도구 팔레트 버튼 랙 */
   .dock-group-title {
     font-size: .78rem; font-weight: 700; color: #5f6368; letter-spacing: .06em;
-    margin: 14px 0 8px; text-transform: uppercase; display: flex; align-items: center; gap: 6px;
+    margin: 14px 0 8px; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between;
   }
   .dock-group-title:first-child { margin-top: 0; }
+  .dock-group-tag { font-size: .68rem; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+  .dock-group-tag.layout { background: #e8f0fe; color: #1967d2; }
+  .dock-group-tag.blocks { background: #f3e8fd; color: #7627bb; }
+
   .tool-button-rack {
     display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px;
   }
-  .dock-tool-btn {
-    display: flex; align-items: center; gap: 8px; padding: 9px 11px;
+  .dock-tool-btn, .dock-widget-btn {
+    position: relative; display: flex; align-items: center; gap: 8px; padding: 9px 11px;
     background: #f8f9fa; border: 1px solid var(--line); border-radius: 10px;
     cursor: pointer; font-family: inherit; color: var(--navy-2);
     transition: all .16s ease; text-align: left;
   }
-  .dock-tool-btn:hover {
+  .dock-tool-btn:hover, .dock-widget-btn:hover {
     background: #ffffff; border-color: #c6dafc;
     box-shadow: 0 2px 8px rgba(25,103,210,.08); transform: translateY(-1px);
   }
@@ -187,10 +194,10 @@
     background: #eef5fe; border-color: #8ab4f8; color: #1967d2;
     box-shadow: 0 0 0 2px rgba(25,103,210,.14);
   }
-  .dock-tool-btn .dock-icon { font-size: 1.15rem; line-height: 1; flex-shrink: 0; }
-  .dock-tool-btn .dock-label-group { display: flex; flex-direction: column; flex: 1; min-width: 0; }
-  .dock-tool-btn .dock-name { font-size: .82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .dock-tool-btn .dock-sub { font-size: .70rem; color: #70757a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dock-tool-btn .dock-icon, .dock-widget-btn .dock-icon { font-size: 1.15rem; line-height: 1; flex-shrink: 0; }
+  .dock-tool-btn .dock-label-group, .dock-widget-btn .dock-label-group { display: flex; flex-direction: column; flex: 1; min-width: 0; padding-right: 18px; }
+  .dock-tool-btn .dock-name, .dock-widget-btn .dock-name { font-size: .82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dock-tool-btn .dock-sub, .dock-widget-btn .dock-sub { font-size: .70rem; color: #70757a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .dock-tool-btn.active .dock-sub { color: #1a73e8; font-weight: 600; }
   .dock-tool-btn .dock-pill {
     font-size: .66rem; font-weight: 800; padding: 2px 5px; border-radius: 5px;
@@ -198,32 +205,33 @@
   }
   .dock-tool-btn.active .dock-pill { background: #1967d2; color: #ffffff; }
 
-  /* 장식 위젯 추가 버튼 랙 */
-  .dock-widget-btn {
-    display: flex; align-items: center; gap: 9px; padding: 9px 11px;
-    background: #ffffff; border: 1px dashed #c6dafc; border-radius: 10px;
-    cursor: pointer; font-family: inherit; transition: all .16s ease; text-align: left;
+  /* 툴 우측 상단 '?' 도움말 아이콘 (요구사항 2) */
+  .tool-help-btn {
+    position: absolute; top: 6px; right: 6px; width: 18px; height: 18px; border-radius: 50%;
+    border: 1px solid #dadce0; background: #fff; color: #5f6368; font-size: 11px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; line-height: 1;
+    transition: all .14s ease; z-index: 2; padding: 0;
   }
-  .dock-widget-btn:hover {
-    background: #f4f8ff; border-color: #1967d2; border-style: solid;
-    transform: translateY(-1px); box-shadow: 0 3px 10px rgba(25,103,210,.1);
+  .tool-help-btn:hover {
+    background: #1967d2; color: #fff; border-color: #1967d2; transform: scale(1.15);
+    box-shadow: 0 2px 6px rgba(25,103,210,.25);
   }
-  .dock-widget-btn .dock-icon { font-size: 1.2rem; }
-  .dock-widget-btn .dock-label-group { flex: 1; min-width: 0; }
-  .dock-widget-btn .dock-name { font-size: .82rem; font-weight: 700; color: var(--navy); display: block; }
-  .dock-widget-btn .dock-sub { font-size: .70rem; color: var(--muted); display: block; }
-  .dock-widget-btn .dock-add-icon {
-    width: 20px; height: 20px; border-radius: 50%; background: #e8f0fe; color: #1967d2;
-    display: flex; align-items: center; justify-content: center; font-size: .9rem; font-weight: 800;
-  }
-  .dock-widget-btn:hover .dock-add-icon { background: #1967d2; color: #fff; }
 
-  /* ── 하이라이트 스타일 (Chrome DevTools Elements 스타일) ── */
+  /* ── 2단계 하이라이트 스타일 (Chrome DevTools Elements 스타일) ── */
+  /* 1) 상위 컨테이너 하이라이트 (Blue) */
   .editor-inspect-active {
     border-color: #1a73e8 !important;
-    box-shadow: 0 0 0 3px rgba(26,115,232,0.3), 0 8px 24px rgba(26,115,232,0.12) !important;
+    box-shadow: 0 0 0 3px rgba(26,115,232,0.28), 0 8px 24px rgba(26,115,232,0.12) !important;
     background: #f4f8ff !important;
     transform: translateY(-1px);
+    transition: all .15s ease-out !important;
+  }
+  /* 2) 하위 세부 항목 하이라이트 (Vivid Orange / Coral) (요구사항 1) */
+  .editor-inspect-subitem-active {
+    border-color: #ea580c !important;
+    box-shadow: 0 0 0 3px rgba(234,88,12,0.28), 0 4px 14px rgba(234,88,12,0.15) !important;
+    background: #fff8f5 !important;
+    border-radius: 8px !important;
     transition: all .15s ease-out !important;
   }
 
@@ -250,7 +258,7 @@
   .pdot.green { background: #34a853; }
   .preview-iframe { flex: 1; border: none; width: 100%; height: 100%; background: #fff; }
 
-  /* ── 작업 저장 모달 ── */
+  /* ── 모달 공통 스타일 ── */
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.48); backdrop-filter: blur(4px);
     display: flex; align-items: center; justify-content: center; z-index: 9999;
@@ -262,11 +270,14 @@
     box-shadow: 0 20px 50px rgba(0,0,0,0.22); border: 1px solid var(--line);
     animation: slideUp .2s cubic-bezier(.16,1,.3,1);
   }
+  .modal-card.wide {
+    width: 540px; max-height: 90vh; overflow-y: auto;
+  }
   @keyframes slideUp { from { transform: translateY(12px) scale(.98); } to { transform: translateY(0) scale(1); } }
   .modal-header {
     display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
   }
-  .modal-header h3 { margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--navy); }
+  .modal-header h3 { margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--navy); display: flex; align-items: center; gap: 8px; }
   .modal-close-btn {
     width: 28px; height: 28px; border-radius: 50%; border: none; background: #f1f3f4;
     color: #5f6368; cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -276,6 +287,7 @@
   .modal-footer {
     display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;
   }
+
   /* Toast 알림 */
   .toast-notification {
     position: fixed; bottom: 24px; right: 24px; z-index: 10000;
@@ -297,8 +309,8 @@
     <select class="preset-select" id="presetSelect" title="작업 및 템플릿 불러오기"></select>
     <button class="btn" id="deleteWorkBtn" style="display:none; color:#d93025; border-color:#fce8e6;" title="현재 불러온 저장 작업 삭제">🗑️ 삭제</button>
     <button class="btn" id="openSaveBtn" style="background:#e8f0fe; color:#1967d2; border-color:#c6dafc;" title="현재 작성 중인 작업 내용을 브라우저에 영구 저장">💾 작업 저장</button>
-    <button class="btn" id="copyHtmlBtn">📋 HTML 복사</button>
-    <button class="btn primary" id="downloadHtmlBtn">⬇️ 단일 HTML 다운로드</button>
+    <button class="btn" id="copyHtmlBtn" title="배포용 순수 HTML 복사 (하이라이트 기능 제외)">📋 HTML 복사</button>
+    <button class="btn primary" id="downloadHtmlBtn" title="배포용 순수 HTML 다운로드 (하이라이트 기능 제외)">⬇️ 단일 HTML 다운로드</button>
   </div>
 </header>
 
@@ -315,7 +327,7 @@
     <div class="editor-scroll" id="formView">
       
       <!-- ── 🛠️ 툴바 & 도구 모음 팔레트 (펼침/숨김 지원) ── -->
-      <div class="tool-section-card" id="toolbarSectionCard" data-editor-id="toolbar">
+      <div class="tool-section-card" id="toolbarSectionCard" data-editor-id="toolbar" data-editor-level="container">
         <div class="tool-section-header" id="toolbarSectionToggle" onclick="toggleToolbarSection()">
           <div class="tool-section-title-wrap">
             <span class="collapse-arrow" id="tbCollapseArrow">▾</span>
@@ -328,160 +340,173 @@
         </div>
 
         <div class="tool-section-body" id="toolbarSectionBody">
-          <!-- 상단 툴바 기능 (홈 & 공통 기능) -->
-          <div class="dock-group-title">🌐 페이지 상단 툴바 기능 (클릭하여 토글)</div>
+          <!-- 1) [구조 & 레이아웃 (Structure & Layout)] 도구군 -->
+          <div class="dock-group-title">
+            <span>🌐 구조 &amp; 레이아웃 도구 (Structure &amp; Layout)</span>
+            <span class="dock-group-tag layout">LAYOUT</span>
+          </div>
           <div class="tool-button-rack">
-            <button class="dock-tool-btn active" id="btnToolSearch" onclick="toggleToolbarFeature('showSearch')">
+            <div class="dock-tool-btn active" id="btnToolSearch" onclick="toggleToolbarFeature('showSearch')">
               <span class="dock-icon">🔍</span>
               <div class="dock-label-group">
                 <span class="dock-name">실시간 검색창</span>
                 <span class="dock-sub">인덱싱 &amp; 앵커 점프</span>
               </div>
               <span class="dock-pill" id="pillToolSearch">ON</span>
-            </button>
-            <button class="dock-tool-btn active" id="btnToolChips" onclick="toggleToolbarFeature('showSuggestChips')">
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'search')" title="설명 및 적용 예시 보기">?</button>
+            </div>
+            <div class="dock-tool-btn active" id="btnToolChips" onclick="toggleToolbarFeature('showSuggestChips')">
               <span class="dock-icon">⚡</span>
               <div class="dock-label-group">
                 <span class="dock-name">추천 검색어 칩</span>
                 <span class="dock-sub">홈(index) 키워드 태그</span>
               </div>
               <span class="dock-pill" id="pillToolChips">ON</span>
-            </button>
-            <button class="dock-tool-btn active" id="btnToolTabs" onclick="toggleToolbarFeature('showCategoryTabs')">
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'suggestChips')" title="설명 및 적용 예시 보기">?</button>
+            </div>
+            <div class="dock-tool-btn active" id="btnToolTabs" onclick="toggleToolbarFeature('showCategoryTabs')">
               <span class="dock-icon">🗂️</span>
               <div class="dock-label-group">
                 <span class="dock-name">카테고리 탭</span>
                 <span class="dock-sub">홈(index) 알약형 필터</span>
               </div>
               <span class="dock-pill" id="pillToolTabs">ON</span>
-            </button>
-            <button class="dock-tool-btn active" id="btnToolPrint" onclick="toggleToolbarFeature('showPrint')">
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'categoryTabs')" title="설명 및 적용 예시 보기">?</button>
+            </div>
+            <div class="dock-tool-btn active" id="btnToolPrint" onclick="toggleToolbarFeature('showPrint')">
               <span class="dock-icon">🖨️</span>
               <div class="dock-label-group">
                 <span class="dock-name">인쇄 / PDF</span>
                 <span class="dock-sub">원클릭 인쇄 호출</span>
               </div>
               <span class="dock-pill" id="pillToolPrint">ON</span>
-            </button>
-            <button class="dock-tool-btn active" id="btnToolProgress" onclick="toggleToolbarFeature('showProgress')">
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'print')" title="설명 및 적용 예시 보기">?</button>
+            </div>
+            <div class="dock-tool-btn active" id="btnToolProgress" onclick="toggleToolbarFeature('showProgress')">
               <span class="dock-icon">📊</span>
               <div class="dock-label-group">
                 <span class="dock-name">진행률 표시줄</span>
                 <span class="dock-sub">스크롤 인디케이터</span>
               </div>
               <span class="dock-pill" id="pillToolProgress">ON</span>
-            </button>
-            <button class="dock-tool-btn active" id="btnToolTheme" onclick="toggleToolbarFeature('showThemeToggle')">
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'progress')" title="설명 및 적용 예시 보기">?</button>
+            </div>
+            <div class="dock-tool-btn active" id="btnToolTheme" onclick="toggleToolbarFeature('showThemeToggle')">
               <span class="dock-icon">🌓</span>
               <div class="dock-label-group">
                 <span class="dock-name">다크모드 전환</span>
                 <span class="dock-sub">구글 다크 테마</span>
               </div>
               <span class="dock-pill" id="pillToolTheme">ON</span>
-            </button>
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'theme')" title="설명 및 적용 예시 보기">?</button>
+            </div>
           </div>
 
           <!-- 확장 옵션 입력 (검색어 칩 및 카테고리 탭 설정) -->
           <div id="subToolbarSettings" style="background:#f8fafd; border:1px solid #e1ecfa; border-radius:10px; padding:12px; margin-bottom:14px;">
-            <div class="form-group" style="margin-bottom:8px;">
+            <div class="form-group" style="margin-bottom:8px;" data-editor-id="tb-search-box" data-editor-level="item">
               <label style="font-size:.78rem;">검색창 안내 문구 (Placeholder)</label>
               <input type="text" id="tbSearchPlaceholder" placeholder="보고서 내 키워드 검색..." oninput="updateToolbarText('searchPlaceholder', this.value)">
             </div>
-            <div class="form-group" style="margin-bottom:8px;" id="boxSuggestChipsInput">
+            <div class="form-group" style="margin-bottom:8px;" id="boxSuggestChipsInput" data-editor-id="suggestChips" data-editor-level="item">
               <label style="font-size:.78rem;">추천 검색어 칩 (쉼표 구분)</label>
               <input type="text" id="tbSuggestChips" placeholder="마스코트, 대시보드, Apps Script, PARTS" oninput="updateSuggestChips(this.value)">
             </div>
-            <div class="form-group" style="margin-bottom:0;" id="boxCategoryTabsInput">
+            <div class="form-group" style="margin-bottom:0;" id="boxCategoryTabsInput" data-editor-id="categoryTabs" data-editor-level="item">
               <label style="font-size:.78rem;">카테고리 탭 목록 (쉼표 구분)</label>
               <input type="text" id="tbCategoryTabs" placeholder="전체, 1단계: 기획, 2단계: 실습, 3단계: 검증" oninput="updateCategoryTabs(this.value)">
             </div>
           </div>
 
-          <!-- 장식 요소 & 위젯 팔레트 (홈, 모듈 2, 3, 4 기반) -->
-          <div class="dock-group-title">✨ 장식 요소 &amp; 위젯 라이브러리 (클릭하여 추가)</div>
+          <!-- 2) [컴포넌트 & 블록 (Components & Blocks)] 위젯군 (홈, 모듈 2, 3, 4 기반) -->
+          <div class="dock-group-title">
+            <span>✨ 컴포넌트 &amp; 블록 라이브러리 (Components &amp; Blocks)</span>
+            <span class="dock-group-tag blocks">BLOCKS</span>
+          </div>
           <div class="tool-button-rack">
-            <button class="dock-widget-btn" onclick="insertWidget('whyBox')" title="모듈 2, 3, 4에 적용된 네이비 그라데이션 인트로 박스를 추가합니다.">
+            <div class="dock-widget-btn" onclick="insertWidget('whyBox')" title="모듈 2, 3, 4에 적용된 네이비 그라데이션 인트로 박스를 추가합니다.">
               <span class="dock-icon">🌌</span>
               <div class="dock-label-group">
                 <span class="dock-name">Why 인트로 박스</span>
                 <span class="dock-sub">모듈 2/3/4 네이비 카드</span>
               </div>
-              <span class="dock-add-icon">+</span>
-            </button>
-            <button class="dock-widget-btn" onclick="insertWidget('procBox')" title="모듈 3, 4의 캡슐형 프로세스 파이프라인 흐름 바를 추가합니다.">
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'whyBox')" title="설명 및 적용 예시 보기">?</button>
+            </div>
+            <div class="dock-widget-btn" onclick="insertWidget('procBox')" title="모듈 3, 4의 캡슐형 프로세스 파이프라인 흐름 바를 추가합니다.">
               <span class="dock-icon">🔄</span>
               <div class="dock-label-group">
                 <span class="dock-name">프로세스 플로우 바</span>
-                <span class="dock-sub">모듈 3/4 캡슐형 파이프라인</span>
+                <span class="dock-sub">모듈 3/4 캡슐 파이프라인</span>
               </div>
-              <span class="dock-add-icon">+</span>
-            </button>
-            <button class="dock-widget-btn" onclick="insertWidget('kpiStats')" title="모듈 3에 적용된 3분할 통계 수치 스코어보드를 추가합니다.">
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'procBox')" title="설명 및 적용 예시 보기">?</button>
+            </div>
+            <div class="dock-widget-btn" onclick="insertWidget('kpiStats')" title="모듈 3에 적용된 3분할 통계 수치 스코어보드를 추가합니다.">
               <span class="dock-icon">📊</span>
               <div class="dock-label-group">
                 <span class="dock-name">KPI 스코어보드</span>
                 <span class="dock-sub">모듈 3 3분할 통계 지표</span>
               </div>
-              <span class="dock-add-icon">+</span>
-            </button>
-            <button class="dock-widget-btn" onclick="insertWidget('prompt')" title="원클릭 복사 버튼이 달린 Gemini 프롬프트 카드를 추가합니다.">
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'kpiStats')" title="설명 및 적용 예시 보기">?</button>
+            </div>
+            <div class="dock-widget-btn" onclick="insertWidget('prompt')" title="원클릭 복사 버튼이 달린 Gemini 프롬프트 카드를 추가합니다.">
               <span class="dock-icon">📋</span>
               <div class="dock-label-group">
                 <span class="dock-name">Gemini 프롬프트 카드</span>
                 <span class="dock-sub">모듈 2/4 원클릭 복사 박스</span>
               </div>
-              <span class="dock-add-icon">+</span>
-            </button>
-            <button class="dock-widget-btn" onclick="insertWidget('tip')" title="클릭 시 펼쳐지는 실습 팁 아코디언을 추가합니다.">
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'prompt')" title="설명 및 적용 예시 보기">?</button>
+            </div>
+            <div class="dock-widget-btn" onclick="insertWidget('tip')" title="클릭 시 펼쳐지는 실습 팁 아코디언을 추가합니다.">
               <span class="dock-icon">💡</span>
               <div class="dock-label-group">
                 <span class="dock-name">접이식 팁 아코디언</span>
                 <span class="dock-sub">모듈 3/4 Details 팁</span>
               </div>
-              <span class="dock-add-icon">+</span>
-            </button>
-            <button class="dock-widget-btn" onclick="insertWidget('note')" title="왼쪽 블루 액센트 보더가 있는 핵심 안내 카드를 추가합니다.">
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'tip')" title="설명 및 적용 예시 보기">?</button>
+            </div>
+            <div class="dock-widget-btn" onclick="insertWidget('note')" title="왼쪽 블루 액센트 보더가 있는 핵심 안내 카드를 추가합니다.">
               <span class="dock-icon">ℹ️</span>
               <div class="dock-label-group">
                 <span class="dock-name">핵심 안내 노트</span>
                 <span class="dock-sub">모듈 2/3/4 블루 콜아웃</span>
               </div>
-              <span class="dock-add-icon">+</span>
-            </button>
-            <button class="dock-widget-btn" onclick="insertWidget('warn')" title="왼쪽 레드/테라코타 보더가 있는 주의 경고 카드를 추가합니다.">
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'note')" title="설명 및 적용 예시 보기">?</button>
+            </div>
+            <div class="dock-widget-btn" onclick="insertWidget('warn')" title="왼쪽 레드/테라코타 보더가 있는 주의 경고 카드를 추가합니다.">
               <span class="dock-icon">⚠️</span>
               <div class="dock-label-group">
                 <span class="dock-name">주의 경고 박스</span>
                 <span class="dock-sub">모듈 3/4 레드 경고 콜아웃</span>
               </div>
-              <span class="dock-add-icon">+</span>
-            </button>
-            <button class="dock-widget-btn" onclick="insertWidget('urlbox')" title="스프레드시트나 웹 API 링크를 강조하는 전용 URL 리소스 카드를 추가합니다.">
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'warn')" title="설명 및 적용 예시 보기">?</button>
+            </div>
+            <div class="dock-widget-btn" onclick="insertWidget('urlbox')" title="스프레드시트나 웹 API 링크를 강조하는 전용 URL 리소스 카드를 추가합니다.">
               <span class="dock-icon">🌐</span>
               <div class="dock-label-group">
                 <span class="dock-name">URL 리소스 상자</span>
                 <span class="dock-sub">모듈 2/3 링크 &amp; 이동 버튼</span>
               </div>
-              <span class="dock-add-icon">+</span>
-            </button>
+              <button class="tool-help-btn" onclick="openToolHelpModal(event, 'urlbox')" title="설명 및 적용 예시 보기">?</button>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- 기본 정보 (헤더) -->
-      <div class="section-divider" data-editor-id="header">
+      <!-- 기본 정보 (헤더 설정) -->
+      <div class="section-divider" data-editor-id="header" data-editor-level="container">
         <span>기본 정보 (헤더 설정)</span>
       </div>
-      <div class="item-card" data-editor-id="header">
-        <div class="form-group">
+      <div class="item-card" data-editor-id="header" data-editor-level="container">
+        <!-- 개별 하위 항목: 제목, 뱃지, 요약 설명 (Orange 하이라이트 대응) -->
+        <div class="form-group" data-editor-id="hero-title" data-editor-level="item">
           <label>보고서 / 워크플로우 제목</label>
           <input type="text" id="fTitle" placeholder="예: AI 기반 주간 업무 자동화 보고서">
         </div>
-        <div class="form-group">
+        <div class="form-group" data-editor-id="hero-badge" data-editor-level="item">
           <label>상단 뱃지 문구 (Stamp Badge)</label>
           <input type="text" id="fBadge" placeholder="예: 🚀 2026 스마트 워크 플레이북">
         </div>
-        <div class="form-group" style="margin-bottom:0;">
+        <div class="form-group" style="margin-bottom:0;" data-editor-id="hero-desc" data-editor-level="item">
           <label>요약 설명</label>
           <textarea id="fDesc" placeholder="워크플로우의 목적과 기대 효과를 입력하세요."></textarea>
         </div>
@@ -497,28 +522,28 @@
       <div id="kpiStatsEditorContainer"></div>
 
       <!-- 🗺️ 1줄 흐름 지도 -->
-      <div class="section-divider" data-editor-id="flowmap">
+      <div class="section-divider" data-editor-id="flowmap" data-editor-level="container">
         <span>1줄 흐름 지도 (Flow Map)</span>
         <button class="add-item-btn" onclick="addFlowItem()">+ 단계 추가</button>
       </div>
       <div id="flowItemsContainer"></div>
 
       <!-- 📌 3D 플립 카드 (핵심 모듈) -->
-      <div class="section-divider" data-editor-id="cards">
+      <div class="section-divider" data-editor-id="cards" data-editor-level="container">
         <span>3D 플립 카드 (핵심 모듈)</span>
         <button class="add-item-btn" onclick="addCardItem()">+ 카드 추가</button>
       </div>
       <div id="cardItemsContainer"></div>
 
       <!-- 🛠️ 상세 실행 단계 (스텝 & 프롬프트) -->
-      <div class="section-divider" data-editor-id="steps">
+      <div class="section-divider" data-editor-id="steps" data-editor-level="container">
         <span>상세 실행 단계 (스텝 &amp; 프롬프트)</span>
         <button class="add-item-btn" onclick="addStepItem()">+ 실행 단계 추가</button>
       </div>
       <div id="stepItemsContainer"></div>
 
       <!-- ✅ 체크리스트 -->
-      <div class="section-divider" data-editor-id="checklist">
+      <div class="section-divider" data-editor-id="checklist" data-editor-level="container">
         <span>체크리스트</span>
         <button class="add-item-btn" onclick="addCheckItem()">+ 항목 추가</button>
       </div>
@@ -541,12 +566,46 @@
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <span>실시간 미리보기 (Live Preview)</span>
-        <span style="font-size: .74rem; background:#e8f0fe; color:#1967d2; padding:2px 8px; border-radius:999px; font-weight:700;">🎯 DevTools 요소 검사기 동작 중</span>
+        <span style="font-size: .74rem; background:#e8f0fe; color:#1967d2; padding:2px 8px; border-radius:999px; font-weight:700;">🎯 2단계 DevTools 요소 검사기 동작 중</span>
       </div>
       <span style="font-size: .75rem; color: #5f6368;">Pretendard + Google Tone Architecture</span>
     </div>
     <iframe id="previewFrame" class="preview-iframe" title="미리보기 화면"></iframe>
   </main>
+</div>
+
+<!-- ── 도구 설명 및 적용 예시 모달 (요구사항 2) ── -->
+<div id="toolHelpModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card wide">
+    <div class="modal-header">
+      <h3>
+        <span id="toolHelpIcon" style="font-size:1.35rem;line-height:1;"></span>
+        <span id="toolHelpTitle">도구 안내</span>
+        <span id="toolHelpCategory" style="font-size:.70rem;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid #dadce0;"></span>
+      </h3>
+      <button class="modal-close-btn" onclick="closeToolHelpModal()">✕</button>
+    </div>
+    <div class="modal-body" style="font-size:.90rem;color:#3c4043;line-height:1.65;">
+      <div style="margin-bottom:14px;">
+        <b style="color:var(--navy);display:block;margin-bottom:4px;font-size:.92rem;">📌 기능 설명</b>
+        <p id="toolHelpDesc" style="margin:0;color:#4a5056;font-size:.88rem;"></p>
+      </div>
+
+      <div style="margin-bottom:14px;background:#f8fafd;border:1px solid #e1ecfa;border-radius:10px;padding:12px 14px;">
+        <b style="color:#1967d2;display:block;margin-bottom:4px;font-size:.86rem;">💡 권장 적용 시나리오</b>
+        <p id="toolHelpScenario" style="margin:0;color:#243551;font-size:.84rem;"></p>
+      </div>
+
+      <div>
+        <b style="color:var(--navy);display:block;margin-bottom:8px;font-size:.92rem;">🖼️ 실제 적용 미리보기 (Live Example)</b>
+        <div id="toolHelpPreviewWrap" style="background:#fafbfc;border:1px dashed #c6dafc;border-radius:12px;padding:16px;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeToolHelpModal()">닫기</button>
+      <button class="btn primary" id="toolHelpActionBtn">이 기능 적용하기</button>
+    </div>
+  </div>
 </div>
 
 <!-- ── 작업 저장 모달 ── -->
@@ -572,7 +631,6 @@
     </div>
   </div>
 </div>
-
 <script>
   var PRESETS = {
   "weekly": {
@@ -983,6 +1041,181 @@
   }
 };
 
+  // ── 도구 및 컴포넌트 레지스트리 (Role & Architecture Guidelines 기반) ──
+  // [Decision Matrix]
+  // 1) 조건 1 또는 2가 True -> [구조 & 레이아웃 (Structure & Layout)]
+  // 2) 조건 3이 True이고 조건 1·2가 False -> [컴포넌트 & 블록 (Components & Blocks)]
+  var TOOL_REGISTRY = {
+    search: {
+      category: "layout",
+      categoryLabel: "구조 & 레이아웃",
+      icon: "🔍",
+      name: "실시간 검색엔진 도구",
+      desc: "보고서 내부의 모든 섹션, 단계, 프롬프트, 체크리스트를 브라우저 단에서 실시간 자동 인덱싱하고, 검색어 입력 시 드롭다운 결과 목록 표시 및 해당 요소로 스무스 스크롤 점프와 펄스(Pulse) 하이라이트를 실행합니다.",
+      scenario: "단계가 10개 이상이거나 긴 워크플로우 문서에서 독자가 원하는 특정 키워드(예: 'Apps Script', '프롬프트')를 1초 만에 찾을 수 있도록 할 때 필수적입니다.",
+      previewHtml: '<div style="background:#fff;border:1px solid #dadce0;border-radius:20px;padding:6px 14px;display:flex;align-items:center;gap:8px;"><span style="color:#5f6368;">🔍</span><span style="color:#80868b;font-size:13px;">키워드 검색 (회의록, 대시보드...)...</span></div>',
+      actionText: "상단 검색창 켜기/끄기",
+      actionType: "toggle",
+      actionKey: "showSearch"
+    },
+    suggestChips: {
+      category: "layout",
+      categoryLabel: "구조 & 레이아웃",
+      icon: "⚡",
+      name: "추천 검색어 칩 (Suggest Chips)",
+      desc: "홈(index.html) 스타일의 빠른 탐색 칩입니다. 사용자가 검색창에 직접 타이핑하지 않고도 빈번히 찾는 주요 키워드를 원클릭으로 필터링할 수 있는 추천 태그 모음을 상단에 제공합니다.",
+      scenario: "보고서의 가장 핵심이 되는 키워드 3~5개를 태그로 노출하여 방문자의 빠른 탐색을 유도할 때 적용합니다.",
+      previewHtml: '<div style="display:flex;gap:6px;flex-wrap:wrap;"><span style="font-size:11px;background:#e8f0fe;color:#1967d2;padding:4px 10px;border-radius:999px;font-weight:600;">⚡ #마스코트</span><span style="font-size:11px;background:#e8f0fe;color:#1967d2;padding:4px 10px;border-radius:999px;font-weight:600;">⚡ #Apps Script</span><span style="font-size:11px;background:#e8f0fe;color:#1967d2;padding:4px 10px;border-radius:999px;font-weight:600;">⚡ #PARTS</span></div>',
+      actionText: "추천 검색어 칩 켜기/끄기",
+      actionType: "toggle",
+      actionKey: "showSuggestChips"
+    },
+    categoryTabs: {
+      category: "layout",
+      categoryLabel: "구조 & 레이아웃",
+      icon: "🗂️",
+      name: "카테고리 네비게이션 탭",
+      desc: "홈(index.html)에서 사용하는 알약(Pill)형 카테고리 전환 탭입니다. 단계별(1단계: 기획, 2단계: 실습 등) 또는 주제별로 보고서 본문을 구분하여 필터링할 수 있는 탭 바를 상단에 배치합니다.",
+      scenario: "보고서의 분량이 많아 단계별/주제별로 독자의 시선을 구분하여 집중시키고 싶을 때 적용합니다.",
+      previewHtml: '<div style="display:flex;gap:6px;"><span style="font-size:12px;background:#0b1a2c;color:#fff;padding:5px 12px;border-radius:999px;font-weight:600;">전체</span><span style="font-size:12px;background:#f1f3f4;color:#243551;padding:5px 12px;border-radius:999px;font-weight:600;">1단계: 기획</span><span style="font-size:12px;background:#f1f3f4;color:#243551;padding:5px 12px;border-radius:999px;font-weight:600;">2단계: 실습</span></div>',
+      actionText: "카테고리 탭 켜기/끄기",
+      actionType: "toggle",
+      actionKey: "showCategoryTabs"
+    },
+    print: {
+      category: "layout",
+      categoryLabel: "구조 & 레이아웃",
+      icon: "🖨️",
+      name: "인쇄 및 PDF 내보내기 도구",
+      desc: "상단 툴바에 브라우저 네이티브 인쇄 대화상자(window.print)를 즉각 호출하는 액션 버튼을 배치합니다. 인쇄용 CSS 미디어 쿼리가 적용되어 A4 출력 및 PDF 저장 시 깔끔한 문서 레이아웃으로 변환됩니다.",
+      scenario: "작성된 AI 업무 가이드나 로드맵을 사내 보고용 PDF로 출력하거나 종이 문서로 보관할 때 유용합니다.",
+      previewHtml: '<button style="background:#fff;border:1px solid #dadce0;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px;">🖨️ 인쇄 / PDF 저장</button>',
+      actionText: "인쇄/PDF 버튼 켜기/끄기",
+      actionType: "toggle",
+      actionKey: "showPrint"
+    },
+    progress: {
+      category: "layout",
+      categoryLabel: "구조 & 레이아웃",
+      icon: "📊",
+      name: "스크롤 진행률 표시줄 (Progress Bar)",
+      desc: "페이지 최상단에 브라우저 스크롤 위치를 0~100%로 계산하여 구글 시그니처 그라디언트(#4a90e8 → #34a853 → #ea4335)로 부드럽게 채워지는 진행률 바를 생성합니다.",
+      scenario: "긴 분량의 가이드 문서를 읽을 때 사용자가 현재 전체 내용 중 어디까지 읽었는지 시각적인 피드백을 제공합니다.",
+      previewHtml: '<div style="width:100%;height:6px;background:#eee;border-radius:3px;overflow:hidden;"><div style="width:65%;height:100%;background:linear-gradient(90deg,#4a90e8,#34a853,#ea4335);"></div></div>',
+      actionText: "진행률 바 켜기/끄기",
+      actionType: "toggle",
+      actionKey: "showProgress"
+    },
+    theme: {
+      category: "layout",
+      categoryLabel: "구조 & 레이아웃",
+      icon: "🌓",
+      name: "다크모드 / 라이트모드 전역 스타일러",
+      desc: "Google Workspace 다크 테마 팔레트(--navy:#e8eaed, --paper:#202124, --bg:#121212)와 라이트 테마를 원클릭으로 토글할 수 있는 스위치를 상단 툴바에 배치합니다.",
+      scenario: "야간 작업 환경이나 어두운 화면을 선호하는 실무자에게 눈의 피로도를 낮추는 시각 환경을 제공합니다.",
+      previewHtml: '<button style="background:#202124;color:#e8eaed;border:1px solid #3c4043;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;">🌓 테마 전환 (다크/라이트)</button>',
+      actionText: "다크모드 스위치 켜기/끄기",
+      actionType: "toggle",
+      actionKey: "showThemeToggle"
+    },
+    whyBox: {
+      category: "blocks",
+      categoryLabel: "컴포넌트 & 블록",
+      icon: "🌌",
+      name: "Why 인트로 박스 (Why-Box)",
+      desc: "모듈 2, 3, 4에서 핵심 도입 배경을 설명할 때 사용하는 다크 네이비 그라데이션 박스입니다. 묵직하고 신뢰감 있는 비주얼로 독자의 주목을 이끌어내고 프로젝트의 근본적인 목적(Why)을 전달합니다.",
+      scenario: "보고서 서두에 '기존 수작업 대비 왜 이 AI 자동화가 필수적인가?'에 대한 핵심 명분을 강조할 때 사용합니다.",
+      previewHtml: '<div style="background:linear-gradient(135deg,#0b1a2c,#243551);color:#fff;border-radius:12px;padding:16px;"><span style="font-size:10px;color:#8ab4f8;font-weight:700;letter-spacing:1px;">✦ WHY WE NEED THIS</span><h4 style="margin:4px 0 6px;font-size:14px;color:#fff;">왜 이 자동화가 필요한가?</h4><p style="margin:0;font-size:12px;color:#e8eaed;line-height:1.5;">매주 6시간의 수작업을 10분으로 단축합니다.</p></div>',
+      actionText: "Why 인트로 박스 추가",
+      actionType: "insert",
+      actionKey: "whyBox"
+    },
+    procBox: {
+      category: "blocks",
+      categoryLabel: "컴포넌트 & 블록",
+      icon: "🔄",
+      name: "프로세스 플로우 바 (Procbox)",
+      desc: "모듈 3, 4 스타일에 적용된 네이비 캡슐형 프로세스 흐름 바입니다. 여러 시스템 간의 데이터 이동 경로(입력 ➔ AI 처리 ➔ DB 저장 ➔ 알림)를 한 줄 파이프라인으로 일목요연하게 시각화합니다.",
+      scenario: "전체 아키텍처나 단계별 실행 과정의 핵심 흐름을 한눈에 명쾌하게 보여줄 때 배치합니다.",
+      previewHtml: '<div style="background:rgba(36,53,81,.9);color:#fff;border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:12px;"><span style="background:#1967d2;padding:2px 6px;border-radius:999px;font-size:10px;font-weight:700;">PIPELINE</span><span>음성 수집 ➔ Gemini 요약 ➔ 구글 시트 저장</span></div>',
+      actionText: "프로세스 플로우 바 추가",
+      actionType: "insert",
+      actionKey: "procBox"
+    },
+    kpiStats: {
+      category: "blocks",
+      categoryLabel: "컴포넌트 & 블록",
+      icon: "📊",
+      name: "KPI 지표 스코어보드 (KPI Grid)",
+      desc: "모듈 3에 적용된 3분할 통계 수치 스코어보드입니다. 거대한 숫자 폰트와 감각적인 색상 액센트(블루, 그린, 레드)를 통해 업무 성과 지표나 단축 시간, 절감율을 강력하게 부각합니다.",
+      scenario: "'85% 절감', '1/5 단축', '100% 무결성' 등 정량적 성과 데이터를 경영진이나 팀원에게 즉각 전달할 때 사용합니다.",
+      previewHtml: '<div style="display:flex;gap:8px;"><div style="flex:1;background:#fff;border:1px solid #dadce0;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:800;color:#1967d2;">85%</div><div style="font-size:10px;color:#5f6368;">수작업 절감</div></div><div style="flex:1;background:#fff;border:1px solid #dadce0;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:18px;font-weight:800;color:#137333;">1/5</div><div style="font-size:10px;color:#5f6368;">소요 시간</div></div></div>',
+      actionText: "KPI 지표 카드 추가",
+      actionType: "insert",
+      actionKey: "kpiStats"
+    },
+    prompt: {
+      category: "blocks",
+      categoryLabel: "컴포넌트 & 블록",
+      icon: "📋",
+      name: "Gemini 프롬프트 카드 (Prompt Box)",
+      desc: "모듈 2, 4에서 실습 프롬프트를 배포할 때 사용하는 시그니처 카드입니다. 파스텔 톤 그라데이션(#e9f2ff → #e6f8ef), 점선 테두리, 그리고 누르면 '✅ 복사됨' 피드백을 주는 원클릭 복사 버튼이 포함되어 있습니다.",
+      scenario: "사용자가 복사해서 바로 Gemini 웹 또는 API에 붙여넣을 수 있는 고품질 프롬프트를 제공할 때 필수적으로 사용합니다.",
+      previewHtml: '<div style="background:linear-gradient(135deg,#e9f2ff,#e6f8ef);border:2px dashed #4a90e8;border-radius:10px;padding:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:11px;font-weight:700;color:#1967d2;">✨ Gemini Prompt</span><span style="font-size:10px;background:#fff;border:1px solid #1967d2;color:#1967d2;padding:2px 6px;border-radius:4px;font-weight:700;">복사</span></div><div style="font-size:11px;color:#202124;font-family:monospace;">당신은 전문 수석 비서입니다...</div></div>',
+      actionText: "Gemini 프롬프트 단계 추가",
+      actionType: "insert",
+      actionKey: "prompt"
+    },
+    tip: {
+      category: "blocks",
+      categoryLabel: "컴포넌트 & 블록",
+      icon: "💡",
+      name: "접이식 팁 아코디언 (Tip Accordion)",
+      desc: "모듈 3, 4 스타일에 적용된 <details><summary> 기반 아코디언 카드입니다. 본문 흐름을 방해하지 않으면서도 필요한 사람만 눌러서 심화 노하우나 꿀팁을 확인할 수 있도록 컴팩트하게 접혀 있습니다.",
+      scenario: "필수적인 내용은 아니지만 알아두면 매우 유용한 고급 설정 방법, 주의할 점, 단축 팁을 제공할 때 사용합니다.",
+      previewHtml: '<div style="background:#f8f9fa;border:1px solid #c6dafc;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;color:#0b1a2c;">💡 실습 꿀팁 및 권장 가이드 (펼치기 ▸)</div>',
+      actionText: "접이식 팁 단계 추가",
+      actionType: "insert",
+      actionKey: "tip"
+    },
+    note: {
+      category: "blocks",
+      categoryLabel: "컴포넌트 & 블록",
+      icon: "ℹ️",
+      name: "핵심 안내 노트 (Note Callout)",
+      desc: "모듈 2, 3, 4에서 공통으로 쓰이는 왼쪽 파란색 액센트 보더(border-left: 4px solid #4a90e8) 카드입니다. 중요한 참고 데이터 규격이나 권장 전제 조건을 명료하게 안내합니다.",
+      scenario: "API 호출 시 필수 파라미터 규칙이나 데이터 정합성 주의점을 환기시킬 때 사용합니다.",
+      previewHtml: '<div style="background:#f8fafd;border-left:4px solid #4a90e8;border-radius:0 8px 8px 0;padding:8px 12px;font-size:12px;color:#243551;"><b>ℹ️ 핵심 참고:</b> JSON 응답의 타임스탬프는 ISO-8601 규격을 권장합니다.</div>',
+      actionText: "핵심 안내 노트 단계 추가",
+      actionType: "insert",
+      actionKey: "note"
+    },
+    warn: {
+      category: "blocks",
+      categoryLabel: "컴포넌트 & 블록",
+      icon: "⚠️",
+      name: "주의 경고 박스 (Warning Box)",
+      desc: "모듈 3, 4에 적용된 레드/테라코타 왼쪽 액센트 보더(border-left: 4px solid #e05555) 경고 박스입니다. 치명적인 오류나 보안 사고를 방지할 수 있도록 강력한 시각적 주의를 환기합니다.",
+      scenario: "API 시크릿 키 유출 주의, 예산/결제 수치 수기 검증, 보안 권한 설정 등 위험 요소를 경고할 때 사용합니다.",
+      previewHtml: '<div style="background:#fff5f3;border-left:4px solid #e05555;border-radius:0 8px 8px 0;padding:8px 12px;font-size:12px;color:#7a2020;"><b>⚠️ 주의사항:</b> 공용 저장소에 API 키를 절대 커밋하지 마세요.</div>',
+      actionText: "주의 경고 박스 단계 추가",
+      actionType: "insert",
+      actionKey: "warn"
+    },
+    urlbox: {
+      category: "blocks",
+      categoryLabel: "컴포넌트 & 블록",
+      icon: "🌐",
+      name: "URL 리소스 상자 (Resource Box)",
+      desc: "모듈 2, 3에서 구글 시트 템플릿, Apps Script 콘솔, 대시보드 링크를 제공할 때 사용하는 전용 상자입니다. 민트-그레이 그라데이션 배경과 원클릭 '열기 ↗' 새창 이동 버튼이 탑재되어 있습니다.",
+      scenario: "사용자가 바로 복사하거나 열어볼 수 있는 외부 공식 문서, 깃허브 코드, 스프레드시트 사본 링크를 제공할 때 사용합니다.",
+      previewHtml: '<div style="background:linear-gradient(135deg,#e6f8ef,#f1f3f4);border:1px solid #dadce0;border-radius:10px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;"><div style="font-size:12px;"><b style="color:#137333;">🔗 관련 리소스</b><div style="font-size:10px;color:#5f6368;">https://docs.google.com/...</div></div><span style="background:#fff;border:1px solid #c6dafc;padding:3px 8px;border-radius:6px;font-size:11px;color:#1967d2;font-weight:700;">열기 ↗</span></div>',
+      actionText: "URL 리소스 단계 추가",
+      actionType: "insert",
+      actionKey: "urlbox"
+    }
+  };
+
   var STORAGE_KEY = 'gemini_studio_saved_works';
   var currentLoadedWorkKey = null;
   var currentData = JSON.parse(JSON.stringify(PRESETS.weekly));
@@ -1014,7 +1247,6 @@
     var saved = getSavedWorks();
     var savedKeys = Object.keys(saved);
 
-    // 1. 내 저장된 작업 그룹
     if (savedKeys.length > 0) {
       var savedGroup = document.createElement('optgroup');
       savedGroup.label = '✨ 내 저장된 작업 (My Saved Work)';
@@ -1027,7 +1259,6 @@
       select.appendChild(savedGroup);
     }
 
-    // 2. 기본 템플릿 그룹
     var presetGroup = document.createElement('optgroup');
     presetGroup.label = '📂 기본 템플릿 (Preset Templates)';
     var p1 = document.createElement('option'); p1.value = 'weekly'; p1.textContent = 'AI 주간 업무 보고서'; presetGroup.appendChild(p1);
@@ -1231,6 +1462,48 @@
     document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2);
   };
 
+  // ── 도구 설명 & 적용 예시 모달 (요구사항 2) ──
+  window.openToolHelpModal = function(e, toolKey){
+    if(e) e.stopPropagation();
+    var tool = TOOL_REGISTRY[toolKey];
+    if(!tool) return;
+
+    document.getElementById('toolHelpIcon').textContent = tool.icon;
+    document.getElementById('toolHelpTitle').textContent = tool.name;
+    var catBadge = document.getElementById('toolHelpCategory');
+    catBadge.textContent = tool.categoryLabel;
+    if(tool.category === 'layout'){
+      catBadge.style.background = '#e8f0fe';
+      catBadge.style.color = '#1967d2';
+      catBadge.style.borderColor = '#c6dafc';
+    } else {
+      catBadge.style.background = '#f3e8fd';
+      catBadge.style.color = '#7627bb';
+      catBadge.style.borderColor = '#d7bbf5';
+    }
+
+    document.getElementById('toolHelpDesc').textContent = tool.desc;
+    document.getElementById('toolHelpScenario').textContent = tool.scenario;
+    document.getElementById('toolHelpPreviewWrap').innerHTML = tool.previewHtml || '<p style="color:#5f6368;">예시 미리보기 준비 중</p>';
+
+    var actionBtn = document.getElementById('toolHelpActionBtn');
+    actionBtn.textContent = tool.actionText;
+    actionBtn.onclick = function(){
+      closeToolHelpModal();
+      if(tool.actionType === 'toggle'){
+        toggleToolbarFeature(tool.actionKey);
+      } else if(tool.actionType === 'insert'){
+        insertWidget(tool.actionKey);
+      }
+    };
+
+    document.getElementById('toolHelpModal').style.display = 'flex';
+  };
+
+  window.closeToolHelpModal = function(){
+    document.getElementById('toolHelpModal').style.display = 'none';
+  };
+
   // ── 장식 요소 & 위젯 추가 (요구사항 2 & 3: 버튼 클릭 시 기능 추가) ──
   window.insertWidget = function(type){
     if(type === 'whyBox'){
@@ -1351,12 +1624,20 @@
   }
 
   // ── HTML 렌더러 (보고서 생성 엔진) ──
-  function renderReportHtml(config) {
+  // isExport === true: 내려받기/복사용 순수 시맨틱 HTML (하이라이트 및 인스펙터 스크립트 제거)
+  // isExport === false: 에디터 실시간 미리보기용 HTML (Chrome DevTools 양방향 요소 검사기 포함)
+  function renderReportHtml(config, isExport) {
     function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     function fmtTitle(t){
       var s = esc(t);
       if(s.indexOf('AI')!==-1) s = s.replace(/AI/g, '<span class="glow">AI</span>');
       return s;
+    }
+
+    // 인스펙터 속성 주입 헬퍼 (내보내기 모드에서는 완전 제거)
+    function inspectAttr(id, name, level) {
+      if (isExport) return '';
+      return ' data-inspect-id="' + esc(id) + '" data-inspect-name="' + esc(name) + '" data-inspect-level="' + esc(level || 'container') + '"';
     }
 
     var title = config.title || '워크플로우 보고서';
@@ -1489,132 +1770,155 @@
     buf.push('.check-item { display:flex; align-items:center; gap:10px; font-size:.92rem; font-weight:600; color:var(--navy-2); cursor:pointer; }\n');
     buf.push('.check-item input[type="checkbox"] { width:18px; height:18px; accent-color:var(--blue); cursor:pointer; }\n');
     buf.push('footer { text-align:center; padding:40px 0 20px; font-size:.82rem; color:var(--muted); border-top:1px solid var(--line); margin-top:50px; }\n');
-    buf.push('.devtools-inspect-active { outline:2px solid #1a73e8 !important; outline-offset:3px !important; box-shadow:0 0 0 4px rgba(26,115,232,0.2) !important; position:relative !important; transition:outline .1s ease, box-shadow .1s ease !important; }\n');
-    buf.push('.devtools-inspect-badge { position:absolute; background:#1a73e8; color:#fff; font-size:11px; font-family:"Pretendard",system-ui,sans-serif; font-weight:700; padding:3px 8px; border-radius:4px; z-index:999999; pointer-events:none; box-shadow:0 4px 10px rgba(0,0,0,0.25); white-space:nowrap; }\n');
+
+    // ── Chrome DevTools 스타일 검사 하이라이트 CSS (내보내기 모드에서는 완전 제외!) ──
+    if (!isExport) {
+      buf.push('/* ── 상위 컨테이너 검사 하이라이트 (Blue) ── */\n');
+      buf.push('.devtools-inspect-container-active { outline:2px solid #1a73e8 !important; outline-offset:3px !important; box-shadow:0 0 0 4px rgba(26,115,232,0.2) !important; position:relative !important; transition:outline .1s ease, box-shadow .1s ease !important; }\n');
+      buf.push('.devtools-inspect-badge-container { position:absolute; background:#1a73e8; color:#fff; font-size:11px; font-family:"Pretendard",system-ui,sans-serif; font-weight:700; padding:3px 8px; border-radius:4px; z-index:999999; pointer-events:none; box-shadow:0 4px 10px rgba(0,0,0,0.25); white-space:nowrap; }\n');
+
+      buf.push('/* ── 하위 세부 항목 검사 하이라이트 (Vivid Orange / Coral) (요구사항 1) ── */\n');
+      buf.push('.devtools-inspect-subitem-active { outline:2px dashed #ea580c !important; outline-offset:2px !important; box-shadow:0 0 0 4px rgba(234,88,12,0.25) !important; position:relative !important; background:rgba(234,88,12,0.04) !important; transition:outline .1s ease, box-shadow .1s ease !important; }\n');
+      buf.push('.devtools-inspect-badge-subitem { position:absolute; background:#ea580c; color:#fff; font-size:11px; font-family:"Pretendard",system-ui,sans-serif; font-weight:700; padding:3px 8px; border-radius:4px; z-index:1000000; pointer-events:none; box-shadow:0 4px 10px rgba(0,0,0,0.25); white-space:nowrap; }\n');
+    }
+
     buf.push('</style>\n</head>\n<body>\n');
 
+    // 상단 스크롤 진행률 바 (옵션)
     if (tb.enabled && tb.showProgress) {
       buf.push('<div class="tb-progress-bar" id="reportProgressBar"></div>\n');
     }
 
+    // 상단 툴바 (옵션)
     if (tb.enabled) {
-      buf.push('<header class="report-toolbar" data-inspect-id="toolbar" data-inspect-name="상단 툴바">\n');
+      buf.push('<header class="report-toolbar"' + inspectAttr('toolbar', '상단 툴바', 'container') + '>\n');
       buf.push('  <div class="tb-left"><span style="width:10px;height:10px;border-radius:50%;background:#1967d2;display:inline-block;"></span>' + esc(title) + '</div>\n');
       if (tb.showSearch) {
-        buf.push('  <div class="tb-search-wrap">\n');
+        buf.push('  <div class="tb-search-wrap"' + inspectAttr('tb-search-box', '실시간 검색창', 'item') + '>\n');
         buf.push('    <span class="tb-search-icon">🔍</span>\n');
         buf.push('    <input type="text" class="tb-search-input" id="reportSearchInput" placeholder="' + esc(tb.searchPlaceholder || '보고서 키워드 검색...') + '">\n');
         buf.push('    <div class="tb-search-dropdown" id="reportSearchDropdown"></div>\n');
         buf.push('  </div>\n');
       }
       buf.push('  <div class="tb-actions">\n');
-      if (tb.showPrint) buf.push('    <button class="tb-btn" onclick="window.print()">🖨️ 인쇄 / PDF</button>\n');
-      if (tb.showThemeToggle) buf.push('    <button class="tb-btn" onclick="document.body.classList.toggle(\'dark-theme\')">🌓 테마</button>\n');
+      if (tb.showPrint) buf.push('    <button class="tb-btn" onclick="window.print()"' + inspectAttr('tb-print-btn', '인쇄 버튼', 'item') + '>🖨️ 인쇄 / PDF</button>\n');
+      if (tb.showThemeToggle) buf.push('    <button class="tb-btn" onclick="document.body.classList.toggle(\'dark-theme\')"' + inspectAttr('tb-theme-btn', '테마 토글', 'item') + '>🌓 테마</button>\n');
       buf.push('  </div>\n');
       buf.push('</header>\n');
     }
 
     buf.push('<div class="wrap">\n');
-    buf.push('<header class="hero" data-inspect-id="header" data-inspect-name="헤더 (제목 및 배지)">');
-    buf.push('<span class="stamp-badge">' + esc(badge) + '</span>');
-    buf.push('<h1>' + fmtTitle(title) + '</h1>');
-    buf.push('<p class="lead">' + esc(description) + '</p>');
+    // 헤더 영역 (상위 컨테이너는 Blue, 개별 하위 항목은 Orange로 식별)
+    buf.push('<header class="hero"' + inspectAttr('header', '헤더 (기본 정보)', 'container') + '>');
+    buf.push('<span class="stamp-badge"' + inspectAttr('hero-badge', '상단 뱃지 문구 (Stamp Badge)', 'item') + '>' + esc(badge) + '</span>');
+    buf.push('<h1' + inspectAttr('hero-title', '보고서 제목 (Title)', 'item') + '>' + fmtTitle(title) + '</h1>');
+    buf.push('<p class="lead"' + inspectAttr('hero-desc', '요약 설명 (Description)', 'item') + '>' + esc(description) + '</p>');
     if (meta.length) {
-      buf.push('<div class="meta-chips">' + meta.map(function(m){ return '<span class="meta-chip"><b>' + esc(m.label) + ':</b> ' + esc(m.value) + '</span>'; }).join('') + '</div>');
+      buf.push('<div class="meta-chips"' + inspectAttr('hero-meta', '메타 칩 모음', 'item') + '>' + meta.map(function(m){ return '<span class="meta-chip"><b>' + esc(m.label) + ':</b> ' + esc(m.value) + '</span>'; }).join('') + '</div>');
     }
     buf.push('</header>\n');
 
+    // 추천 검색 칩 (index.html 스타일)
     if (tb.showSuggestChips && tb.suggestChips && tb.suggestChips.length) {
-      buf.push('<div class="suggest-chips-bar" data-inspect-id="suggestChips" data-inspect-name="추천 검색어 칩">\n');
+      buf.push('<div class="suggest-chips-bar"' + inspectAttr('suggestChips', '추천 검색어 칩', 'container') + '>\n');
       buf.push('  <span class="chip-label">⚡ 추천 키워드:</span>\n');
-      tb.suggestChips.forEach(function(c){
-        buf.push('  <span class="suggest-chip" onclick="applySearchQuery(\'' + esc(c) + '\')">' + esc(c) + '</span>\n');
+      tb.suggestChips.forEach(function(c, i){
+        buf.push('  <span class="suggest-chip" onclick="applySearchQuery(\'' + esc(c) + '\')"' + inspectAttr('chip-' + i, '키워드: #' + c, 'item') + '>' + esc(c) + '</span>\n');
       });
       buf.push('</div>\n');
     }
 
+    // 카테고리 탭 (index.html 스타일)
     if (tb.showCategoryTabs && tb.categoryTabs && tb.categoryTabs.length) {
-      buf.push('<div class="category-tabs-bar" data-inspect-id="categoryTabs" data-inspect-name="카테고리 탭">\n');
+      buf.push('<div class="category-tabs-bar"' + inspectAttr('categoryTabs', '카테고리 탭', 'container') + '>\n');
       tb.categoryTabs.forEach(function(t, idx){
-        buf.push('  <button class="category-tab ' + (idx===0?'active':'') + '" onclick="filterCategory(this, \'' + esc(t) + '\')">' + esc(t) + '</button>\n');
+        buf.push('  <button class="category-tab ' + (idx===0?'active':'') + '" onclick="filterCategory(this, \'' + esc(t) + '\')"' + inspectAttr('tab-' + idx, '탭: ' + t, 'item') + '>' + esc(t) + '</button>\n');
       });
       buf.push('</div>\n');
     }
 
+    // Why 인트로 박스 (모듈 2, 3, 4)
     if (whyBox && whyBox.enabled) {
-      buf.push('<div class="why-box" data-inspect-id="whyBox" data-inspect-name="Why 인트로 박스">\n');
+      buf.push('<div class="why-box"' + inspectAttr('whyBox', 'Why 인트로 박스', 'container') + '>\n');
       buf.push('  <span class="why-eyebrow">✦ WHY WE NEED THIS</span>\n');
-      buf.push('  <h3>' + esc(whyBox.title || '왜 이 워크플로우를 도입해야 하는가?') + '</h3>\n');
-      buf.push('  <p>' + esc(whyBox.desc) + '</p>\n');
+      buf.push('  <h3' + inspectAttr('why-title', 'Why 박스 제목', 'item') + '>' + esc(whyBox.title || '왜 이 워크플로우를 도입해야 하는가?') + '</h3>\n');
+      buf.push('  <p' + inspectAttr('why-desc', 'Why 박스 상세 설명', 'item') + '>' + esc(whyBox.desc) + '</p>\n');
       buf.push('</div>\n');
     }
 
+    // 프로세스 플로우 바 (모듈 3, 4)
     if (procBox && procBox.enabled) {
-      buf.push('<div class="procbox" data-inspect-id="procBox" data-inspect-name="프로세스 플로우 바">\n');
-      buf.push('  <span class="proc-badge">' + esc(procBox.badge || 'AUTOMATION PIPELINE') + '</span>\n');
-      buf.push('  <span class="proc-text">' + esc(procBox.title) + '</span>\n');
+      buf.push('<div class="procbox"' + inspectAttr('procBox', '프로세스 플로우 바', 'container') + '>\n');
+      buf.push('  <span class="proc-badge"' + inspectAttr('proc-badge', '파이프라인 뱃지', 'item') + '>' + esc(procBox.badge || 'AUTOMATION PIPELINE') + '</span>\n');
+      buf.push('  <span class="proc-text"' + inspectAttr('proc-title', '파이프라인 흐름 문구', 'item') + '>' + esc(procBox.title) + '</span>\n');
       buf.push('</div>\n');
     }
 
+    // KPI 지표 스코어보드 (모듈 3)
     if (kpiStats && kpiStats.length) {
-      buf.push('<div class="kpi-grid" data-inspect-id="kpiStats" data-inspect-name="KPI 스코어보드">\n');
+      buf.push('<div class="kpi-grid"' + inspectAttr('kpiStats', 'KPI 스코어보드', 'container') + '>\n');
       kpiStats.forEach(function(k, idx){
-        buf.push('  <div class="kpi-card" data-inspect-id="kpi-' + idx + '" data-inspect-name="KPI 지표 #' + (idx+1) + '">\n');
-        buf.push('    <div class="kpi-num" style="color:' + esc(k.color || '#1967d2') + ';">' + esc(k.num) + '</div>\n');
-        buf.push('    <div class="kpi-label">' + esc(k.label) + '</div>\n');
+        buf.push('  <div class="kpi-card"' + inspectAttr('kpi-' + idx, 'KPI 지표 #' + (idx+1), 'container') + '>\n');
+        buf.push('    <div class="kpi-num" style="color:' + esc(k.color || '#1967d2') + ';"' + inspectAttr('kpi-' + idx + '-num', '지표 수치 (' + k.num + ')', 'item') + '>' + esc(k.num) + '</div>\n');
+        buf.push('    <div class="kpi-label"' + inspectAttr('kpi-' + idx + '-label', '지표 라벨 (' + k.label + ')', 'item') + '>' + esc(k.label) + '</div>\n');
         buf.push('  </div>\n');
       });
       buf.push('</div>\n');
     }
 
+    // 1줄 흐름 지도
     if (flowmap.length) {
-      buf.push('<section data-inspect-id="flowmap" data-inspect-name="진행 흐름 지도"><div class="eyebrow">PROCESS FLOW</div><h2 class="sec">🗺️ 전체 진행 흐름</h2><p class="lead" style="font-size:.95rem;">단계별 핵심 목표와 산출물입니다.</p><div class="flowmap">');
+      buf.push('<section' + inspectAttr('flowmap', '진행 흐름 지도', 'container') + '><div class="eyebrow">PROCESS FLOW</div><h2 class="sec">🗺️ 전체 진행 흐름</h2><p class="lead" style="font-size:.95rem;">단계별 핵심 목표와 산출물입니다.</p><div class="flowmap">');
       buf.push(flowmap.map(function(f, i){
-        return '<div class="fstep" id="flowStep_' + i + '" data-inspect-id="flow-' + i + '" data-inspect-name="흐름 단계 #' + (i+1) + ' ' + esc(f.title) + '" style="--accent:' + esc(f.color||'#1967d2') + '"><span class="fnum">' + esc(f.num||(i+1)) + '</span><div class="fmeta"><b>' + esc(f.title) + '</b><span class="ft">' + esc(f.desc) + '</span></div></div>' +
+        return '<div class="fstep" id="flowStep_' + i + '"' + inspectAttr('flow-' + i, '흐름 단계 #' + (i+1), 'container') + ' style="--accent:' + esc(f.color||'#1967d2') + '"><span class="fnum">' + esc(f.num||(i+1)) + '</span><div class="fmeta"><b' + inspectAttr('flow-' + i + '-title', '단계명 (' + f.title + ')', 'item') + '>' + esc(f.title) + '</b><span class="ft"' + inspectAttr('flow-' + i + '-desc', '단계 설명 (' + f.desc + ')', 'item') + '>' + esc(f.desc) + '</span></div></div>' +
           (i < flowmap.length - 1 ? '<span class="farrow">→</span>' : '');
       }).join(''));
       buf.push('</div></section>\n');
     }
 
+    // 3D 플립 카드
     if (cards.length) {
-      buf.push('<section data-inspect-id="cards" data-inspect-name="핵심 모듈 카드"><div class="eyebrow">OVERVIEW CARDS</div><h2 class="sec">📌 핵심 모듈 &amp; 테마</h2><p class="lead" style="font-size:.95rem;">카드를 클릭하면 상세 세부 계획을 볼 수 있습니다.</p><div class="modgrid">');
+      buf.push('<section' + inspectAttr('cards', '핵심 모듈 카드', 'container') + '><div class="eyebrow">OVERVIEW CARDS</div><h2 class="sec">📌 핵심 모듈 &amp; 테마</h2><p class="lead" style="font-size:.95rem;">카드를 클릭하면 상세 세부 계획을 볼 수 있습니다.</p><div class="modgrid">');
       buf.push(cards.map(function(c, i){
-        return '<div class="flip" id="cardFlip_' + i + '" data-inspect-id="card-' + i + '" data-inspect-name="모듈 카드 #' + (i+1) + ' ' + esc(c.frontTitle) + '" style="--accent:' + esc(c.color||'#1967d2') + '"><div class="flip-inner"><div class="face front"><div><span class="card-badge">✦ ' + esc(c.badge||'MODULE') + '</span><h3>' + esc(c.frontTitle) + '</h3></div><div class="tags">' +
+        return '<div class="flip" id="cardFlip_' + i + '"' + inspectAttr('card-' + i, '모듈 카드 #' + (i+1) + ' ' + esc(c.frontTitle), 'container') + ' style="--accent:' + esc(c.color||'#1967d2') + '"><div class="flip-inner"><div class="face front"><div><span class="card-badge">✦ ' + esc(c.badge||'MODULE') + '</span><h3' + inspectAttr('card-' + i + '-title', '카드 제목 (' + c.frontTitle + ')', 'item') + '>' + esc(c.frontTitle) + '</h3></div><div class="tags">' +
           (c.tags||[]).map(function(t){ return '<span class="tag">' + esc(t) + '</span>'; }).join('') +
-          '</div><div class="flip-hint">카드를 누르면 상세 내용 ↻</div></div><div class="face back"><div class="backbody"><span class="card-badge">✦ ' + esc(c.badge||'MODULE') + '</span><p>' + esc(c.backDesc) + '</p></div><div class="flip-hint">카드를 누르면 앞면으로 ↻</div></div></div></div>';
+          '</div><div class="flip-hint">카드를 누르면 상세 내용 ↻</div></div><div class="face back"><div class="backbody"><span class="card-badge">✦ ' + esc(c.badge||'MODULE') + '</span><p' + inspectAttr('card-' + i + '-desc', '카드 뒷면 상세설명', 'item') + '>' + esc(c.backDesc) + '</p></div><div class="flip-hint">카드를 누르면 앞면으로 ↻</div></div></div></div>';
       }).join(''));
       buf.push('</div></section>\n');
     }
 
+    // 상세 실행 단계
     if (steps.length) {
-      buf.push('<section data-inspect-id="steps" data-inspect-name="실행 단계 목록"><div class="eyebrow">STEP-BY-STEP WORKFLOW</div><h2 class="sec">🛠️ 단계별 실행 및 프롬프트</h2><p class="lead" style="font-size:.95rem;">프롬프트와 가이드를 복사하여 즉시 실행하세요.</p><div class="step-list">');
+      buf.push('<section' + inspectAttr('steps', '실행 단계 목록', 'container') + '><div class="eyebrow">STEP-BY-STEP WORKFLOW</div><h2 class="sec">🛠️ 단계별 실행 및 프롬프트</h2><p class="lead" style="font-size:.95rem;">프롬프트와 가이드를 복사하여 즉시 실행하세요.</p><div class="step-list">');
       buf.push(steps.map(function(s, idx){
-        return '<div class="step-card" id="stepCard_' + idx + '" data-inspect-id="step-' + idx + '" data-inspect-name="실행 단계 #' + (idx+1) + ' ' + esc(s.title) + '"><div class="step-top" onclick="toggleStep(' + idx + ')"><div class="step-title-group"><div class="step-num">' + esc(s.num||(idx+1)) + '</div><h3 class="step-title">' + esc(s.title) + '</h3>' +
-          (s.tool ? '<span class="tool-tag">' + esc(s.tool) + '</span>' : '') +
+        return '<div class="step-card" id="stepCard_' + idx + '"' + inspectAttr('step-' + idx, '실행 단계 #' + (idx+1), 'container') + '><div class="step-top" onclick="toggleStep(' + idx + ')"><div class="step-title-group"><div class="step-num">' + esc(s.num||(idx+1)) + '</div><h3 class="step-title"' + inspectAttr('step-' + idx + '-title', '단계 제목: ' + s.title, 'item') + '>' + esc(s.title) + '</h3>' +
+          (s.tool ? '<span class="tool-tag"' + inspectAttr('step-' + idx + '-tool', '사용 도구: ' + s.tool, 'item') + '>' + esc(s.tool) + '</span>' : '') +
           '</div><button class="done-btn" onclick="event.stopPropagation(); toggleDone(' + idx + ')">완료 체크</button></div>' +
           '<div class="step-body" id="stepBody_' + idx + '">' +
-          (s.goal ? '<div class="step-goal">🎯 목표: ' + esc(s.goal) + '</div>' : '') +
-          (s.desc ? '<div class="step-desc">' + esc(s.desc) + '</div>' : '') +
-          (s.prompt ? '<div class="prompt-box"><div class="prompt-header"><span class="prompt-badge">✨ Gemini Prompt</span><button class="copy-btn" onclick="copySnippet(this)">프롬프트 복사</button></div><pre>' + esc(s.prompt) + '</pre></div>' : '') +
-          (s.tip ? '<details class="tip-box-collapsible"><summary>💡 실습 꿀팁 및 권장 가이드 (펼치기)</summary><div class="tip-body">' + esc(s.tip) + '</div></details>' : '') +
-          (s.note ? '<div class="note-box"><b>ℹ️ 핵심 참고:</b> ' + esc(s.note) + '</div>' : '') +
-          (s.warn ? '<div class="warn-box"><b>⚠️ 주의사항:</b> ' + esc(s.warn) + '</div>' : '') +
-          (s.url ? '<div class="urlbox-wrap"><div class="urlbox-meta"><b>🔗 관련 리소스</b><span>' + esc(s.url) + '</span></div><a class="urlbox-btn" href="' + esc(s.url) + '" target="_blank" rel="noopener">열기 ↗</a></div>' : '') +
+          (s.goal ? '<div class="step-goal"' + inspectAttr('step-' + idx + '-goal', '실행 목표: ' + s.goal, 'item') + '>🎯 목표: ' + esc(s.goal) + '</div>' : '') +
+          (s.desc ? '<div class="step-desc"' + inspectAttr('step-' + idx + '-desc', '단계 세부설명', 'item') + '>' + esc(s.desc) + '</div>' : '') +
+          (s.prompt ? '<div class="prompt-box"' + inspectAttr('step-' + idx + '-prompt', 'Gemini 프롬프트 박스', 'item') + '><div class="prompt-header"><span class="prompt-badge">✨ Gemini Prompt</span><button class="copy-btn" onclick="copySnippet(this)">프롬프트 복사</button></div><pre>' + esc(s.prompt) + '</pre></div>' : '') +
+          (s.tip ? '<details class="tip-box-collapsible"' + inspectAttr('step-' + idx + '-tip', '실습 꿀팁 아코디언', 'item') + '><summary>💡 실습 꿀팁 및 권장 가이드 (펼치기)</summary><div class="tip-body">' + esc(s.tip) + '</div></details>' : '') +
+          (s.note ? '<div class="note-box"' + inspectAttr('step-' + idx + '-note', '핵심 참고 노트', 'item') + '><b>ℹ️ 핵심 참고:</b> ' + esc(s.note) + '</div>' : '') +
+          (s.warn ? '<div class="warn-box"' + inspectAttr('step-' + idx + '-warn', '주의사항 경고', 'item') + '><b>⚠️ 주의사항:</b> ' + esc(s.warn) + '</div>' : '') +
+          (s.url ? '<div class="urlbox-wrap"' + inspectAttr('step-' + idx + '-url', '리소스 URL 링크', 'item') + '><div class="urlbox-meta"><b>🔗 관련 리소스</b><span>' + esc(s.url) + '</span></div><a class="urlbox-btn" href="' + esc(s.url) + '" target="_blank" rel="noopener">열기 ↗</a></div>' : '') +
           '</div></div>';
       }).join(''));
       buf.push('</div></section>\n');
     }
 
+    // 최종 체크리스트
     if (checklist.length) {
-      buf.push('<section data-inspect-id="checklist" data-inspect-name="최종 점검 체크리스트"><div class="eyebrow">FINAL CHECKLIST</div><h2 class="sec">✅ 최종 점검 항목</h2><div class="checklist-card">');
+      buf.push('<section' + inspectAttr('checklist', '최종 점검 체크리스트', 'container') + '><div class="eyebrow">FINAL CHECKLIST</div><h2 class="sec">✅ 최종 점검 항목</h2><div class="checklist-card">');
       buf.push(checklist.map(function(item, i){
-        return '<label class="check-item" id="checkItem_' + i + '" data-inspect-id="check-' + i + '" data-inspect-name="체크 항목 #' + (i+1) + '"><input type="checkbox" onchange="saveChecklist(' + i + ', this.checked)" id="check_' + i + '"><span>' + esc(item) + '</span></label>';
+        return '<label class="check-item" id="checkItem_' + i + '"' + inspectAttr('check-' + i, '체크 항목 #' + (i+1) + ': ' + item, 'item') + '><input type="checkbox" onchange="saveChecklist(' + i + ', this.checked)" id="check_' + i + '"><span>' + esc(item) + '</span></label>';
       }).join(''));
       buf.push('</div></section>\n');
     }
 
     buf.push('<footer>' + esc(title) + ' · Google Tone Workflow Architecture</footer></div>\n');
 
+    // ── 클라이언트 스크립트 ──
     buf.push('<script>\n');
     buf.push('document.querySelectorAll(".flip").forEach(function(c){ c.addEventListener("click", function(){ c.classList.toggle("flipped"); }); });\n');
     buf.push('function toggleStep(i){ var b = document.getElementById("stepBody_" + i); if(b) b.style.display = (b.style.display==="none") ? "block" : "none"; }\n');
@@ -1690,78 +1994,104 @@
       buf.push('})();\n');
     }
 
-    // Chrome DevTools 요소 검사기 스크립트
-    buf.push('(function(){\n');
-    buf.push('  var activeInspect = null;\n');
-    buf.push('  var badgeEl = null;\n');
-    buf.push('  function getBadge(){\n');
-    buf.push('    if(!badgeEl){\n');
-    buf.push('      badgeEl = document.createElement("div");\n');
-    buf.push('      badgeEl.className = "devtools-inspect-badge";\n');
-    buf.push('      document.body.appendChild(badgeEl);\n');
-    buf.push('    }\n');
-    buf.push('    return badgeEl;\n');
-    buf.push('  }\n');
-    buf.push('  document.addEventListener("mouseover", function(e){\n');
-    buf.push('    var target = e.target.closest("[data-inspect-id]");\n');
-    buf.push('    if(!target || target === activeInspect) return;\n');
-    buf.push('    if(activeInspect) activeInspect.classList.remove("devtools-inspect-active");\n');
-    buf.push('    activeInspect = target;\n');
-    buf.push('    target.classList.add("devtools-inspect-active");\n');
-    buf.push('    var name = target.getAttribute("data-inspect-name") || target.getAttribute("data-inspect-id");\n');
-    buf.push('    var rect = target.getBoundingClientRect();\n');
-    buf.push('    var b = getBadge();\n');
-    buf.push('    b.textContent = "🔍 " + name;\n');
-    buf.push('    b.style.display = "block";\n');
-    buf.push('    b.style.top = Math.max(0, (rect.top + window.scrollY - 24)) + "px";\n');
-    buf.push('    b.style.left = Math.max(0, (rect.left + window.scrollX)) + "px";\n');
-    buf.push('    if(window.parent && window.parent.onPreviewInspectHover){\n');
-    buf.push('      window.parent.onPreviewInspectHover(target.getAttribute("data-inspect-id"));\n');
-    buf.push('    }\n');
-    buf.push('  });\n');
-    buf.push('  document.addEventListener("mouseout", function(e){\n');
-    buf.push('    if(!activeInspect) return;\n');
-    buf.push('    var rel = e.relatedTarget;\n');
-    buf.push('    if(rel && activeInspect.contains(rel)) return;\n');
-    buf.push('    activeInspect.classList.remove("devtools-inspect-active");\n');
-    buf.push('    activeInspect = null;\n');
-    buf.push('    if(badgeEl) badgeEl.style.display = "none";\n');
-    buf.push('    if(window.parent && window.parent.onPreviewInspectLeave){\n');
-    buf.push('      window.parent.onPreviewInspectLeave();\n');
-    buf.push('    }\n');
-    buf.push('  });\n');
-    buf.push('  document.addEventListener("click", function(e){\n');
-    buf.push('    var target = e.target.closest("[data-inspect-id]");\n');
-    buf.push('    if(target && window.parent && window.parent.onPreviewInspectClick){\n');
-    buf.push('      window.parent.onPreviewInspectClick(target.getAttribute("data-inspect-id"));\n');
-    buf.push('    }\n');
-    buf.push('  });\n');
-    buf.push('  window.highlightFromEditor = function(id){\n');
-    buf.push('    if(activeInspect) activeInspect.classList.remove("devtools-inspect-active");\n');
-    buf.push('    var el = document.querySelector("[data-inspect-id=" + JSON.stringify(id) + "]");\n');
-    buf.push('    if(!el){\n');
-    buf.push('      if(badgeEl) badgeEl.style.display = "none";\n');
-    buf.push('      return;\n');
-    buf.push('    }\n');
-    buf.push('    activeInspect = el;\n');
-    buf.push('    el.classList.add("devtools-inspect-active");\n');
-    buf.push('    var name = el.getAttribute("data-inspect-name") || id;\n');
-    buf.push('    var rect = el.getBoundingClientRect();\n');
-    buf.push('    var b = getBadge();\n');
-    buf.push('    b.textContent = "✏️ " + name;\n');
-    buf.push('    b.style.display = "block";\n');
-    buf.push('    b.style.top = Math.max(0, (rect.top + window.scrollY - 24)) + "px";\n');
-    buf.push('    b.style.left = Math.max(0, (rect.left + window.scrollX)) + "px";\n');
-    buf.push('    el.scrollIntoView({ behavior:"smooth", block:"nearest" });\n');
-    buf.push('  };\n');
-    buf.push('  window.clearHighlightFromEditor = function(){\n');
-    buf.push('    if(activeInspect){\n');
-    buf.push('      activeInspect.classList.remove("devtools-inspect-active");\n');
-    buf.push('      activeInspect = null;\n');
-    buf.push('    }\n');
-    buf.push('    if(badgeEl) badgeEl.style.display = "none";\n');
-    buf.push('  };\n');
-    buf.push('})();\n');
+    // ── Chrome DevTools 요소 검사기 스크립트 (요구사항 1 & 3: 내보내기 모드에서는 완전 제외!) ──
+    if (!isExport) {
+      buf.push('(function(){\n');
+      buf.push('  var activeInspect = null;\n');
+      buf.push('  var activeLevel = null;\n');
+      buf.push('  var badgeEl = null;\n');
+      buf.push('  function getBadge(){\n');
+      buf.push('    if(!badgeEl){\n');
+      buf.push('      badgeEl = document.createElement("div");\n');
+      buf.push('      document.body.appendChild(badgeEl);\n');
+      buf.push('    }\n');
+      buf.push('    return badgeEl;\n');
+      buf.push('  }\n');
+      buf.push('  document.addEventListener("mouseover", function(e){\n');
+      buf.push('    var target = e.target.closest("[data-inspect-id]");\n');
+      buf.push('    if(!target || target === activeInspect) return;\n');
+      buf.push('    if(activeInspect){\n');
+      buf.push('      activeInspect.classList.remove("devtools-inspect-container-active");\n');
+      buf.push('      activeInspect.classList.remove("devtools-inspect-subitem-active");\n');
+      buf.push('    }\n');
+      buf.push('    activeInspect = target;\n');
+      buf.push('    var level = target.getAttribute("data-inspect-level") || "container";\n');
+      buf.push('    activeLevel = level;\n');
+      buf.push('    var name = target.getAttribute("data-inspect-name") || target.getAttribute("data-inspect-id");\n');
+      buf.push('    var rect = target.getBoundingClientRect();\n');
+      buf.push('    var b = getBadge();\n');
+      buf.push('    if(level === "item"){\n');
+      buf.push('      target.classList.add("devtools-inspect-subitem-active");\n');
+      buf.push('      b.className = "devtools-inspect-badge-subitem";\n');
+      buf.push('      b.textContent = "🎯 " + name;\n');
+      buf.push('    } else {\n');
+      buf.push('      target.classList.add("devtools-inspect-container-active");\n');
+      buf.push('      b.className = "devtools-inspect-badge-container";\n');
+      buf.push('      b.textContent = "📁 " + name;\n');
+      buf.push('    }\n');
+      buf.push('    b.style.display = "block";\n');
+      buf.push('    b.style.top = Math.max(0, (rect.top + window.scrollY - 24)) + "px";\n');
+      buf.push('    b.style.left = Math.max(0, (rect.left + window.scrollX)) + "px";\n');
+      buf.push('    if(window.parent && window.parent.onPreviewInspectHover){\n');
+      buf.push('      window.parent.onPreviewInspectHover(target.getAttribute("data-inspect-id"), level);\n');
+      buf.push('    }\n');
+      buf.push('  });\n');
+      buf.push('  document.addEventListener("mouseout", function(e){\n');
+      buf.push('    if(!activeInspect) return;\n');
+      buf.push('    var rel = e.relatedTarget;\n');
+      buf.push('    if(rel && activeInspect.contains(rel)) return;\n');
+      buf.push('    activeInspect.classList.remove("devtools-inspect-container-active");\n');
+      buf.push('    activeInspect.classList.remove("devtools-inspect-subitem-active");\n');
+      buf.push('    activeInspect = null;\n');
+      buf.push('    if(badgeEl) badgeEl.style.display = "none";\n');
+      buf.push('    if(window.parent && window.parent.onPreviewInspectLeave){\n');
+      buf.push('      window.parent.onPreviewInspectLeave();\n');
+      buf.push('    }\n');
+      buf.push('  });\n');
+      buf.push('  document.addEventListener("click", function(e){\n');
+      buf.push('    var target = e.target.closest("[data-inspect-id]");\n');
+      buf.push('    if(target && window.parent && window.parent.onPreviewInspectClick){\n');
+      buf.push('      window.parent.onPreviewInspectClick(target.getAttribute("data-inspect-id"), target.getAttribute("data-inspect-level") || "container");\n');
+      buf.push('    }\n');
+      buf.push('  });\n');
+      buf.push('  window.highlightFromEditor = function(id, level){\n');
+      buf.push('    if(activeInspect){\n');
+      buf.push('      activeInspect.classList.remove("devtools-inspect-container-active");\n');
+      buf.push('      activeInspect.classList.remove("devtools-inspect-subitem-active");\n');
+      buf.push('    }\n');
+      buf.push('    var el = document.querySelector("[data-inspect-id=" + JSON.stringify(id) + "]");\n');
+      buf.push('    if(!el){\n');
+      buf.push('      if(badgeEl) badgeEl.style.display = "none";\n');
+      buf.push('      return;\n');
+      buf.push('    }\n');
+      buf.push('    activeInspect = el;\n');
+      buf.push('    var name = el.getAttribute("data-inspect-name") || id;\n');
+      buf.push('    var rect = el.getBoundingClientRect();\n');
+      buf.push('    var b = getBadge();\n');
+      buf.push('    if(level === "item"){\n');
+      buf.push('      el.classList.add("devtools-inspect-subitem-active");\n');
+      buf.push('      b.className = "devtools-inspect-badge-subitem";\n');
+      buf.push('      b.textContent = "🎯 " + name;\n');
+      buf.push('    } else {\n');
+      buf.push('      el.classList.add("devtools-inspect-container-active");\n');
+      buf.push('      b.className = "devtools-inspect-badge-container";\n');
+      buf.push('      b.textContent = "📁 " + name;\n');
+      buf.push('    }\n');
+      buf.push('    b.style.display = "block";\n');
+      buf.push('    b.style.top = Math.max(0, (rect.top + window.scrollY - 24)) + "px";\n');
+      buf.push('    b.style.left = Math.max(0, (rect.left + window.scrollX)) + "px";\n');
+      buf.push('    el.scrollIntoView({ behavior:"smooth", block:"nearest" });\n');
+      buf.push('  };\n');
+      buf.push('  window.clearHighlightFromEditor = function(){\n');
+      buf.push('    if(activeInspect){\n');
+      buf.push('      activeInspect.classList.remove("devtools-inspect-container-active");\n');
+      buf.push('      activeInspect.classList.remove("devtools-inspect-subitem-active");\n');
+      buf.push('      activeInspect = null;\n');
+      buf.push('    }\n');
+      buf.push('    if(badgeEl) badgeEl.style.display = "none";\n');
+      buf.push('  };\n');
+      buf.push('})();\n');
+    }
 
     buf.push('<' + '/script>\n</body>\n</html>');
     return buf.join('');
@@ -1789,10 +2119,11 @@
       var div = document.createElement('div');
       div.className = 'item-card';
       div.setAttribute('data-editor-id', 'whyBox');
+      div.setAttribute('data-editor-level', 'container');
       div.innerHTML = '<button class="item-delete-btn" onclick="removeWhyBox()">삭제</button>' +
         '<div style="font-weight:700;font-size:.85rem;color:var(--navy);margin-bottom:8px;">🌌 Why 인트로 박스 (모듈 2, 3, 4 스타일)</div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>박스 제목</label><input type="text" value="' + (currentData.whyBox.title||'') + '" oninput="updateWhyBox(\'title\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:0;"><label>상세 설명</label><textarea oninput="updateWhyBox(\'desc\', this.value)">' + (currentData.whyBox.desc||'') + '</textarea></div>';
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="why-title" data-editor-level="item"><label>박스 제목</label><input type="text" value="' + (currentData.whyBox.title||'') + '" oninput="updateWhyBox(\'title\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:0;" data-editor-id="why-desc" data-editor-level="item"><label>상세 설명</label><textarea oninput="updateWhyBox(\'desc\', this.value)">' + (currentData.whyBox.desc||'') + '</textarea></div>';
       whyWrap.appendChild(div);
     }
 
@@ -1803,10 +2134,11 @@
       var div = document.createElement('div');
       div.className = 'item-card';
       div.setAttribute('data-editor-id', 'procBox');
+      div.setAttribute('data-editor-level', 'container');
       div.innerHTML = '<button class="item-delete-btn" onclick="removeProcBox()">삭제</button>' +
         '<div style="font-weight:700;font-size:.85rem;color:var(--navy);margin-bottom:8px;">🔄 프로세스 플로우 바 (모듈 3, 4 스타일)</div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>뱃지 문구</label><input type="text" value="' + (currentData.procBox.badge||'AUTOMATION PIPELINE') + '" oninput="updateProcBox(\'badge\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:0;"><label>파이프라인 흐름 문구</label><input type="text" value="' + (currentData.procBox.title||'') + '" oninput="updateProcBox(\'title\', this.value)"></div>';
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="proc-badge" data-editor-level="item"><label>뱃지 문구</label><input type="text" value="' + (currentData.procBox.badge||'AUTOMATION PIPELINE') + '" oninput="updateProcBox(\'badge\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:0;" data-editor-id="proc-title" data-editor-level="item"><label>파이프라인 흐름 문구</label><input type="text" value="' + (currentData.procBox.title||'') + '" oninput="updateProcBox(\'title\', this.value)"></div>';
       procWrap.appendChild(div);
     }
 
@@ -1817,14 +2149,15 @@
       var div = document.createElement('div');
       div.className = 'item-card';
       div.setAttribute('data-editor-id', 'kpiStats');
+      div.setAttribute('data-editor-level', 'container');
       var kpiHtml = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">' +
         '<div style="font-weight:700;font-size:.85rem;color:var(--navy);">📊 KPI 지표 스코어보드 (모듈 3 스타일)</div>' +
         '<button class="add-item-btn" onclick="insertWidget(\'kpiStats\')">+ 지표 추가</button>' +
         '</div>';
       currentData.kpiStats.forEach(function(k, idx){
-        kpiHtml += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">' +
-          '<input type="text" style="width:75px;font-weight:800;" value="' + (k.num||'') + '" placeholder="수치" oninput="updateKpiStat(' + idx + ', \'num\', this.value)">' +
-          '<input type="text" style="flex:1;" value="' + (k.label||'') + '" placeholder="설명" oninput="updateKpiStat(' + idx + ', \'label\', this.value)">' +
+        kpiHtml += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;" data-editor-id="kpi-' + idx + '" data-editor-level="container">' +
+          '<input type="text" style="width:75px;font-weight:800;" value="' + (k.num||'') + '" placeholder="수치" data-editor-id="kpi-' + idx + '-num" data-editor-level="item" oninput="updateKpiStat(' + idx + ', \'num\', this.value)">' +
+          '<input type="text" style="flex:1;" value="' + (k.label||'') + '" placeholder="설명" data-editor-id="kpi-' + idx + '-label" data-editor-level="item" oninput="updateKpiStat(' + idx + ', \'label\', this.value)">' +
           '<input type="color" style="width:36px;padding:2px;" value="' + (k.color||'#1967d2') + '" onchange="updateKpiStat(' + idx + ', \'color\', this.value)">' +
           '<button class="item-delete-btn" style="position:static;" onclick="removeKpiStat(' + idx + ')">×</button>' +
           '</div>';
@@ -1840,9 +2173,10 @@
       var div = document.createElement('div');
       div.className = 'item-card';
       div.setAttribute('data-editor-id', 'flow-' + idx);
+      div.setAttribute('data-editor-level', 'container');
       div.innerHTML = '<button class="item-delete-btn" onclick="removeFlowItem(' + idx + ')">삭제</button>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>단계명 (Step ' + (idx+1) + ')</label><input type="text" value="' + (f.title||'') + '" oninput="updateFlowItem(' + idx + ', \'title\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>요약 설명</label><input type="text" value="' + (f.desc||'') + '" oninput="updateFlowItem(' + idx + ', \'desc\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="flow-' + idx + '-title" data-editor-level="item"><label>단계명 (Step ' + (idx+1) + ')</label><input type="text" value="' + (f.title||'') + '" oninput="updateFlowItem(' + idx + ', \'title\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="flow-' + idx + '-desc" data-editor-level="item"><label>요약 설명</label><input type="text" value="' + (f.desc||'') + '" oninput="updateFlowItem(' + idx + ', \'desc\', this.value)"></div>' +
         '<div class="form-group" style="margin-bottom:0;"><label>강조 색상 (Hex)</label><input type="color" value="' + (f.color||'#1967d2') + '" onchange="updateFlowItem(' + idx + ', \'color\', this.value)"></div>';
       flowBox.appendChild(div);
     });
@@ -1854,11 +2188,12 @@
       var div = document.createElement('div');
       div.className = 'item-card';
       div.setAttribute('data-editor-id', 'card-' + idx);
+      div.setAttribute('data-editor-level', 'container');
       div.innerHTML = '<button class="item-delete-btn" onclick="removeCardItem(' + idx + ')">삭제</button>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>앞면 제목 (카드 #' + (idx+1) + ')</label><input type="text" value="' + (c.frontTitle||'') + '" oninput="updateCardItem(' + idx + ', \'frontTitle\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="card-' + idx + '-title" data-editor-level="item"><label>앞면 제목 (카드 #' + (idx+1) + ')</label><input type="text" value="' + (c.frontTitle||'') + '" oninput="updateCardItem(' + idx + ', \'frontTitle\', this.value)"></div>' +
         '<div class="form-group" style="margin-bottom:8px;"><label>배지 / 페이즈</label><input type="text" value="' + (c.badge||'') + '" oninput="updateCardItem(' + idx + ', \'badge\', this.value)"></div>' +
         '<div class="form-group" style="margin-bottom:8px;"><label>태그 (쉼표로 구분)</label><input type="text" value="' + (c.tags ? c.tags.join(', ') : '') + '" oninput="updateCardTags(' + idx + ', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:0;"><label>뒷면 상세 설명</label><textarea oninput="updateCardItem(' + idx + ', \'backDesc\', this.value)">' + (c.backDesc||'') + '</textarea></div>';
+        '<div class="form-group" style="margin-bottom:0;" data-editor-id="card-' + idx + '-desc" data-editor-level="item"><label>뒷면 상세 설명</label><textarea oninput="updateCardItem(' + idx + ', \'backDesc\', this.value)">' + (c.backDesc||'') + '</textarea></div>';
       cardBox.appendChild(div);
     });
 
@@ -1869,16 +2204,17 @@
       var div = document.createElement('div');
       div.className = 'item-card';
       div.setAttribute('data-editor-id', 'step-' + idx);
+      div.setAttribute('data-editor-level', 'container');
       div.innerHTML = '<button class="item-delete-btn" onclick="removeStepItem(' + idx + ')">삭제</button>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>단계 제목 (Step #' + (idx+1) + ')</label><input type="text" value="' + (s.title||'') + '" oninput="updateStepItem(' + idx + ', \'title\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>사용 도구</label><input type="text" value="' + (s.tool||'') + '" oninput="updateStepItem(' + idx + ', \'tool\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>목표 (Goal)</label><input type="text" value="' + (s.goal||'') + '" oninput="updateStepItem(' + idx + ', \'goal\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>단계 설명</label><input type="text" value="' + (s.desc||'') + '" oninput="updateStepItem(' + idx + ', \'desc\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>📋 Gemini 프롬프트 / 코드 (복사 박스)</label><textarea style="min-height:75px;" oninput="updateStepItem(' + idx + ', \'prompt\', this.value)">' + (s.prompt||'') + '</textarea></div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>💡 실습 꿀팁 (아코디언)</label><input type="text" value="' + (s.tip||'') + '" placeholder="선택사항" oninput="updateStepItem(' + idx + ', \'tip\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>ℹ️ 핵심 참고 노트 (블루 콜아웃)</label><input type="text" value="' + (s.note||'') + '" placeholder="선택사항" oninput="updateStepItem(' + idx + ', \'note\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>⚠️ 주의사항 (레드 콜아웃)</label><input type="text" value="' + (s.warn||'') + '" placeholder="선택사항" oninput="updateStepItem(' + idx + ', \'warn\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:0;"><label>🔗 외부 리소스 URL 링크</label><input type="text" value="' + (s.url||'') + '" placeholder="예: https://docs.google.com/..." oninput="updateStepItem(' + idx + ', \'url\', this.value)"></div>';
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-title" data-editor-level="item"><label>단계 제목 (Step #' + (idx+1) + ')</label><input type="text" value="' + (s.title||'') + '" oninput="updateStepItem(' + idx + ', \'title\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-tool" data-editor-level="item"><label>사용 도구</label><input type="text" value="' + (s.tool||'') + '" oninput="updateStepItem(' + idx + ', \'tool\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-goal" data-editor-level="item"><label>목표 (Goal)</label><input type="text" value="' + (s.goal||'') + '" oninput="updateStepItem(' + idx + ', \'goal\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-desc" data-editor-level="item"><label>단계 설명</label><input type="text" value="' + (s.desc||'') + '" oninput="updateStepItem(' + idx + ', \'desc\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-prompt" data-editor-level="item"><label>📋 Gemini 프롬프트 / 코드 (복사 박스)</label><textarea style="min-height:75px;" oninput="updateStepItem(' + idx + ', \'prompt\', this.value)">' + (s.prompt||'') + '</textarea></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-tip" data-editor-level="item"><label>💡 실습 꿀팁 (아코디언)</label><input type="text" value="' + (s.tip||'') + '" placeholder="선택사항" oninput="updateStepItem(' + idx + ', \'tip\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-note" data-editor-level="item"><label>ℹ️ 핵심 참고 노트 (블루 콜아웃)</label><input type="text" value="' + (s.note||'') + '" placeholder="선택사항" oninput="updateStepItem(' + idx + ', \'note\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-warn" data-editor-level="item"><label>⚠️ 주의사항 (레드 콜아웃)</label><input type="text" value="' + (s.warn||'') + '" placeholder="선택사항" oninput="updateStepItem(' + idx + ', \'warn\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:0;" data-editor-id="step-' + idx + '-url" data-editor-level="item"><label>🔗 외부 리소스 URL 링크</label><input type="text" value="' + (s.url||'') + '" placeholder="예: https://docs.google.com/..." oninput="updateStepItem(' + idx + ', \'url\', this.value)"></div>';
       stepBox.appendChild(div);
     });
 
@@ -1889,6 +2225,7 @@
       var div = document.createElement('div');
       div.className = 'item-card';
       div.setAttribute('data-editor-id', 'check-' + idx);
+      div.setAttribute('data-editor-level', 'item');
       div.style.padding = '8px 12px';
       div.innerHTML = '<button class="item-delete-btn" style="top:5px;" onclick="removeCheckItem(' + idx + ')">삭제</button>' +
         '<input type="text" style="width:calc(100% - 50px);" value="' + item + '" oninput="updateCheckItem(' + idx + ', this.value)">';
@@ -1901,7 +2238,8 @@
   }
 
   function updateLivePreview() {
-    var html = renderReportHtml(currentData);
+    // 라이브 미리보기는 isExport = false (인스펙터 활성화)
+    var html = renderReportHtml(currentData, false);
     var frame = document.getElementById('previewFrame');
     var doc = frame.contentDocument || frame.contentWindow.document;
     doc.open();
@@ -1949,53 +2287,104 @@
     }
   };
 
-  // ── Chrome DevTools 스타일 요소 검사 이벤트 연동 (요구사항 4) ──
-  var currentHighlightedEditorCard = null;
+  // ── Chrome DevTools 스타일 2단계 요소 검사 연동 (요구사항 1: 컨테이너 Blue / 세부 항목 Orange) ──
+  var currentHighlightedContainer = null;
+  var currentHighlightedSubitem = null;
 
-  window.onPreviewInspectHover = function(inspectId){
-    if(currentHighlightedEditorCard){
-      currentHighlightedEditorCard.classList.remove('editor-inspect-active');
-    }
+  window.onPreviewInspectHover = function(inspectId, level){
+    clearEditorHighlights();
     var target = document.querySelector('[data-editor-id="' + inspectId + '"]');
     if(target){
-      currentHighlightedEditorCard = target;
-      target.classList.add('editor-inspect-active');
+      if(level === 'item'){
+        currentHighlightedSubitem = target;
+        target.classList.add('editor-inspect-subitem-active');
+        // 부모 컨테이너도 부드럽게 강조
+        var parentCard = target.closest('.item-card') || target.closest('[data-editor-level="container"]');
+        if(parentCard && parentCard !== target){
+          currentHighlightedContainer = parentCard;
+          parentCard.classList.add('editor-inspect-active');
+        }
+      } else {
+        currentHighlightedContainer = target;
+        target.classList.add('editor-inspect-active');
+      }
       target.scrollIntoView({ behavior:'smooth', block:'nearest' });
     }
   };
 
   window.onPreviewInspectLeave = function(){
-    if(currentHighlightedEditorCard){
-      currentHighlightedEditorCard.classList.remove('editor-inspect-active');
-      currentHighlightedEditorCard = null;
-    }
+    clearEditorHighlights();
   };
 
-  window.onPreviewInspectClick = function(inspectId){
+  window.onPreviewInspectClick = function(inspectId, level){
     var target = document.querySelector('[data-editor-id="' + inspectId + '"]');
     if(target){
-      var inp = target.querySelector('input[type="text"], textarea');
+      var inp = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' ? target : target.querySelector('input[type="text"], textarea');
       if(inp){ inp.focus(); if(inp.select) inp.select(); }
     }
   };
 
+  function clearEditorHighlights(){
+    if(currentHighlightedContainer){
+      currentHighlightedContainer.classList.remove('editor-inspect-active');
+      currentHighlightedContainer = null;
+    }
+    if(currentHighlightedSubitem){
+      currentHighlightedSubitem.classList.remove('editor-inspect-subitem-active');
+      currentHighlightedSubitem = null;
+    }
+  }
+
+  // 에디터 카드 및 개별 인풋 요소 바인딩
   function bindEditorInspectEvents(){
     document.querySelectorAll('[data-editor-id]').forEach(function(el){
-      el.onmouseenter = function(){
-        var id = el.getAttribute('data-editor-id');
-        el.classList.add('editor-inspect-active');
+      var id = el.getAttribute('data-editor-id');
+      var level = el.getAttribute('data-editor-level') || 'container';
+
+      el.onmouseenter = function(e){
+        e.stopPropagation();
+        if(level === 'item'){
+          el.classList.add('editor-inspect-subitem-active');
+        } else {
+          el.classList.add('editor-inspect-active');
+        }
         var frame = document.getElementById('previewFrame');
         if(frame && frame.contentWindow && frame.contentWindow.highlightFromEditor){
-          frame.contentWindow.highlightFromEditor(id);
+          frame.contentWindow.highlightFromEditor(id, level);
         }
       };
-      el.onmouseleave = function(){
-        el.classList.remove('editor-inspect-active');
+
+      el.onmouseleave = function(e){
+        e.stopPropagation();
+        if(level === 'item'){
+          el.classList.remove('editor-inspect-subitem-active');
+        } else {
+          el.classList.remove('editor-inspect-active');
+        }
         var frame = document.getElementById('previewFrame');
         if(frame && frame.contentWindow && frame.contentWindow.clearHighlightFromEditor){
           frame.contentWindow.clearHighlightFromEditor();
         }
       };
+
+      // 입력 중에도 실시간 하이라이트 유지
+      var inp = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ? el : el.querySelector('input, textarea');
+      if(inp){
+        inp.onfocus = function(){
+          el.classList.add('editor-inspect-subitem-active');
+          var frame = document.getElementById('previewFrame');
+          if(frame && frame.contentWindow && frame.contentWindow.highlightFromEditor){
+            frame.contentWindow.highlightFromEditor(id, 'item');
+          }
+        };
+        inp.onblur = function(){
+          el.classList.remove('editor-inspect-subitem-active');
+          var frame = document.getElementById('previewFrame');
+          if(frame && frame.contentWindow && frame.contentWindow.clearHighlightFromEditor){
+            frame.contentWindow.clearHighlightFromEditor();
+          }
+        };
+      }
     });
   }
 
@@ -2069,16 +2458,16 @@
     } catch(err){}
   });
 
-  // ── 내보내기 & 복사 ──
+  // ── 내보내기 & 복사 (요구사항 3: isExport = true로 하이라이트 및 인스펙터 완전 제거) ──
   document.getElementById('copyHtmlBtn').addEventListener('click', function(){
-    var html = renderReportHtml(currentData);
+    var html = renderReportHtml(currentData, true);
     navigator.clipboard.writeText(html).then(function(){
-      showToast('📋 생성된 HTML 코드가 클립보드에 복사되었습니다!');
+      showToast('📋 순수 배포용 HTML 코드가 클립보드에 복사되었습니다! (하이라이트 스크립트 제거됨)');
     });
   });
 
   document.getElementById('downloadHtmlBtn').addEventListener('click', function(){
-    var html = renderReportHtml(currentData);
+    var html = renderReportHtml(currentData, true);
     var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
@@ -2086,7 +2475,7 @@
     a.download = (currentData.title || 'workflow-report').replace(/\s+/g, '_') + '.html';
     a.click();
     URL.revokeObjectURL(url);
-    showToast('💾 HTML 파일이 다운로드되었습니다.');
+    showToast('💾 순수 배포용 HTML 파일이 다운로드되었습니다. (하이라이트 스크립트 제거됨)');
   });
 
   // ── 초기화: 드롭다운 채우기 및 폼 렌더링 ──
