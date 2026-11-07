@@ -219,6 +219,19 @@
   .dock-widget-btn:hover .dock-add-icon { background: #1967d2; color: #fff; }
 
   /* ── 하이라이트 스타일 (Chrome DevTools Elements 스타일) ── */
+  .editor-inspect-subitem-active {
+    border-color: #ea580c !important;
+    box-shadow: 0 0 0 3px rgba(234,88,12,0.28), 0 4px 16px rgba(234,88,12,0.14) !important;
+    background: #fff8f5 !important;
+    position: relative;
+    z-index: 5;
+    transition: all .15s ease-out !important;
+  }
+  .editor-inspect-subitem-active label {
+    color: #c2410c !important;
+    font-weight: 800 !important;
+  }
+
   .editor-inspect-active {
     border-color: #1a73e8 !important;
     box-shadow: 0 0 0 3px rgba(26,115,232,0.3), 0 8px 24px rgba(26,115,232,0.12) !important;
@@ -315,7 +328,7 @@
     <div class="editor-scroll" id="formView">
       
       <!-- ── 🛠️ 툴바 & 도구 모음 팔레트 (펼침/숨김 지원) ── -->
-      <div class="tool-section-card" id="toolbarSectionCard" data-editor-id="toolbar">
+      <div class="tool-section-card" id="toolbarSectionCard" data-editor-id="toolbar" data-editor-level="container" data-editor-level="container">
         <div class="tool-section-header" id="toolbarSectionToggle" onclick="toggleToolbarSection()">
           <div class="tool-section-title-wrap">
             <span class="collapse-arrow" id="tbCollapseArrow">▾</span>
@@ -384,14 +397,14 @@
           <!-- 확장 옵션 입력 (검색어 칩 및 카테고리 탭 설정) -->
           <div id="subToolbarSettings" style="background:#f8fafd; border:1px solid #e1ecfa; border-radius:10px; padding:12px; margin-bottom:14px;">
             <div class="form-group" style="margin-bottom:8px;">
-              <label style="font-size:.78rem;">검색창 안내 문구 (Placeholder)</label>
-              <input type="text" id="tbSearchPlaceholder" placeholder="보고서 내 키워드 검색..." oninput="updateToolbarText('searchPlaceholder', this.value)">
+              <div data-editor-id="tb-search-box" data-editor-level="item"><label style="font-size:.78rem;">검색창 안내 문구 (Placeholder)</label>
+              <input type="text" id="tbSearchPlaceholder" placeholder="보고서 내 키워드 검색..." oninput="updateToolbarText('searchPlaceholder', this.value)"></div>
             </div>
-            <div class="form-group" style="margin-bottom:8px;" id="boxSuggestChipsInput">
+            <div class="form-group" style="margin-bottom:8px;" id="boxSuggestChipsInput" data-editor-id="suggestChips" data-editor-level="item" data-editor-id="suggestChips" data-editor-level="item">
               <label style="font-size:.78rem;">추천 검색어 칩 (쉼표 구분)</label>
               <input type="text" id="tbSuggestChips" placeholder="마스코트, 대시보드, Apps Script, PARTS" oninput="updateSuggestChips(this.value)">
             </div>
-            <div class="form-group" style="margin-bottom:0;" id="boxCategoryTabsInput">
+            <div class="form-group" style="margin-bottom:0;" id="boxCategoryTabsInput" data-editor-id="categoryTabs" data-editor-level="item" data-editor-id="categoryTabs" data-editor-level="item">
               <label style="font-size:.78rem;">카테고리 탭 목록 (쉼표 구분)</label>
               <input type="text" id="tbCategoryTabs" placeholder="전체, 1단계: 기획, 2단계: 실습, 3단계: 검증" oninput="updateCategoryTabs(this.value)">
             </div>
@@ -469,19 +482,19 @@
       </div>
 
       <!-- 기본 정보 (헤더) -->
-      <div class="section-divider" data-editor-id="header">
+      <div class="section-divider" data-editor-id="header" data-editor-level="container">
         <span>기본 정보 (헤더 설정)</span>
       </div>
-      <div class="item-card" data-editor-id="header">
-        <div class="form-group">
+      <div class="item-card" data-editor-id="header" data-editor-level="container">
+        <div class="form-group" data-editor-id="hero-title" data-editor-level="item">
           <label>보고서 / 워크플로우 제목</label>
           <input type="text" id="fTitle" placeholder="예: AI 기반 주간 업무 자동화 보고서">
         </div>
-        <div class="form-group">
+        <div class="form-group" data-editor-id="hero-badge" data-editor-level="item">
           <label>상단 뱃지 문구 (Stamp Badge)</label>
           <input type="text" id="fBadge" placeholder="예: 🚀 2026 스마트 워크 플레이북">
         </div>
-        <div class="form-group" style="margin-bottom:0;">
+        <div class="form-group" style="margin-bottom:0;" data-editor-id="hero-desc" data-editor-level="item">
           <label>요약 설명</label>
           <textarea id="fDesc" placeholder="워크플로우의 목적과 기대 효과를 입력하세요."></textarea>
         </div>
@@ -497,28 +510,28 @@
       <div id="kpiStatsEditorContainer"></div>
 
       <!-- 🗺️ 1줄 흐름 지도 -->
-      <div class="section-divider" data-editor-id="flowmap">
+      <div class="section-divider" data-editor-id="flowmap" data-editor-level="container">
         <span>1줄 흐름 지도 (Flow Map)</span>
         <button class="add-item-btn" onclick="addFlowItem()">+ 단계 추가</button>
       </div>
       <div id="flowItemsContainer"></div>
 
       <!-- 📌 3D 플립 카드 (핵심 모듈) -->
-      <div class="section-divider" data-editor-id="cards">
+      <div class="section-divider" data-editor-id="cards" data-editor-level="container">
         <span>3D 플립 카드 (핵심 모듈)</span>
         <button class="add-item-btn" onclick="addCardItem()">+ 카드 추가</button>
       </div>
       <div id="cardItemsContainer"></div>
 
       <!-- 🛠️ 상세 실행 단계 (스텝 & 프롬프트) -->
-      <div class="section-divider" data-editor-id="steps">
+      <div class="section-divider" data-editor-id="steps" data-editor-level="container">
         <span>상세 실행 단계 (스텝 &amp; 프롬프트)</span>
         <button class="add-item-btn" onclick="addStepItem()">+ 실행 단계 추가</button>
       </div>
       <div id="stepItemsContainer"></div>
 
       <!-- ✅ 체크리스트 -->
-      <div class="section-divider" data-editor-id="checklist">
+      <div class="section-divider" data-editor-id="checklist" data-editor-level="container">
         <span>체크리스트</span>
         <button class="add-item-btn" onclick="addCheckItem()">+ 항목 추가</button>
       </div>
@@ -1351,12 +1364,18 @@
   }
 
   // ── HTML 렌더러 (보고서 생성 엔진) ──
-  function renderReportHtml(config) {
+    function renderReportHtml(config, isExport) {
     function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     function fmtTitle(t){
       var s = esc(t);
       if(s.indexOf('AI')!==-1) s = s.replace(/AI/g, '<span class="glow">AI</span>');
       return s;
+    }
+
+    // 인스펙터 속성 주입 헬퍼 (내보내기 모드에서는 완전 제거)
+    function inspectAttr(id, name, level) {
+      if (isExport) return '';
+      return ' data-inspect-id="' + esc(id) + '" data-inspect-name="' + esc(name) + '" data-inspect-level="' + esc(level || 'container') + '"';
     }
 
     var title = config.title || '워크플로우 보고서';
@@ -1489,132 +1508,155 @@
     buf.push('.check-item { display:flex; align-items:center; gap:10px; font-size:.92rem; font-weight:600; color:var(--navy-2); cursor:pointer; }\n');
     buf.push('.check-item input[type="checkbox"] { width:18px; height:18px; accent-color:var(--blue); cursor:pointer; }\n');
     buf.push('footer { text-align:center; padding:40px 0 20px; font-size:.82rem; color:var(--muted); border-top:1px solid var(--line); margin-top:50px; }\n');
-    buf.push('.devtools-inspect-active { outline:2px solid #1a73e8 !important; outline-offset:3px !important; box-shadow:0 0 0 4px rgba(26,115,232,0.2) !important; position:relative !important; transition:outline .1s ease, box-shadow .1s ease !important; }\n');
-    buf.push('.devtools-inspect-badge { position:absolute; background:#1a73e8; color:#fff; font-size:11px; font-family:"Pretendard",system-ui,sans-serif; font-weight:700; padding:3px 8px; border-radius:4px; z-index:999999; pointer-events:none; box-shadow:0 4px 10px rgba(0,0,0,0.25); white-space:nowrap; }\n');
+
+    // ── Chrome DevTools 스타일 검사 하이라이트 CSS (내보내기 모드에서는 완전 제외!) ──
+    if (!isExport) {
+      buf.push('/* ── 상위 컨테이너 검사 하이라이트 (Blue) ── */\n');
+      buf.push('.devtools-inspect-container-active { outline:2px solid #1a73e8 !important; outline-offset:3px !important; box-shadow:0 0 0 4px rgba(26,115,232,0.2) !important; position:relative !important; transition:outline .1s ease, box-shadow .1s ease !important; }\n');
+      buf.push('.devtools-inspect-badge-container { position:absolute; background:#1a73e8; color:#fff; font-size:11px; font-family:"Pretendard",system-ui,sans-serif; font-weight:700; padding:3px 8px; border-radius:4px; z-index:999999; pointer-events:none; box-shadow:0 4px 10px rgba(0,0,0,0.25); white-space:nowrap; }\n');
+
+      buf.push('/* ── 하위 세부 항목 검사 하이라이트 (Vivid Orange / Coral) (요구사항 1) ── */\n');
+      buf.push('.devtools-inspect-subitem-active { outline:2px dashed #ea580c !important; outline-offset:2px !important; box-shadow:0 0 0 4px rgba(234,88,12,0.25) !important; position:relative !important; background:rgba(234,88,12,0.04) !important; transition:outline .1s ease, box-shadow .1s ease !important; }\n');
+      buf.push('.devtools-inspect-badge-subitem { position:absolute; background:#ea580c; color:#fff; font-size:11px; font-family:"Pretendard",system-ui,sans-serif; font-weight:700; padding:3px 8px; border-radius:4px; z-index:1000000; pointer-events:none; box-shadow:0 4px 10px rgba(0,0,0,0.25); white-space:nowrap; }\n');
+    }
+
     buf.push('</style>\n</head>\n<body>\n');
 
+    // 상단 스크롤 진행률 바 (옵션)
     if (tb.enabled && tb.showProgress) {
       buf.push('<div class="tb-progress-bar" id="reportProgressBar"></div>\n');
     }
 
+    // 상단 툴바 (옵션)
     if (tb.enabled) {
-      buf.push('<header class="report-toolbar" data-inspect-id="toolbar" data-inspect-name="상단 툴바">\n');
+      buf.push('<header class="report-toolbar"' + inspectAttr('toolbar', '상단 툴바', 'container') + '>\n');
       buf.push('  <div class="tb-left"><span style="width:10px;height:10px;border-radius:50%;background:#1967d2;display:inline-block;"></span>' + esc(title) + '</div>\n');
       if (tb.showSearch) {
-        buf.push('  <div class="tb-search-wrap">\n');
+        buf.push('  <div class="tb-search-wrap"' + inspectAttr('tb-search-box', '실시간 검색창', 'item') + '>\n');
         buf.push('    <span class="tb-search-icon">🔍</span>\n');
         buf.push('    <input type="text" class="tb-search-input" id="reportSearchInput" placeholder="' + esc(tb.searchPlaceholder || '보고서 키워드 검색...') + '">\n');
         buf.push('    <div class="tb-search-dropdown" id="reportSearchDropdown"></div>\n');
         buf.push('  </div>\n');
       }
       buf.push('  <div class="tb-actions">\n');
-      if (tb.showPrint) buf.push('    <button class="tb-btn" onclick="window.print()">🖨️ 인쇄 / PDF</button>\n');
-      if (tb.showThemeToggle) buf.push('    <button class="tb-btn" onclick="document.body.classList.toggle(\'dark-theme\')">🌓 테마</button>\n');
+      if (tb.showPrint) buf.push('    <button class="tb-btn" onclick="window.print()"' + inspectAttr('tb-print-btn', '인쇄 버튼', 'item') + '>🖨️ 인쇄 / PDF</button>\n');
+      if (tb.showThemeToggle) buf.push('    <button class="tb-btn" onclick="document.body.classList.toggle(\'dark-theme\')"' + inspectAttr('tb-theme-btn', '테마 토글', 'item') + '>🌓 테마</button>\n');
       buf.push('  </div>\n');
       buf.push('</header>\n');
     }
 
     buf.push('<div class="wrap">\n');
-    buf.push('<header class="hero" data-inspect-id="header" data-inspect-name="헤더 (제목 및 배지)">');
-    buf.push('<span class="stamp-badge">' + esc(badge) + '</span>');
-    buf.push('<h1>' + fmtTitle(title) + '</h1>');
-    buf.push('<p class="lead">' + esc(description) + '</p>');
+    // 헤더 영역 (상위 컨테이너는 Blue, 개별 하위 항목은 Orange로 식별)
+    buf.push('<header class="hero"' + inspectAttr('header', '헤더 (기본 정보)', 'container') + '>');
+    buf.push('<span class="stamp-badge"' + inspectAttr('hero-badge', '상단 뱃지 문구 (Stamp Badge)', 'item') + '>' + esc(badge) + '</span>');
+    buf.push('<h1' + inspectAttr('hero-title', '보고서 제목 (Title)', 'item') + '>' + fmtTitle(title) + '</h1>');
+    buf.push('<p class="lead"' + inspectAttr('hero-desc', '요약 설명 (Description)', 'item') + '>' + esc(description) + '</p>');
     if (meta.length) {
-      buf.push('<div class="meta-chips">' + meta.map(function(m){ return '<span class="meta-chip"><b>' + esc(m.label) + ':</b> ' + esc(m.value) + '</span>'; }).join('') + '</div>');
+      buf.push('<div class="meta-chips"' + inspectAttr('hero-meta', '메타 칩 모음', 'item') + '>' + meta.map(function(m){ return '<span class="meta-chip"><b>' + esc(m.label) + ':</b> ' + esc(m.value) + '</span>'; }).join('') + '</div>');
     }
     buf.push('</header>\n');
 
+    // 추천 검색 칩 (index.html 스타일)
     if (tb.showSuggestChips && tb.suggestChips && tb.suggestChips.length) {
-      buf.push('<div class="suggest-chips-bar" data-inspect-id="suggestChips" data-inspect-name="추천 검색어 칩">\n');
+      buf.push('<div class="suggest-chips-bar"' + inspectAttr('suggestChips', '추천 검색어 칩', 'container') + '>\n');
       buf.push('  <span class="chip-label">⚡ 추천 키워드:</span>\n');
-      tb.suggestChips.forEach(function(c){
-        buf.push('  <span class="suggest-chip" onclick="applySearchQuery(\'' + esc(c) + '\')">' + esc(c) + '</span>\n');
+      tb.suggestChips.forEach(function(c, i){
+        buf.push('  <span class="suggest-chip" onclick="applySearchQuery(\'' + esc(c) + '\')"' + inspectAttr('chip-' + i, '키워드: #' + c, 'item') + '>' + esc(c) + '</span>\n');
       });
       buf.push('</div>\n');
     }
 
+    // 카테고리 탭 (index.html 스타일)
     if (tb.showCategoryTabs && tb.categoryTabs && tb.categoryTabs.length) {
-      buf.push('<div class="category-tabs-bar" data-inspect-id="categoryTabs" data-inspect-name="카테고리 탭">\n');
+      buf.push('<div class="category-tabs-bar"' + inspectAttr('categoryTabs', '카테고리 탭', 'container') + '>\n');
       tb.categoryTabs.forEach(function(t, idx){
-        buf.push('  <button class="category-tab ' + (idx===0?'active':'') + '" onclick="filterCategory(this, \'' + esc(t) + '\')">' + esc(t) + '</button>\n');
+        buf.push('  <button class="category-tab ' + (idx===0?'active':'') + '" onclick="filterCategory(this, \'' + esc(t) + '\')"' + inspectAttr('tab-' + idx, '탭: ' + t, 'item') + '>' + esc(t) + '</button>\n');
       });
       buf.push('</div>\n');
     }
 
+    // Why 인트로 박스 (모듈 2, 3, 4)
     if (whyBox && whyBox.enabled) {
-      buf.push('<div class="why-box" data-inspect-id="whyBox" data-inspect-name="Why 인트로 박스">\n');
+      buf.push('<div class="why-box"' + inspectAttr('whyBox', 'Why 인트로 박스', 'container') + '>\n');
       buf.push('  <span class="why-eyebrow">✦ WHY WE NEED THIS</span>\n');
-      buf.push('  <h3>' + esc(whyBox.title || '왜 이 워크플로우를 도입해야 하는가?') + '</h3>\n');
-      buf.push('  <p>' + esc(whyBox.desc) + '</p>\n');
+      buf.push('  <h3' + inspectAttr('why-title', 'Why 박스 제목', 'item') + '>' + esc(whyBox.title || '왜 이 워크플로우를 도입해야 하는가?') + '</h3>\n');
+      buf.push('  <p' + inspectAttr('why-desc', 'Why 박스 상세 설명', 'item') + '>' + esc(whyBox.desc) + '</p>\n');
       buf.push('</div>\n');
     }
 
+    // 프로세스 플로우 바 (모듈 3, 4)
     if (procBox && procBox.enabled) {
-      buf.push('<div class="procbox" data-inspect-id="procBox" data-inspect-name="프로세스 플로우 바">\n');
-      buf.push('  <span class="proc-badge">' + esc(procBox.badge || 'AUTOMATION PIPELINE') + '</span>\n');
-      buf.push('  <span class="proc-text">' + esc(procBox.title) + '</span>\n');
+      buf.push('<div class="procbox"' + inspectAttr('procBox', '프로세스 플로우 바', 'container') + '>\n');
+      buf.push('  <span class="proc-badge"' + inspectAttr('proc-badge', '파이프라인 뱃지', 'item') + '>' + esc(procBox.badge || 'AUTOMATION PIPELINE') + '</span>\n');
+      buf.push('  <span class="proc-text"' + inspectAttr('proc-title', '파이프라인 흐름 문구', 'item') + '>' + esc(procBox.title) + '</span>\n');
       buf.push('</div>\n');
     }
 
+    // KPI 지표 스코어보드 (모듈 3)
     if (kpiStats && kpiStats.length) {
-      buf.push('<div class="kpi-grid" data-inspect-id="kpiStats" data-inspect-name="KPI 스코어보드">\n');
+      buf.push('<div class="kpi-grid"' + inspectAttr('kpiStats', 'KPI 스코어보드', 'container') + '>\n');
       kpiStats.forEach(function(k, idx){
-        buf.push('  <div class="kpi-card" data-inspect-id="kpi-' + idx + '" data-inspect-name="KPI 지표 #' + (idx+1) + '">\n');
-        buf.push('    <div class="kpi-num" style="color:' + esc(k.color || '#1967d2') + ';">' + esc(k.num) + '</div>\n');
-        buf.push('    <div class="kpi-label">' + esc(k.label) + '</div>\n');
+        buf.push('  <div class="kpi-card"' + inspectAttr('kpi-' + idx, 'KPI 지표 #' + (idx+1), 'container') + '>\n');
+        buf.push('    <div class="kpi-num" style="color:' + esc(k.color || '#1967d2') + ';"' + inspectAttr('kpi-' + idx + '-num', '지표 수치 (' + k.num + ')', 'item') + '>' + esc(k.num) + '</div>\n');
+        buf.push('    <div class="kpi-label"' + inspectAttr('kpi-' + idx + '-label', '지표 라벨 (' + k.label + ')', 'item') + '>' + esc(k.label) + '</div>\n');
         buf.push('  </div>\n');
       });
       buf.push('</div>\n');
     }
 
+    // 1줄 흐름 지도
     if (flowmap.length) {
-      buf.push('<section data-inspect-id="flowmap" data-inspect-name="진행 흐름 지도"><div class="eyebrow">PROCESS FLOW</div><h2 class="sec">🗺️ 전체 진행 흐름</h2><p class="lead" style="font-size:.95rem;">단계별 핵심 목표와 산출물입니다.</p><div class="flowmap">');
+      buf.push('<section' + inspectAttr('flowmap', '진행 흐름 지도', 'container') + '><div class="eyebrow">PROCESS FLOW</div><h2 class="sec">🗺️ 전체 진행 흐름</h2><p class="lead" style="font-size:.95rem;">단계별 핵심 목표와 산출물입니다.</p><div class="flowmap">');
       buf.push(flowmap.map(function(f, i){
-        return '<div class="fstep" id="flowStep_' + i + '" data-inspect-id="flow-' + i + '" data-inspect-name="흐름 단계 #' + (i+1) + ' ' + esc(f.title) + '" style="--accent:' + esc(f.color||'#1967d2') + '"><span class="fnum">' + esc(f.num||(i+1)) + '</span><div class="fmeta"><b>' + esc(f.title) + '</b><span class="ft">' + esc(f.desc) + '</span></div></div>' +
+        return '<div class="fstep" id="flowStep_' + i + '"' + inspectAttr('flow-' + i, '흐름 단계 #' + (i+1), 'container') + ' style="--accent:' + esc(f.color||'#1967d2') + '"><span class="fnum">' + esc(f.num||(i+1)) + '</span><div class="fmeta"><b' + inspectAttr('flow-' + i + '-title', '단계명 (' + f.title + ')', 'item') + '>' + esc(f.title) + '</b><span class="ft"' + inspectAttr('flow-' + i + '-desc', '단계 설명 (' + f.desc + ')', 'item') + '>' + esc(f.desc) + '</span></div></div>' +
           (i < flowmap.length - 1 ? '<span class="farrow">→</span>' : '');
       }).join(''));
       buf.push('</div></section>\n');
     }
 
+    // 3D 플립 카드
     if (cards.length) {
-      buf.push('<section data-inspect-id="cards" data-inspect-name="핵심 모듈 카드"><div class="eyebrow">OVERVIEW CARDS</div><h2 class="sec">📌 핵심 모듈 &amp; 테마</h2><p class="lead" style="font-size:.95rem;">카드를 클릭하면 상세 세부 계획을 볼 수 있습니다.</p><div class="modgrid">');
+      buf.push('<section' + inspectAttr('cards', '핵심 모듈 카드', 'container') + '><div class="eyebrow">OVERVIEW CARDS</div><h2 class="sec">📌 핵심 모듈 &amp; 테마</h2><p class="lead" style="font-size:.95rem;">카드를 클릭하면 상세 세부 계획을 볼 수 있습니다.</p><div class="modgrid">');
       buf.push(cards.map(function(c, i){
-        return '<div class="flip" id="cardFlip_' + i + '" data-inspect-id="card-' + i + '" data-inspect-name="모듈 카드 #' + (i+1) + ' ' + esc(c.frontTitle) + '" style="--accent:' + esc(c.color||'#1967d2') + '"><div class="flip-inner"><div class="face front"><div><span class="card-badge">✦ ' + esc(c.badge||'MODULE') + '</span><h3>' + esc(c.frontTitle) + '</h3></div><div class="tags">' +
+        return '<div class="flip" id="cardFlip_' + i + '"' + inspectAttr('card-' + i, '모듈 카드 #' + (i+1) + ' ' + esc(c.frontTitle), 'container') + ' style="--accent:' + esc(c.color||'#1967d2') + '"><div class="flip-inner"><div class="face front"><div><span class="card-badge">✦ ' + esc(c.badge||'MODULE') + '</span><h3' + inspectAttr('card-' + i + '-title', '카드 제목 (' + c.frontTitle + ')', 'item') + '>' + esc(c.frontTitle) + '</h3></div><div class="tags">' +
           (c.tags||[]).map(function(t){ return '<span class="tag">' + esc(t) + '</span>'; }).join('') +
-          '</div><div class="flip-hint">카드를 누르면 상세 내용 ↻</div></div><div class="face back"><div class="backbody"><span class="card-badge">✦ ' + esc(c.badge||'MODULE') + '</span><p>' + esc(c.backDesc) + '</p></div><div class="flip-hint">카드를 누르면 앞면으로 ↻</div></div></div></div>';
+          '</div><div class="flip-hint">카드를 누르면 상세 내용 ↻</div></div><div class="face back"><div class="backbody"><span class="card-badge">✦ ' + esc(c.badge||'MODULE') + '</span><p' + inspectAttr('card-' + i + '-desc', '카드 뒷면 상세설명', 'item') + '>' + esc(c.backDesc) + '</p></div><div class="flip-hint">카드를 누르면 앞면으로 ↻</div></div></div></div>';
       }).join(''));
       buf.push('</div></section>\n');
     }
 
+    // 상세 실행 단계
     if (steps.length) {
-      buf.push('<section data-inspect-id="steps" data-inspect-name="실행 단계 목록"><div class="eyebrow">STEP-BY-STEP WORKFLOW</div><h2 class="sec">🛠️ 단계별 실행 및 프롬프트</h2><p class="lead" style="font-size:.95rem;">프롬프트와 가이드를 복사하여 즉시 실행하세요.</p><div class="step-list">');
+      buf.push('<section' + inspectAttr('steps', '실행 단계 목록', 'container') + '><div class="eyebrow">STEP-BY-STEP WORKFLOW</div><h2 class="sec">🛠️ 단계별 실행 및 프롬프트</h2><p class="lead" style="font-size:.95rem;">프롬프트와 가이드를 복사하여 즉시 실행하세요.</p><div class="step-list">');
       buf.push(steps.map(function(s, idx){
-        return '<div class="step-card" id="stepCard_' + idx + '" data-inspect-id="step-' + idx + '" data-inspect-name="실행 단계 #' + (idx+1) + ' ' + esc(s.title) + '"><div class="step-top" onclick="toggleStep(' + idx + ')"><div class="step-title-group"><div class="step-num">' + esc(s.num||(idx+1)) + '</div><h3 class="step-title">' + esc(s.title) + '</h3>' +
-          (s.tool ? '<span class="tool-tag">' + esc(s.tool) + '</span>' : '') +
+        return '<div class="step-card" id="stepCard_' + idx + '"' + inspectAttr('step-' + idx, '실행 단계 #' + (idx+1), 'container') + '><div class="step-top" onclick="toggleStep(' + idx + ')"><div class="step-title-group"><div class="step-num">' + esc(s.num||(idx+1)) + '</div><h3 class="step-title"' + inspectAttr('step-' + idx + '-title', '단계 제목: ' + s.title, 'item') + '>' + esc(s.title) + '</h3>' +
+          (s.tool ? '<span class="tool-tag"' + inspectAttr('step-' + idx + '-tool', '사용 도구: ' + s.tool, 'item') + '>' + esc(s.tool) + '</span>' : '') +
           '</div><button class="done-btn" onclick="event.stopPropagation(); toggleDone(' + idx + ')">완료 체크</button></div>' +
           '<div class="step-body" id="stepBody_' + idx + '">' +
-          (s.goal ? '<div class="step-goal">🎯 목표: ' + esc(s.goal) + '</div>' : '') +
-          (s.desc ? '<div class="step-desc">' + esc(s.desc) + '</div>' : '') +
-          (s.prompt ? '<div class="prompt-box"><div class="prompt-header"><span class="prompt-badge">✨ Gemini Prompt</span><button class="copy-btn" onclick="copySnippet(this)">프롬프트 복사</button></div><pre>' + esc(s.prompt) + '</pre></div>' : '') +
-          (s.tip ? '<details class="tip-box-collapsible"><summary>💡 실습 꿀팁 및 권장 가이드 (펼치기)</summary><div class="tip-body">' + esc(s.tip) + '</div></details>' : '') +
-          (s.note ? '<div class="note-box"><b>ℹ️ 핵심 참고:</b> ' + esc(s.note) + '</div>' : '') +
-          (s.warn ? '<div class="warn-box"><b>⚠️ 주의사항:</b> ' + esc(s.warn) + '</div>' : '') +
-          (s.url ? '<div class="urlbox-wrap"><div class="urlbox-meta"><b>🔗 관련 리소스</b><span>' + esc(s.url) + '</span></div><a class="urlbox-btn" href="' + esc(s.url) + '" target="_blank" rel="noopener">열기 ↗</a></div>' : '') +
+          (s.goal ? '<div class="step-goal"' + inspectAttr('step-' + idx + '-goal', '실행 목표: ' + s.goal, 'item') + '>🎯 목표: ' + esc(s.goal) + '</div>' : '') +
+          (s.desc ? '<div class="step-desc"' + inspectAttr('step-' + idx + '-desc', '단계 세부설명', 'item') + '>' + esc(s.desc) + '</div>' : '') +
+          (s.prompt ? '<div class="prompt-box"' + inspectAttr('step-' + idx + '-prompt', 'Gemini 프롬프트 박스', 'item') + '><div class="prompt-header"><span class="prompt-badge">✨ Gemini Prompt</span><button class="copy-btn" onclick="copySnippet(this)">프롬프트 복사</button></div><pre>' + esc(s.prompt) + '</pre></div>' : '') +
+          (s.tip ? '<details class="tip-box-collapsible"' + inspectAttr('step-' + idx + '-tip', '실습 꿀팁 아코디언', 'item') + '><summary>💡 실습 꿀팁 및 권장 가이드 (펼치기)</summary><div class="tip-body">' + esc(s.tip) + '</div></details>' : '') +
+          (s.note ? '<div class="note-box"' + inspectAttr('step-' + idx + '-note', '핵심 참고 노트', 'item') + '><b>ℹ️ 핵심 참고:</b> ' + esc(s.note) + '</div>' : '') +
+          (s.warn ? '<div class="warn-box"' + inspectAttr('step-' + idx + '-warn', '주의사항 경고', 'item') + '><b>⚠️ 주의사항:</b> ' + esc(s.warn) + '</div>' : '') +
+          (s.url ? '<div class="urlbox-wrap"' + inspectAttr('step-' + idx + '-url', '리소스 URL 링크', 'item') + '><div class="urlbox-meta"><b>🔗 관련 리소스</b><span>' + esc(s.url) + '</span></div><a class="urlbox-btn" href="' + esc(s.url) + '" target="_blank" rel="noopener">열기 ↗</a></div>' : '') +
           '</div></div>';
       }).join(''));
       buf.push('</div></section>\n');
     }
 
+    // 최종 체크리스트
     if (checklist.length) {
-      buf.push('<section data-inspect-id="checklist" data-inspect-name="최종 점검 체크리스트"><div class="eyebrow">FINAL CHECKLIST</div><h2 class="sec">✅ 최종 점검 항목</h2><div class="checklist-card">');
+      buf.push('<section' + inspectAttr('checklist', '최종 점검 체크리스트', 'container') + '><div class="eyebrow">FINAL CHECKLIST</div><h2 class="sec">✅ 최종 점검 항목</h2><div class="checklist-card">');
       buf.push(checklist.map(function(item, i){
-        return '<label class="check-item" id="checkItem_' + i + '" data-inspect-id="check-' + i + '" data-inspect-name="체크 항목 #' + (i+1) + '"><input type="checkbox" onchange="saveChecklist(' + i + ', this.checked)" id="check_' + i + '"><span>' + esc(item) + '</span></label>';
+        return '<label class="check-item" id="checkItem_' + i + '"' + inspectAttr('check-' + i, '체크 항목 #' + (i+1) + ': ' + item, 'item') + '><input type="checkbox" onchange="saveChecklist(' + i + ', this.checked)" id="check_' + i + '"><span>' + esc(item) + '</span></label>';
       }).join(''));
       buf.push('</div></section>\n');
     }
 
     buf.push('<footer>' + esc(title) + ' · Google Tone Workflow Architecture</footer></div>\n');
 
+    // ── 클라이언트 스크립트 ──
     buf.push('<script>\n');
     buf.push('document.querySelectorAll(".flip").forEach(function(c){ c.addEventListener("click", function(){ c.classList.toggle("flipped"); }); });\n');
     buf.push('function toggleStep(i){ var b = document.getElementById("stepBody_" + i); if(b) b.style.display = (b.style.display==="none") ? "block" : "none"; }\n');
@@ -1690,78 +1732,104 @@
       buf.push('})();\n');
     }
 
-    // Chrome DevTools 요소 검사기 스크립트
-    buf.push('(function(){\n');
-    buf.push('  var activeInspect = null;\n');
-    buf.push('  var badgeEl = null;\n');
-    buf.push('  function getBadge(){\n');
-    buf.push('    if(!badgeEl){\n');
-    buf.push('      badgeEl = document.createElement("div");\n');
-    buf.push('      badgeEl.className = "devtools-inspect-badge";\n');
-    buf.push('      document.body.appendChild(badgeEl);\n');
-    buf.push('    }\n');
-    buf.push('    return badgeEl;\n');
-    buf.push('  }\n');
-    buf.push('  document.addEventListener("mouseover", function(e){\n');
-    buf.push('    var target = e.target.closest("[data-inspect-id]");\n');
-    buf.push('    if(!target || target === activeInspect) return;\n');
-    buf.push('    if(activeInspect) activeInspect.classList.remove("devtools-inspect-active");\n');
-    buf.push('    activeInspect = target;\n');
-    buf.push('    target.classList.add("devtools-inspect-active");\n');
-    buf.push('    var name = target.getAttribute("data-inspect-name") || target.getAttribute("data-inspect-id");\n');
-    buf.push('    var rect = target.getBoundingClientRect();\n');
-    buf.push('    var b = getBadge();\n');
-    buf.push('    b.textContent = "🔍 " + name;\n');
-    buf.push('    b.style.display = "block";\n');
-    buf.push('    b.style.top = Math.max(0, (rect.top + window.scrollY - 24)) + "px";\n');
-    buf.push('    b.style.left = Math.max(0, (rect.left + window.scrollX)) + "px";\n');
-    buf.push('    if(window.parent && window.parent.onPreviewInspectHover){\n');
-    buf.push('      window.parent.onPreviewInspectHover(target.getAttribute("data-inspect-id"));\n');
-    buf.push('    }\n');
-    buf.push('  });\n');
-    buf.push('  document.addEventListener("mouseout", function(e){\n');
-    buf.push('    if(!activeInspect) return;\n');
-    buf.push('    var rel = e.relatedTarget;\n');
-    buf.push('    if(rel && activeInspect.contains(rel)) return;\n');
-    buf.push('    activeInspect.classList.remove("devtools-inspect-active");\n');
-    buf.push('    activeInspect = null;\n');
-    buf.push('    if(badgeEl) badgeEl.style.display = "none";\n');
-    buf.push('    if(window.parent && window.parent.onPreviewInspectLeave){\n');
-    buf.push('      window.parent.onPreviewInspectLeave();\n');
-    buf.push('    }\n');
-    buf.push('  });\n');
-    buf.push('  document.addEventListener("click", function(e){\n');
-    buf.push('    var target = e.target.closest("[data-inspect-id]");\n');
-    buf.push('    if(target && window.parent && window.parent.onPreviewInspectClick){\n');
-    buf.push('      window.parent.onPreviewInspectClick(target.getAttribute("data-inspect-id"));\n');
-    buf.push('    }\n');
-    buf.push('  });\n');
-    buf.push('  window.highlightFromEditor = function(id){\n');
-    buf.push('    if(activeInspect) activeInspect.classList.remove("devtools-inspect-active");\n');
-    buf.push('    var el = document.querySelector("[data-inspect-id=" + JSON.stringify(id) + "]");\n');
-    buf.push('    if(!el){\n');
-    buf.push('      if(badgeEl) badgeEl.style.display = "none";\n');
-    buf.push('      return;\n');
-    buf.push('    }\n');
-    buf.push('    activeInspect = el;\n');
-    buf.push('    el.classList.add("devtools-inspect-active");\n');
-    buf.push('    var name = el.getAttribute("data-inspect-name") || id;\n');
-    buf.push('    var rect = el.getBoundingClientRect();\n');
-    buf.push('    var b = getBadge();\n');
-    buf.push('    b.textContent = "✏️ " + name;\n');
-    buf.push('    b.style.display = "block";\n');
-    buf.push('    b.style.top = Math.max(0, (rect.top + window.scrollY - 24)) + "px";\n');
-    buf.push('    b.style.left = Math.max(0, (rect.left + window.scrollX)) + "px";\n');
-    buf.push('    el.scrollIntoView({ behavior:"smooth", block:"nearest" });\n');
-    buf.push('  };\n');
-    buf.push('  window.clearHighlightFromEditor = function(){\n');
-    buf.push('    if(activeInspect){\n');
-    buf.push('      activeInspect.classList.remove("devtools-inspect-active");\n');
-    buf.push('      activeInspect = null;\n');
-    buf.push('    }\n');
-    buf.push('    if(badgeEl) badgeEl.style.display = "none";\n');
-    buf.push('  };\n');
-    buf.push('})();\n');
+    // ── Chrome DevTools 요소 검사기 스크립트 (요구사항 1 & 3: 내보내기 모드에서는 완전 제외!) ──
+    if (!isExport) {
+      buf.push('(function(){\n');
+      buf.push('  var activeInspect = null;\n');
+      buf.push('  var activeLevel = null;\n');
+      buf.push('  var badgeEl = null;\n');
+      buf.push('  function getBadge(){\n');
+      buf.push('    if(!badgeEl){\n');
+      buf.push('      badgeEl = document.createElement("div");\n');
+      buf.push('      document.body.appendChild(badgeEl);\n');
+      buf.push('    }\n');
+      buf.push('    return badgeEl;\n');
+      buf.push('  }\n');
+      buf.push('  document.addEventListener("mouseover", function(e){\n');
+      buf.push('    var target = e.target.closest("[data-inspect-id]");\n');
+      buf.push('    if(!target || target === activeInspect) return;\n');
+      buf.push('    if(activeInspect){\n');
+      buf.push('      activeInspect.classList.remove("devtools-inspect-container-active");\n');
+      buf.push('      activeInspect.classList.remove("devtools-inspect-subitem-active");\n');
+      buf.push('    }\n');
+      buf.push('    activeInspect = target;\n');
+      buf.push('    var level = target.getAttribute("data-inspect-level") || "container";\n');
+      buf.push('    activeLevel = level;\n');
+      buf.push('    var name = target.getAttribute("data-inspect-name") || target.getAttribute("data-inspect-id");\n');
+      buf.push('    var rect = target.getBoundingClientRect();\n');
+      buf.push('    var b = getBadge();\n');
+      buf.push('    if(level === "item"){\n');
+      buf.push('      target.classList.add("devtools-inspect-subitem-active");\n');
+      buf.push('      b.className = "devtools-inspect-badge-subitem";\n');
+      buf.push('      b.textContent = "🎯 " + name;\n');
+      buf.push('    } else {\n');
+      buf.push('      target.classList.add("devtools-inspect-container-active");\n');
+      buf.push('      b.className = "devtools-inspect-badge-container";\n');
+      buf.push('      b.textContent = "📁 " + name;\n');
+      buf.push('    }\n');
+      buf.push('    b.style.display = "block";\n');
+      buf.push('    b.style.top = Math.max(0, (rect.top + window.scrollY - 24)) + "px";\n');
+      buf.push('    b.style.left = Math.max(0, (rect.left + window.scrollX)) + "px";\n');
+      buf.push('    if(window.parent && window.parent.onPreviewInspectHover){\n');
+      buf.push('      window.parent.onPreviewInspectHover(target.getAttribute("data-inspect-id"), level);\n');
+      buf.push('    }\n');
+      buf.push('  });\n');
+      buf.push('  document.addEventListener("mouseout", function(e){\n');
+      buf.push('    if(!activeInspect) return;\n');
+      buf.push('    var rel = e.relatedTarget;\n');
+      buf.push('    if(rel && activeInspect.contains(rel)) return;\n');
+      buf.push('    activeInspect.classList.remove("devtools-inspect-container-active");\n');
+      buf.push('    activeInspect.classList.remove("devtools-inspect-subitem-active");\n');
+      buf.push('    activeInspect = null;\n');
+      buf.push('    if(badgeEl) badgeEl.style.display = "none";\n');
+      buf.push('    if(window.parent && window.parent.onPreviewInspectLeave){\n');
+      buf.push('      window.parent.onPreviewInspectLeave();\n');
+      buf.push('    }\n');
+      buf.push('  });\n');
+      buf.push('  document.addEventListener("click", function(e){\n');
+      buf.push('    var target = e.target.closest("[data-inspect-id]");\n');
+      buf.push('    if(target && window.parent && window.parent.onPreviewInspectClick){\n');
+      buf.push('      window.parent.onPreviewInspectClick(target.getAttribute("data-inspect-id"), target.getAttribute("data-inspect-level") || "container");\n');
+      buf.push('    }\n');
+      buf.push('  });\n');
+      buf.push('  window.highlightFromEditor = function(id, level){\n');
+      buf.push('    if(activeInspect){\n');
+      buf.push('      activeInspect.classList.remove("devtools-inspect-container-active");\n');
+      buf.push('      activeInspect.classList.remove("devtools-inspect-subitem-active");\n');
+      buf.push('    }\n');
+      buf.push('    var el = document.querySelector("[data-inspect-id=" + JSON.stringify(id) + "]");\n');
+      buf.push('    if(!el){\n');
+      buf.push('      if(badgeEl) badgeEl.style.display = "none";\n');
+      buf.push('      return;\n');
+      buf.push('    }\n');
+      buf.push('    activeInspect = el;\n');
+      buf.push('    var name = el.getAttribute("data-inspect-name") || id;\n');
+      buf.push('    var rect = el.getBoundingClientRect();\n');
+      buf.push('    var b = getBadge();\n');
+      buf.push('    if(level === "item"){\n');
+      buf.push('      el.classList.add("devtools-inspect-subitem-active");\n');
+      buf.push('      b.className = "devtools-inspect-badge-subitem";\n');
+      buf.push('      b.textContent = "🎯 " + name;\n');
+      buf.push('    } else {\n');
+      buf.push('      el.classList.add("devtools-inspect-container-active");\n');
+      buf.push('      b.className = "devtools-inspect-badge-container";\n');
+      buf.push('      b.textContent = "📁 " + name;\n');
+      buf.push('    }\n');
+      buf.push('    b.style.display = "block";\n');
+      buf.push('    b.style.top = Math.max(0, (rect.top + window.scrollY - 24)) + "px";\n');
+      buf.push('    b.style.left = Math.max(0, (rect.left + window.scrollX)) + "px";\n');
+      buf.push('    el.scrollIntoView({ behavior:"smooth", block:"nearest" });\n');
+      buf.push('  };\n');
+      buf.push('  window.clearHighlightFromEditor = function(){\n');
+      buf.push('    if(activeInspect){\n');
+      buf.push('      activeInspect.classList.remove("devtools-inspect-container-active");\n');
+      buf.push('      activeInspect.classList.remove("devtools-inspect-subitem-active");\n');
+      buf.push('      activeInspect = null;\n');
+      buf.push('    }\n');
+      buf.push('    if(badgeEl) badgeEl.style.display = "none";\n');
+      buf.push('  };\n');
+      buf.push('})();\n');
+    }
 
     buf.push('<' + '/script>\n</body>\n</html>');
     return buf.join('');
@@ -1789,10 +1857,11 @@
       var div = document.createElement('div');
       div.className = 'item-card';
       div.setAttribute('data-editor-id', 'whyBox');
+      div.setAttribute('data-editor-level', 'container');
       div.innerHTML = '<button class="item-delete-btn" onclick="removeWhyBox()">삭제</button>' +
         '<div style="font-weight:700;font-size:.85rem;color:var(--navy);margin-bottom:8px;">🌌 Why 인트로 박스 (모듈 2, 3, 4 스타일)</div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>박스 제목</label><input type="text" value="' + (currentData.whyBox.title||'') + '" oninput="updateWhyBox(\'title\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:0;"><label>상세 설명</label><textarea oninput="updateWhyBox(\'desc\', this.value)">' + (currentData.whyBox.desc||'') + '</textarea></div>';
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="why-title" data-editor-level="item"><label>박스 제목</label><input type="text" value="' + (currentData.whyBox.title||'') + '" oninput="updateWhyBox(\'title\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:0;" data-editor-id="why-desc" data-editor-level="item"><label>상세 설명</label><textarea oninput="updateWhyBox(\'desc\', this.value)">' + (currentData.whyBox.desc||'') + '</textarea></div>';
       whyWrap.appendChild(div);
     }
 
@@ -1803,10 +1872,11 @@
       var div = document.createElement('div');
       div.className = 'item-card';
       div.setAttribute('data-editor-id', 'procBox');
+      div.setAttribute('data-editor-level', 'container');
       div.innerHTML = '<button class="item-delete-btn" onclick="removeProcBox()">삭제</button>' +
         '<div style="font-weight:700;font-size:.85rem;color:var(--navy);margin-bottom:8px;">🔄 프로세스 플로우 바 (모듈 3, 4 스타일)</div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>뱃지 문구</label><input type="text" value="' + (currentData.procBox.badge||'AUTOMATION PIPELINE') + '" oninput="updateProcBox(\'badge\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:0;"><label>파이프라인 흐름 문구</label><input type="text" value="' + (currentData.procBox.title||'') + '" oninput="updateProcBox(\'title\', this.value)"></div>';
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="proc-badge" data-editor-level="item"><label>뱃지 문구</label><input type="text" value="' + (currentData.procBox.badge||'AUTOMATION PIPELINE') + '" oninput="updateProcBox(\'badge\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:0;" data-editor-id="proc-title" data-editor-level="item"><label>파이프라인 흐름 문구</label><input type="text" value="' + (currentData.procBox.title||'') + '" oninput="updateProcBox(\'title\', this.value)"></div>';
       procWrap.appendChild(div);
     }
 
@@ -1817,14 +1887,15 @@
       var div = document.createElement('div');
       div.className = 'item-card';
       div.setAttribute('data-editor-id', 'kpiStats');
+      div.setAttribute('data-editor-level', 'container');
       var kpiHtml = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">' +
         '<div style="font-weight:700;font-size:.85rem;color:var(--navy);">📊 KPI 지표 스코어보드 (모듈 3 스타일)</div>' +
         '<button class="add-item-btn" onclick="insertWidget(\'kpiStats\')">+ 지표 추가</button>' +
         '</div>';
       currentData.kpiStats.forEach(function(k, idx){
-        kpiHtml += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">' +
-          '<input type="text" style="width:75px;font-weight:800;" value="' + (k.num||'') + '" placeholder="수치" oninput="updateKpiStat(' + idx + ', \'num\', this.value)">' +
-          '<input type="text" style="flex:1;" value="' + (k.label||'') + '" placeholder="설명" oninput="updateKpiStat(' + idx + ', \'label\', this.value)">' +
+        kpiHtml += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;" data-editor-id="kpi-' + idx + '" data-editor-level="container">' +
+          '<input type="text" style="width:75px;font-weight:800;" value="' + (k.num||'') + '" placeholder="수치" data-editor-id="kpi-' + idx + '-num" data-editor-level="item" oninput="updateKpiStat(' + idx + ', \'num\', this.value)">' +
+          '<input type="text" style="flex:1;" value="' + (k.label||'') + '" placeholder="설명" data-editor-id="kpi-' + idx + '-label" data-editor-level="item" oninput="updateKpiStat(' + idx + ', \'label\', this.value)">' +
           '<input type="color" style="width:36px;padding:2px;" value="' + (k.color||'#1967d2') + '" onchange="updateKpiStat(' + idx + ', \'color\', this.value)">' +
           '<button class="item-delete-btn" style="position:static;" onclick="removeKpiStat(' + idx + ')">×</button>' +
           '</div>';
@@ -1840,9 +1911,10 @@
       var div = document.createElement('div');
       div.className = 'item-card';
       div.setAttribute('data-editor-id', 'flow-' + idx);
+      div.setAttribute('data-editor-level', 'container');
       div.innerHTML = '<button class="item-delete-btn" onclick="removeFlowItem(' + idx + ')">삭제</button>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>단계명 (Step ' + (idx+1) + ')</label><input type="text" value="' + (f.title||'') + '" oninput="updateFlowItem(' + idx + ', \'title\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>요약 설명</label><input type="text" value="' + (f.desc||'') + '" oninput="updateFlowItem(' + idx + ', \'desc\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="flow-' + idx + '-title" data-editor-level="item"><label>단계명 (Step ' + (idx+1) + ')</label><input type="text" value="' + (f.title||'') + '" oninput="updateFlowItem(' + idx + ', \'title\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="flow-' + idx + '-desc" data-editor-level="item"><label>요약 설명</label><input type="text" value="' + (f.desc||'') + '" oninput="updateFlowItem(' + idx + ', \'desc\', this.value)"></div>' +
         '<div class="form-group" style="margin-bottom:0;"><label>강조 색상 (Hex)</label><input type="color" value="' + (f.color||'#1967d2') + '" onchange="updateFlowItem(' + idx + ', \'color\', this.value)"></div>';
       flowBox.appendChild(div);
     });
@@ -1854,11 +1926,12 @@
       var div = document.createElement('div');
       div.className = 'item-card';
       div.setAttribute('data-editor-id', 'card-' + idx);
+      div.setAttribute('data-editor-level', 'container');
       div.innerHTML = '<button class="item-delete-btn" onclick="removeCardItem(' + idx + ')">삭제</button>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>앞면 제목 (카드 #' + (idx+1) + ')</label><input type="text" value="' + (c.frontTitle||'') + '" oninput="updateCardItem(' + idx + ', \'frontTitle\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="card-' + idx + '-title" data-editor-level="item"><label>앞면 제목 (카드 #' + (idx+1) + ')</label><input type="text" value="' + (c.frontTitle||'') + '" oninput="updateCardItem(' + idx + ', \'frontTitle\', this.value)"></div>' +
         '<div class="form-group" style="margin-bottom:8px;"><label>배지 / 페이즈</label><input type="text" value="' + (c.badge||'') + '" oninput="updateCardItem(' + idx + ', \'badge\', this.value)"></div>' +
         '<div class="form-group" style="margin-bottom:8px;"><label>태그 (쉼표로 구분)</label><input type="text" value="' + (c.tags ? c.tags.join(', ') : '') + '" oninput="updateCardTags(' + idx + ', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:0;"><label>뒷면 상세 설명</label><textarea oninput="updateCardItem(' + idx + ', \'backDesc\', this.value)">' + (c.backDesc||'') + '</textarea></div>';
+        '<div class="form-group" style="margin-bottom:0;" data-editor-id="card-' + idx + '-desc" data-editor-level="item"><label>뒷면 상세 설명</label><textarea oninput="updateCardItem(' + idx + ', \'backDesc\', this.value)">' + (c.backDesc||'') + '</textarea></div>';
       cardBox.appendChild(div);
     });
 
@@ -1869,16 +1942,17 @@
       var div = document.createElement('div');
       div.className = 'item-card';
       div.setAttribute('data-editor-id', 'step-' + idx);
+      div.setAttribute('data-editor-level', 'container');
       div.innerHTML = '<button class="item-delete-btn" onclick="removeStepItem(' + idx + ')">삭제</button>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>단계 제목 (Step #' + (idx+1) + ')</label><input type="text" value="' + (s.title||'') + '" oninput="updateStepItem(' + idx + ', \'title\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>사용 도구</label><input type="text" value="' + (s.tool||'') + '" oninput="updateStepItem(' + idx + ', \'tool\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>목표 (Goal)</label><input type="text" value="' + (s.goal||'') + '" oninput="updateStepItem(' + idx + ', \'goal\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>단계 설명</label><input type="text" value="' + (s.desc||'') + '" oninput="updateStepItem(' + idx + ', \'desc\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>📋 Gemini 프롬프트 / 코드 (복사 박스)</label><textarea style="min-height:75px;" oninput="updateStepItem(' + idx + ', \'prompt\', this.value)">' + (s.prompt||'') + '</textarea></div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>💡 실습 꿀팁 (아코디언)</label><input type="text" value="' + (s.tip||'') + '" placeholder="선택사항" oninput="updateStepItem(' + idx + ', \'tip\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>ℹ️ 핵심 참고 노트 (블루 콜아웃)</label><input type="text" value="' + (s.note||'') + '" placeholder="선택사항" oninput="updateStepItem(' + idx + ', \'note\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:8px;"><label>⚠️ 주의사항 (레드 콜아웃)</label><input type="text" value="' + (s.warn||'') + '" placeholder="선택사항" oninput="updateStepItem(' + idx + ', \'warn\', this.value)"></div>' +
-        '<div class="form-group" style="margin-bottom:0;"><label>🔗 외부 리소스 URL 링크</label><input type="text" value="' + (s.url||'') + '" placeholder="예: https://docs.google.com/..." oninput="updateStepItem(' + idx + ', \'url\', this.value)"></div>';
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-title" data-editor-level="item"><label>단계 제목 (Step #' + (idx+1) + ')</label><input type="text" value="' + (s.title||'') + '" oninput="updateStepItem(' + idx + ', \'title\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-tool" data-editor-level="item"><label>사용 도구</label><input type="text" value="' + (s.tool||'') + '" oninput="updateStepItem(' + idx + ', \'tool\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-goal" data-editor-level="item"><label>목표 (Goal)</label><input type="text" value="' + (s.goal||'') + '" oninput="updateStepItem(' + idx + ', \'goal\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-desc" data-editor-level="item"><label>단계 설명</label><input type="text" value="' + (s.desc||'') + '" oninput="updateStepItem(' + idx + ', \'desc\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-prompt" data-editor-level="item"><label>📋 Gemini 프롬프트 / 코드 (복사 박스)</label><textarea style="min-height:75px;" oninput="updateStepItem(' + idx + ', \'prompt\', this.value)">' + (s.prompt||'') + '</textarea></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-tip" data-editor-level="item"><label>💡 실습 꿀팁 (아코디언)</label><input type="text" value="' + (s.tip||'') + '" placeholder="선택사항" oninput="updateStepItem(' + idx + ', \'tip\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-note" data-editor-level="item"><label>ℹ️ 핵심 참고 노트 (블루 콜아웃)</label><input type="text" value="' + (s.note||'') + '" placeholder="선택사항" oninput="updateStepItem(' + idx + ', \'note\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:8px;" data-editor-id="step-' + idx + '-warn" data-editor-level="item"><label>⚠️ 주의사항 (레드 콜아웃)</label><input type="text" value="' + (s.warn||'') + '" placeholder="선택사항" oninput="updateStepItem(' + idx + ', \'warn\', this.value)"></div>' +
+        '<div class="form-group" style="margin-bottom:0;" data-editor-id="step-' + idx + '-url" data-editor-level="item"><label>🔗 외부 리소스 URL 링크</label><input type="text" value="' + (s.url||'') + '" placeholder="예: https://docs.google.com/..." oninput="updateStepItem(' + idx + ', \'url\', this.value)"></div>';
       stepBox.appendChild(div);
     });
 
@@ -1889,6 +1963,7 @@
       var div = document.createElement('div');
       div.className = 'item-card';
       div.setAttribute('data-editor-id', 'check-' + idx);
+      div.setAttribute('data-editor-level', 'item');
       div.style.padding = '8px 12px';
       div.innerHTML = '<button class="item-delete-btn" style="top:5px;" onclick="removeCheckItem(' + idx + ')">삭제</button>' +
         '<input type="text" style="width:calc(100% - 50px);" value="' + item + '" oninput="updateCheckItem(' + idx + ', this.value)">';
@@ -1901,7 +1976,8 @@
   }
 
   function updateLivePreview() {
-    var html = renderReportHtml(currentData);
+    // 라이브 미리보기는 isExport = false (인스펙터 활성화)
+    var html = renderReportHtml(currentData, false);
     var frame = document.getElementById('previewFrame');
     var doc = frame.contentDocument || frame.contentWindow.document;
     doc.open();
@@ -1949,57 +2025,108 @@
     }
   };
 
-  // ── Chrome DevTools 스타일 요소 검사 이벤트 연동 (요구사항 4) ──
-  var currentHighlightedEditorCard = null;
+  // ── Chrome DevTools 스타일 2단계 요소 검사 연동 (요구사항 1: 컨테이너 Blue / 세부 항목 Orange) ──
+  var currentHighlightedContainer = null;
+  var currentHighlightedSubitem = null;
 
-  window.onPreviewInspectHover = function(inspectId){
-    if(currentHighlightedEditorCard){
-      currentHighlightedEditorCard.classList.remove('editor-inspect-active');
-    }
+  window.onPreviewInspectHover = function(inspectId, level){
+    clearEditorHighlights();
     var target = document.querySelector('[data-editor-id="' + inspectId + '"]');
     if(target){
-      currentHighlightedEditorCard = target;
-      target.classList.add('editor-inspect-active');
+      if(level === 'item'){
+        currentHighlightedSubitem = target;
+        target.classList.add('editor-inspect-subitem-active');
+        // 부모 컨테이너도 부드럽게 강조
+        var parentCard = target.closest('.item-card') || target.closest('[data-editor-level="container"]');
+        if(parentCard && parentCard !== target){
+          currentHighlightedContainer = parentCard;
+          parentCard.classList.add('editor-inspect-active');
+        }
+      } else {
+        currentHighlightedContainer = target;
+        target.classList.add('editor-inspect-active');
+      }
       target.scrollIntoView({ behavior:'smooth', block:'nearest' });
     }
   };
 
   window.onPreviewInspectLeave = function(){
-    if(currentHighlightedEditorCard){
-      currentHighlightedEditorCard.classList.remove('editor-inspect-active');
-      currentHighlightedEditorCard = null;
-    }
+    clearEditorHighlights();
   };
 
-  window.onPreviewInspectClick = function(inspectId){
+  window.onPreviewInspectClick = function(inspectId, level){
     var target = document.querySelector('[data-editor-id="' + inspectId + '"]');
     if(target){
-      var inp = target.querySelector('input[type="text"], textarea');
+      var inp = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' ? target : target.querySelector('input[type="text"], textarea');
       if(inp){ inp.focus(); if(inp.select) inp.select(); }
     }
   };
 
+  function clearEditorHighlights(){
+    if(currentHighlightedContainer){
+      currentHighlightedContainer.classList.remove('editor-inspect-active');
+      currentHighlightedContainer = null;
+    }
+    if(currentHighlightedSubitem){
+      currentHighlightedSubitem.classList.remove('editor-inspect-subitem-active');
+      currentHighlightedSubitem = null;
+    }
+  }
+
+  // 에디터 카드 및 개별 인풋 요소 바인딩
   function bindEditorInspectEvents(){
     document.querySelectorAll('[data-editor-id]').forEach(function(el){
-      el.onmouseenter = function(){
-        var id = el.getAttribute('data-editor-id');
-        el.classList.add('editor-inspect-active');
+      var id = el.getAttribute('data-editor-id');
+      var level = el.getAttribute('data-editor-level') || 'container';
+
+      el.onmouseenter = function(e){
+        e.stopPropagation();
+        if(level === 'item'){
+          el.classList.add('editor-inspect-subitem-active');
+        } else {
+          el.classList.add('editor-inspect-active');
+        }
         var frame = document.getElementById('previewFrame');
         if(frame && frame.contentWindow && frame.contentWindow.highlightFromEditor){
-          frame.contentWindow.highlightFromEditor(id);
+          frame.contentWindow.highlightFromEditor(id, level);
         }
       };
-      el.onmouseleave = function(){
-        el.classList.remove('editor-inspect-active');
+
+      el.onmouseleave = function(e){
+        e.stopPropagation();
+        if(level === 'item'){
+          el.classList.remove('editor-inspect-subitem-active');
+        } else {
+          el.classList.remove('editor-inspect-active');
+        }
         var frame = document.getElementById('previewFrame');
         if(frame && frame.contentWindow && frame.contentWindow.clearHighlightFromEditor){
           frame.contentWindow.clearHighlightFromEditor();
         }
       };
+
+      // 입력 중에도 실시간 하이라이트 유지
+      var inp = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ? el : el.querySelector('input, textarea');
+      if(inp){
+        inp.onfocus = function(){
+          el.classList.add('editor-inspect-subitem-active');
+          var frame = document.getElementById('previewFrame');
+          if(frame && frame.contentWindow && frame.contentWindow.highlightFromEditor){
+            frame.contentWindow.highlightFromEditor(id, 'item');
+          }
+        };
+        inp.onblur = function(){
+          el.classList.remove('editor-inspect-subitem-active');
+          var frame = document.getElementById('previewFrame');
+          if(frame && frame.contentWindow && frame.contentWindow.clearHighlightFromEditor){
+            frame.contentWindow.clearHighlightFromEditor();
+          }
+        };
+      }
     });
   }
 
-  // 기본 폼 입력 이벤트
+    // 기본 폼 입력 이벤트
   ['fTitle', 'fBadge', 'fDesc'].forEach(function(id){
     document.getElementById(id).addEventListener('input', function(){
       currentData.title = document.getElementById('fTitle').value;
