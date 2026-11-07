@@ -147,12 +147,21 @@ body::after {
 
 ---
 
+### ⑤ 상단 툴바 & 검색엔진 도구 (Toolbar Tools)
+비주얼 폼 편집에서 토글 스위치 하나로 켜고 끌 수 있는 기능 도구 모음:
+- **🔍 실시간 검색엔진**: 보고서 내부의 흐름도, 모듈 카드, 실행 단계, 프롬프트를 자동 인덱싱하고 앵커 점프 및 펄스 하이라이트 제공.
+- **🖨️ 인쇄 / PDF 저장 버튼**: `window.print()` 원클릭 호출.
+- **📊 상단 스크롤 진행률 바**: 스크롤 위치에 따라 상단 3px 그라디언트 바 실시간 연동.
+- **🌓 다크 / 라이트 모드**: 구글 다크 테마 토글 스위치.
+
+---
+
 ## 3. 도구화 활용법 (2가지 방식)
 
-### 방식 A: 웹 비주얼 스튜디오 (`builder.html`)
+### 방식 A: 웹 비주얼 스튜디오 (`builder.html` - /vo)
 1. 로컬에서 `npm start` 실행 후 브라우저에서 `http://localhost:8788/builder.html` 접속 (또는 상단 탭에서 **🛠️ 제작 스튜디오** 클릭).
-2. 좌측 폼 또는 JSON 편집기에서 텍스트를 입력하면 우측 미리보기에 실시간 반영.
-3. 상단의 **💾 HTML 다운로드** 버튼을 누르면 단일 파일 형태의 완성본 웹페이지 즉시 생성.
+2. 좌측 **비주얼 폼 편집(/vo)**에서 [🛠️ 툴바 & 도구 모음]의 스위치를 켜면 검색엔진, 인쇄 버튼, 진행률 바, 다크모드가 실시간 미리보기에 즉시 반영됩니다.
+3. 상단의 **💾 HTML 다운로드** 버튼을 누르면 검색엔진 툴바가 포함된 단일 파일 형태의 완성본 웹페이지 즉시 생성.
 
 ### 방식 B: CLI 자동 빌더 (`cli-generator.js`)
 JSON 설정 파일만 작성해두면 커맨드라인 한 줄로 보고서 HTML을 컴파일할 수 있습니다:
@@ -172,6 +181,14 @@ node cli-generator.js sample-workflow.json my-report.html
   "title": "보고서 제목",
   "badge": "배지 텍스트",
   "description": "설명 문구",
+  "toolbar": {
+    "enabled": true,
+    "showSearch": true,
+    "searchPlaceholder": "보고서 내 키워드 검색...",
+    "showPrint": true,
+    "showProgress": true,
+    "showThemeToggle": true
+  },
   "meta": [{ "label": "항목", "value": "값" }],
   "flowmap": [{ "num": "1", "title": "단계명", "desc": "요약", "color": "#1967d2" }],
   "cards": [{ "badge": "TAG", "frontTitle": "앞면제목", "tags": ["태그"], "color": "#1967d2", "backDesc": "뒷면설명" }],

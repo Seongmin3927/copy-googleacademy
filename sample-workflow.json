@@ -2,6 +2,14 @@
   "title": "AI 기반 주간 업무 자동화 워크플로우 보고서",
   "badge": "🚀 2026 스마트 워크 플레이북",
   "description": "반복적인 주간 회의록 정리, 데이터 수집, 고객 피드백 분석을 AI와 자동화 스크립트로 10분 안에 완료하는 워크플로우입니다.",
+  "toolbar": {
+    "enabled": true,
+    "showSearch": true,
+    "searchPlaceholder": "보고서 내 키워드 검색 (회의록, 대시보드, 스프레드시트...)",
+    "showPrint": true,
+    "showProgress": true,
+    "showThemeToggle": true
+  },
   "meta": [
     { "label": "적용 조직", "value": "전략기획 / 운영팀" },
     { "label": "소요 시간 단축", "value": "주당 6시간 → 10분" },
@@ -72,7 +80,7 @@
       "goal": "🎯 목표: 보고서 완료 즉시 팀원들에게 브리핑 메시지 전파",
       "desc": "Incoming Webhook URL을 발급받아 스크립트에 기입하면 승인된 최종 리포트 링크가 슬랙에 카드 형태로 자동 브리핑됩니다.",
       "prompt": "curl -X POST -H 'Content-type: application/json' \\\n--data '{\"text\":\"📢 *이번 주 전략 보고서가 업데이트되었습니다.*\\n👉 링크: https://docs.google.com/spreadsheets/...\"}' \\\nhttps://hooks.slack.com/services/YOUR/WEBHOOK/URL",
-      "tip": "💡 멘션이 필요할 경우 메시지에 <@U12345678> 형태의 사용자 ID를 포함하세요."
+      "tip": "💡 팁: 멘션이 필요할 경우 메시지에 <@U12345678> 형태의 사용자 ID를 포함하세요."
     }
   ],
   "checklist": [
