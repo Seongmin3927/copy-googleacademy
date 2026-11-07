@@ -274,6 +274,131 @@
   .pdot.green { background: #34a853; }
   .preview-iframe { width: 100%; height: 100%; border: none; background: #f8fafd; }
 
+  /* ── 🎨 피그마/프레이머 스타일 자유 캔버스 엔진 (Figma Mode) ── */
+  .canvas-mode-switcher {
+    display: flex; gap: 4px; background: #f1f3f4; padding: 3px; border-radius: 8px;
+  }
+  .canvas-tab-btn {
+    border: none; background: transparent; padding: 5px 12px; font-family: inherit;
+    font-size: .78rem; font-weight: 700; color: #5f6368; border-radius: 6px; cursor: pointer; transition: all .14s;
+  }
+  .canvas-tab-btn.active {
+    background: #ffffff; color: #1967d2; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .canvas-quick-shelf {
+    display: flex; align-items: center; gap: 6px; padding: 8px 16px;
+    background: #ffffff; border-bottom: 1px solid var(--line); overflow-x: auto; flex-shrink: 0;
+  }
+  .shelf-label {
+    font-size: .74rem; font-weight: 800; color: #1967d2; white-space: nowrap; margin-right: 4px;
+  }
+  .shelf-btn {
+    font-family: inherit; font-size: .76rem; font-weight: 700; padding: 5px 11px;
+    border-radius: 999px; border: 1px solid #dadce0; background: #f8fafd; color: #243551;
+    cursor: pointer; white-space: nowrap; transition: all .14s; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .shelf-btn:hover {
+    background: #e8f0fe; border-color: #1967d2; color: #1967d2; transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(25,103,210,0.15);
+  }
+  .canvas-viewport {
+    flex: 1; position: relative; overflow: auto;
+    background-color: #f0f2f5;
+    background-image: radial-gradient(rgba(0, 0, 0, 0.14) 1.2px, transparent 1.2px);
+    background-size: 20px 20px;
+    cursor: default; user-select: none;
+  }
+  .canvas-board {
+    position: relative; width: 3400px; height: 2600px; min-width: 100%; min-height: 100%;
+  }
+  
+  /* 캔버스 블록 노드 (position: absolute) */
+  .canvas-block {
+    position: absolute; box-sizing: border-box; cursor: move;
+    background: #ffffff; border: 1px solid #dadce0; border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(36,53,81,0.08); transition: box-shadow .15s ease;
+    user-select: none;
+  }
+  .canvas-block:hover {
+    box-shadow: 0 8px 26px rgba(36,53,81,0.15);
+  }
+  .canvas-block.selected {
+    outline: 2px solid #1967d2 !important; outline-offset: -1px;
+    box-shadow: 0 0 0 2px rgba(25,103,210,0.25), 0 12px 32px rgba(25,103,210,0.18) !important;
+  }
+  .canvas-block.is-dragging {
+    opacity: 0.94; cursor: grabbing !important;
+    box-shadow: 0 16px 44px rgba(25,103,210,0.3) !important;
+  }
+  .canvas-block.is-resizing {
+    user-select: none;
+  }
+
+  /* 블록 상단 타이틀 & 조작 바 */
+  .canvas-block-bar {
+    position: absolute; top: -30px; left: -1px; display: none; align-items: center; gap: 8px;
+    background: #1967d2; color: #ffffff; padding: 4px 10px; border-radius: 7px 7px 0 0;
+    font-size: 11px; font-weight: 700; cursor: move; z-index: 105;
+    box-shadow: 0 2px 8px rgba(25,103,210,0.3); white-space: nowrap; user-select: none;
+  }
+  .canvas-block.selected .canvas-block-bar {
+    display: flex;
+  }
+  .canvas-block-bar .block-coords {
+    background: rgba(255,255,255,0.22); padding: 1px 6px; border-radius: 4px; font-size: 10px; font-family: monospace;
+  }
+  .canvas-block-bar .block-del-btn {
+    background: none; border: none; color: #ffffff; font-size: 12px; cursor: pointer; padding: 0 4px;
+    line-height: 1; border-radius: 3px; transition: background .12s;
+  }
+  .canvas-block-bar .block-del-btn:hover {
+    background: rgba(255,255,255,0.3);
+  }
+
+  /* 캔버스 블록 내부 컨텐츠 */
+  .canvas-block-content {
+    width: 100%; height: 100%; overflow: auto; border-radius: inherit;
+    pointer-events: auto; padding: 12px; box-sizing: border-box;
+  }
+
+  /* 8방향 리사이즈 핸들 */
+  .canvas-resize-handle {
+    position: absolute; width: 9px; height: 9px; background: #ffffff;
+    border: 2px solid #1967d2; border-radius: 2px; box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    z-index: 110; display: none; box-sizing: border-box;
+  }
+  .canvas-block.selected .canvas-resize-handle {
+    display: block;
+  }
+  .canvas-resize-handle.rh-nw { top: -5px; left: -5px; cursor: nwse-resize; }
+  .canvas-resize-handle.rh-n  { top: -5px; left: calc(50% - 5px); cursor: ns-resize; }
+  .canvas-resize-handle.rh-ne { top: -5px; right: -5px; cursor: nesw-resize; }
+  .canvas-resize-handle.rh-e  { top: calc(50% - 5px); right: -5px; cursor: ew-resize; }
+  .canvas-resize-handle.rh-se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+  .canvas-resize-handle.rh-s  { bottom: -5px; left: calc(50% - 5px); cursor: ns-resize; }
+  .canvas-resize-handle.rh-sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+  .canvas-resize-handle.rh-w  { top: calc(50% - 5px); left: -5px; cursor: ew-resize; }
+
+  /* 카탈로그 뷰 서랍 */
+  .catalog-grid { display: flex; flex-direction: column; gap: 10px; padding: 6px 0; }
+  .catalog-card {
+    background: #ffffff; border: 1px solid var(--line); border-radius: 12px; padding: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03); transition: all .15s;
+  }
+  .catalog-card:hover { border-color: #1967d2; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(25,103,210,0.1); }
+  .catalog-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .catalog-card-title { font-size: .88rem; font-weight: 800; color: var(--navy); display: flex; align-items: center; gap: 6px; }
+  .catalog-card-tag { font-size: .68rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; }
+  .catalog-card-tag.structure { background: #e8f0fe; color: #1967d2; }
+  .catalog-card-tag.component { background: #f3e8fd; color: #7627bb; }
+  .catalog-card-desc { font-size: .80rem; color: #5f6368; line-height: 1.5; margin-bottom: 10px; }
+  .catalog-spawn-btn {
+    width: 100%; background: #1967d2; color: #ffffff; border: none; border-radius: 8px;
+    padding: 8px 12px; font-size: .82rem; font-weight: 700; cursor: pointer; transition: all .14s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .catalog-spawn-btn:hover { background: #174ea6; }
+
   /* JSON 모드 */
   #jsonEditor {
     width: 100%; height: 100%; font-family: "Consolas", monospace; font-size: .82rem;
@@ -378,6 +503,7 @@
   <aside class="editor-pane">
     <nav class="editor-tabs">
       <button class="tab-btn active" id="tabForm">비주얼 폼 편집 (/vo)</button>
+      <button class="tab-btn" id="tabCatalog">🎨 컴포넌트 라이브러리</button>
       <button class="tab-btn" id="tabJson">JSON 직접 편집</button>
     </nav>
     
@@ -619,13 +745,22 @@
       <div id="checkItemsContainer"></div>
     </div>
 
+    <!-- 컴포넌트 라이브러리 뷰 -->
+    <div class="editor-scroll" id="catalogView" style="display: none;">
+      <div style="margin-bottom:12px;background:#f8fafd;border:1px solid #c6dafc;border-radius:10px;padding:12px 14px;">
+        <h4 style="margin:0 0 4px;font-size:.92rem;font-weight:800;color:var(--navy);">🎨 표준 컴포넌트 카탈로그</h4>
+        <p style="margin:0;font-size:.78rem;color:#5f6368;line-height:1.5;">버튼을 누르면 자유 캔버스의 현재 뷰포트 중앙에 <code>position: absolute</code> 상태로 즉시 배치됩니다.</p>
+      </div>
+      <div class="catalog-grid" id="catalogCardsContainer"></div>
+    </div>
+
     <!-- JSON 모드 -->
     <div id="jsonView" style="display: none; height: 100%;">
       <textarea id="jsonEditor" spellcheck="false"></textarea>
     </div>
   </aside>
 
-  <!-- 우측 실시간 프리뷰 -->
+  <!-- 우측 실시간 캔버스 & 프리뷰 -->
   <main class="preview-pane">
     <div class="preview-bar">
       <div class="preview-dots">
@@ -633,13 +768,44 @@
         <span class="pdot yellow"></span>
         <span class="pdot green"></span>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span>실시간 미리보기 (Live Preview)</span>
-        <span style="font-size: .74rem; background:#e8f0fe; color:#1967d2; padding:2px 8px; border-radius:999px; font-weight:700;">🎯 2단계 DevTools 요소 검사기 동작 중</span>
+      
+      <!-- 캔버스 모드 스위처 (피그마 모드 / 문서 미리보기) -->
+      <div class="canvas-mode-switcher">
+        <button type="button" class="canvas-tab-btn active" id="btnModeCanvas" onclick="switchCanvasMode('canvas')">🎨 자유 캔버스 (Figma Mode)</button>
+        <button type="button" class="canvas-tab-btn" id="btnModeDoc" onclick="switchCanvasMode('doc')">📄 완성본 미리보기</button>
       </div>
-      <span style="font-size: .75rem; color: #5f6368;">Pretendard + Google Tone Architecture</span>
+
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span id="canvasSelectionInfo" style="font-size:.76rem;color:#1967d2;font-weight:700;display:none;">선택: <b id="canvasSelectionName">-</b> <span id="canvasSelectionCoords" style="font-family:monospace;background:#e8f0fe;padding:2px 6px;border-radius:4px;"></span></span>
+        <span style="font-size: .74rem; background:#e8f0fe; color:#1967d2; padding:3px 9px; border-radius:999px; font-weight:700;">🎯 8방향 리사이즈 &amp; 자유 드래그 활성</span>
+      </div>
     </div>
-    <iframe id="previewFrame" class="preview-iframe" title="미리보기 화면"></iframe>
+
+    <!-- 캔버스 퀵 컴포넌트 추가 쉘프 (원클릭 중앙 생성) -->
+    <div class="canvas-quick-shelf" id="canvasQuickShelf">
+      <span class="shelf-label">⚡ 빠른 추가:</span>
+      <button type="button" class="shelf-btn" onclick="spawnBlockOnCanvas('flipCard3D')">📌 3D 플립 카드</button>
+      <button type="button" class="shelf-btn" onclick="spawnBlockOnCanvas('partsPrompt')">🧩 PARTS 프롬프트</button>
+      <button type="button" class="shelf-btn" onclick="spawnBlockOnCanvas('clipboardCopy')">📋 프롬프트 복사</button>
+      <button type="button" class="shelf-btn" onclick="spawnBlockOnCanvas('gasAccordion')">📑 GAS 아코디언</button>
+      <button type="button" class="shelf-btn" onclick="spawnBlockOnCanvas('pipelineFlow')">🔄 파이프라인</button>
+      <button type="button" class="shelf-btn" onclick="spawnBlockOnCanvas('interactiveSimulator')">⚡ 발송 시뮬레이터</button>
+      <button type="button" class="shelf-btn" onclick="spawnBlockOnCanvas('codeHighlighter')">💻 코드 하이라이터</button>
+      <button type="button" class="shelf-btn" onclick="spawnBlockOnCanvas('imageLightbox')">🖼️ 라이트박스</button>
+      <button type="button" class="shelf-btn" onclick="spawnBlockOnCanvas('orientationIntro')">🎓 인트로 히어로</button>
+      <button type="button" class="shelf-btn" onclick="spawnBlockOnCanvas('padletEmbed')">💙 패들렛</button>
+      <button type="button" class="shelf-btn" onclick="spawnBlockOnCanvas('kpiCard')">📊 KPI 카드</button>
+    </div>
+
+    <!-- 1. 자유 캔버스 뷰포트 (Figma / Framer Style) -->
+    <div id="canvasViewport" class="canvas-viewport">
+      <div id="canvasBoard" class="canvas-board">
+        <!-- position: absolute 노드들이 여기에 생성되고 마우스로 조작됨 -->
+      </div>
+    </div>
+
+    <!-- 2. 문서 미리보기 iframe (토글형) -->
+    <iframe id="previewFrame" class="preview-iframe" title="미리보기 화면" style="display:none;"></iframe>
   </main>
 </div>
 
@@ -2928,18 +3094,32 @@
   window.updateCheckItem = function(i, v){ currentData.checklist[i] = v; updateLivePreview(); document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2); };
   window.removeCheckItem = function(i){ currentData.checklist.splice(i, 1); syncFormFromData(); };
 
-  // ── JSON 편집기 양방향 동기화 ──
+  // ── 탭 전환 (폼 편집 / 컴포넌트 라이브러리 / JSON 직접 편집) ──
   document.getElementById('tabForm').addEventListener('click', function(){
     document.getElementById('tabForm').classList.add('active');
+    document.getElementById('tabCatalog').classList.remove('active');
     document.getElementById('tabJson').classList.remove('active');
     document.getElementById('formView').style.display = 'block';
+    document.getElementById('catalogView').style.display = 'none';
     document.getElementById('jsonView').style.display = 'none';
+  });
+
+  document.getElementById('tabCatalog').addEventListener('click', function(){
+    document.getElementById('tabCatalog').classList.add('active');
+    document.getElementById('tabForm').classList.remove('active');
+    document.getElementById('tabJson').classList.remove('active');
+    document.getElementById('formView').style.display = 'none';
+    document.getElementById('catalogView').style.display = 'block';
+    document.getElementById('jsonView').style.display = 'none';
+    populateCatalogCards();
   });
 
   document.getElementById('tabJson').addEventListener('click', function(){
     document.getElementById('tabJson').classList.add('active');
     document.getElementById('tabForm').classList.remove('active');
+    document.getElementById('tabCatalog').classList.remove('active');
     document.getElementById('formView').style.display = 'none';
+    document.getElementById('catalogView').style.display = 'none';
     document.getElementById('jsonView').style.display = 'block';
     document.getElementById('jsonEditor').value = JSON.stringify(currentData, null, 2);
   });
@@ -3048,6 +3228,425 @@
     URL.revokeObjectURL(url);
     showToast('💾 순수 배포용 HTML 파일이 다운로드되었습니다. (하이라이트 스크립트 제거됨)');
   });
+
+  // ═════════════════════════════════════════════════════════════════════════
+  // 🎨 피그마 / 프레이머 스타일 자유 드래그 & 8방향 리사이즈 캔버스 엔진
+  // ═════════════════════════════════════════════════════════════════════════
+  var activeCanvasBlock = null;
+  var maxCanvasZIndex = 30;
+  var canvasSpawnCounter = 0;
+  var isDraggingBlock = false;
+  var isResizingBlock = false;
+
+  // 1. 캔버스 모드 전환 (자유 캔버스 vs 문서 미리보기)
+  window.switchCanvasMode = function(mode) {
+    var btnCanvas = document.getElementById('btnModeCanvas');
+    var btnDoc = document.getElementById('btnModeDoc');
+    var viewport = document.getElementById('canvasViewport');
+    var shelf = document.getElementById('canvasQuickShelf');
+    var frame = document.getElementById('previewFrame');
+    if (!viewport || !frame) return;
+
+    if (mode === 'canvas') {
+      if (btnCanvas) btnCanvas.classList.add('active');
+      if (btnDoc) btnDoc.classList.remove('active');
+      viewport.style.display = 'block';
+      if (shelf) shelf.style.display = 'flex';
+      frame.style.display = 'none';
+    } else {
+      if (btnDoc) btnDoc.classList.add('active');
+      if (btnCanvas) btnCanvas.classList.remove('active');
+      viewport.style.display = 'none';
+      if (shelf) shelf.style.display = 'none';
+      frame.style.display = 'block';
+      updateLivePreview();
+    }
+  };
+
+  // 2. 블록 노드 뷰포트 정중앙 생성 (spawnBlockOnCanvas)
+  window.spawnBlockOnCanvas = function(type, customProps, customStyle) {
+    switchCanvasMode('canvas');
+
+    var catalog = (typeof window.STUDIO_CATALOG !== 'undefined') ? window.STUDIO_CATALOG : null;
+    var def = catalog ? catalog[type] : null;
+
+    var name = def ? def.name : type;
+    var icon = def ? (def.icon || '📦') : '📦';
+    var defaultW = 440;
+    var defaultH = 280;
+
+    // 카탈로그 기본 크기 적용
+    if (def && def.style) {
+      if (def.style.width && def.style.width.indexOf('px') > -1) defaultW = parseInt(def.style.width);
+      if (def.style.height && def.style.height.indexOf('px') > -1) defaultH = parseInt(def.style.height);
+      if (def.style.maxWidth && def.style.maxWidth.indexOf('px') > -1) defaultW = Math.min(defaultW, parseInt(def.style.maxWidth));
+    }
+    if (type === 'flipCard3D') { defaultW = 340; defaultH = 390; }
+    else if (type === 'partsPrompt') { defaultW = 540; defaultH = 340; }
+    else if (type === 'clipboardCopy') { defaultW = 520; defaultH = 240; }
+    else if (type === 'gasAccordion') { defaultW = 540; defaultH = 270; }
+    else if (type === 'pipelineFlow') { defaultW = 680; defaultH = 180; }
+    else if (type === 'interactiveSimulator') { defaultW = 560; defaultH = 380; }
+    else if (type === 'codeHighlighter') { defaultW = 520; defaultH = 240; }
+    else if (type === 'orientationIntro') { defaultW = 700; defaultH = 270; }
+    else if (type === 'padletEmbed') { defaultW = 580; defaultH = 430; }
+    else if (type === 'imageLightbox') { defaultW = 520; defaultH = 330; }
+    else if (type === 'kpiCard') { defaultW = 280; defaultH = 160; }
+
+    var viewport = document.getElementById('canvasViewport');
+    var board = document.getElementById('canvasBoard');
+    if (!viewport || !board) return;
+
+    var scrollL = viewport.scrollLeft || 0;
+    var scrollT = viewport.scrollTop || 0;
+    var viewW = viewport.clientWidth || 800;
+    var viewH = viewport.clientHeight || 600;
+
+    // 🎯 캔버스 현재 뷰포트의 정중앙 계산
+    var cx = scrollL + (viewW / 2);
+    var cy = scrollT + (viewH / 2);
+
+    // 연속 생성 시 겹침 방지 스태거 오프셋 (24px)
+    var stagger = (canvasSpawnCounter % 6) * 24;
+    canvasSpawnCounter++;
+
+    var left = Math.max(30, Math.round(cx - (defaultW / 2) + stagger));
+    var top = Math.max(30, Math.round(cy - (defaultH / 2) + stagger));
+
+    // 블록 노드 (position: absolute)
+    var block = document.createElement('div');
+    block.className = 'canvas-block';
+    block.id = 'cnode_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+    block.dataset.type = type;
+    block.dataset.name = name;
+    block.style.position = 'absolute';
+    block.style.left = left + 'px';
+    block.style.top = top + 'px';
+    block.style.width = defaultW + 'px';
+    block.style.height = defaultH + 'px';
+    block.style.zIndex = ++maxCanvasZIndex;
+
+    // 상단 조작 드래그 바 (선택 시 노출)
+    var dragBar = document.createElement('div');
+    dragBar.className = 'canvas-block-bar';
+    dragBar.innerHTML = '<span class="block-title">' + icon + ' ' + name + '</span>' +
+                        '<span class="block-coords" id="' + block.id + '_coords">' + left + ', ' + top + ' (' + defaultW + '×' + defaultH + ')</span>';
+    var delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'block-del-btn';
+    delBtn.title = '요소 삭제 (Del)';
+    delBtn.textContent = '✕';
+    (function(bId){
+      delBtn.onclick = function(ev){
+        ev.stopPropagation();
+        deleteCanvasBlock(bId);
+      };
+    })(block.id);
+    dragBar.appendChild(delBtn);
+    block.appendChild(dragBar);
+
+    // 내부 컨텐츠 렌더러
+    var contentWrap = document.createElement('div');
+    contentWrap.className = 'canvas-block-content';
+    var innerHtml = '';
+    if (def && typeof def.renderHtml === 'function') {
+      try {
+        innerHtml = def.renderHtml(customProps, customStyle);
+      } catch(e) {
+        innerHtml = '<div style="padding:16px;"><b>' + name + '</b></div>';
+      }
+    } else {
+      innerHtml = renderFallbackCanvasHtml(type);
+    }
+    contentWrap.innerHTML = innerHtml;
+    block.appendChild(contentWrap);
+
+    // 8방향 리사이즈 핸들 부착 (nw, n, ne, e, se, s, sw, w)
+    var handles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
+    handles.forEach(function(h) {
+      var handleEl = document.createElement('div');
+      handleEl.className = 'canvas-resize-handle rh-' + h;
+      handleEl.dataset.handle = h;
+      block.appendChild(handleEl);
+    });
+
+    // 드래그 및 리사이즈 이벤트 바인딩
+    attachBlockInteractions(block);
+
+    board.appendChild(block);
+    selectCanvasBlock(block);
+
+    showToast('✨ ' + name + '이(가) 캔버스 중앙에 생성되었습니다.');
+    return block;
+  };
+
+  function renderFallbackCanvasHtml(type) {
+    if (type === 'kpiCard') {
+      return '<div style="background:#fff;border:1px solid #dadce0;border-radius:12px;padding:16px;text-align:center;"><div style="font-size:2rem;font-weight:900;color:#1967d2;">85%</div><div style="font-size:.85rem;color:#5f6368;font-weight:700;margin-top:4px;">반복 수작업 절감율</div></div>';
+    }
+    return '<div style="padding:16px;background:#fff;border-radius:10px;"><h4 style="margin:0 0 6px;color:#0b1a2c;">' + type + '</h4><p style="margin:0;font-size:12px;color:#5f6368;">자유 캔버스에 배치된 블록입니다.</p></div>';
+  }
+
+  // 3. 단일 활성 요소(Active Element) 선택 & 해제
+  window.selectCanvasBlock = function(block) {
+    if (activeCanvasBlock && activeCanvasBlock !== block) {
+      activeCanvasBlock.classList.remove('selected');
+    }
+    activeCanvasBlock = block;
+    if (block) {
+      block.classList.add('selected');
+      block.style.zIndex = ++maxCanvasZIndex;
+      updateActiveInfoUI(block);
+    } else {
+      updateActiveInfoUI(null);
+    }
+  };
+
+  window.deselectCanvas = function() {
+    if (activeCanvasBlock) {
+      activeCanvasBlock.classList.remove('selected');
+      activeCanvasBlock = null;
+      updateActiveInfoUI(null);
+    }
+  };
+
+  window.deleteCanvasBlock = function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      if (activeCanvasBlock === el) deselectCanvas();
+      el.remove();
+      showToast('🗑️ 요소가 캔버스에서 삭제되었습니다.');
+    }
+  };
+
+  function updateActiveInfoUI(block) {
+    var info = document.getElementById('canvasSelectionInfo');
+    var nameEl = document.getElementById('canvasSelectionName');
+    var coordsEl = document.getElementById('canvasSelectionCoords');
+    if (!info) return;
+
+    if (!block) {
+      info.style.display = 'none';
+      return;
+    }
+    info.style.display = 'inline-flex';
+    nameEl.textContent = block.dataset.name || block.dataset.type || '블록';
+    var l = parseInt(block.style.left) || 0;
+    var t = parseInt(block.style.top) || 0;
+    var w = block.offsetWidth;
+    var h = block.offsetHeight;
+    coordsEl.textContent = 'X:' + l + ' Y:' + t + ' (' + w + '×' + h + ')';
+
+    var blockCoords = document.getElementById(block.id + '_coords');
+    if (blockCoords) {
+      blockCoords.textContent = l + ', ' + t + ' (' + w + '×' + h + ')';
+    }
+  }
+
+  // 4. 마우스 드래그(이동) 및 8방향 리사이즈 바인딩
+  function attachBlockInteractions(block) {
+    // A. 블록 선택 및 드래그 시작 (mousedown)
+    block.addEventListener('mousedown', function(e) {
+      if (e.target.classList.contains('canvas-resize-handle')) return;
+      if (e.target.closest('.block-del-btn')) return;
+
+      selectCanvasBlock(block);
+
+      var isInput = e.target.matches('input, textarea, select');
+      var isDragBar = !!e.target.closest('.canvas-block-bar');
+      if (isInput && !isDragBar) return;
+
+      e.preventDefault();
+      isDraggingBlock = true;
+      block.classList.add('is-dragging');
+
+      var startX = e.clientX;
+      var startY = e.clientY;
+      var initL = parseInt(block.style.left) || 0;
+      var initT = parseInt(block.style.top) || 0;
+
+      function onMouseMove(moveEvent) {
+        if (!isDraggingBlock) return;
+        var dx = moveEvent.clientX - startX;
+        var dy = moveEvent.clientY - startY;
+
+        var newL = Math.max(0, initL + dx);
+        var newT = Math.max(0, initT + dy);
+
+        block.style.left = newL + 'px';
+        block.style.top = newT + 'px';
+
+        updateActiveInfoUI(block);
+      }
+
+      function onMouseUp() {
+        if (isDraggingBlock) {
+          isDraggingBlock = false;
+          block.classList.remove('is-dragging');
+        }
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+      }
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    });
+
+    // B. 8방향 리사이즈 핸들 조작 바인딩
+    var handles = block.querySelectorAll('.canvas-resize-handle');
+    handles.forEach(function(handle) {
+      handle.addEventListener('mousedown', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        selectCanvasBlock(block);
+
+        isResizingBlock = true;
+        block.classList.add('is-resizing');
+
+        var handleDir = handle.dataset.handle;
+        var startX = e.clientX;
+        var startY = e.clientY;
+        var origL = parseInt(block.style.left) || 0;
+        var origT = parseInt(block.style.top) || 0;
+        var origW = block.offsetWidth;
+        var origH = block.offsetHeight;
+
+        var MIN_W = 100;
+        var MIN_H = 60;
+
+        function onResizeMove(moveEvent) {
+          if (!isResizingBlock) return;
+          var dx = moveEvent.clientX - startX;
+          var dy = moveEvent.clientY - startY;
+
+          var newW = origW;
+          var newH = origH;
+          var newL = origL;
+          var newT = origT;
+
+          // 수평 리사이즈
+          if (handleDir.indexOf('e') > -1) {
+            newW = Math.max(MIN_W, origW + dx);
+          } else if (handleDir.indexOf('w') > -1) {
+            newW = Math.max(MIN_W, origW - dx);
+            newL = origL + (origW - newW);
+          }
+
+          // 수직 리사이즈
+          if (handleDir.indexOf('s') > -1) {
+            newH = Math.max(MIN_H, origH + dy);
+          } else if (handleDir.indexOf('n') > -1) {
+            newH = Math.max(MIN_H, origH - dy);
+            newT = origT + (origH - newH);
+          }
+
+          block.style.width = newW + 'px';
+          block.style.height = newH + 'px';
+          block.style.left = newL + 'px';
+          block.style.top = newT + 'px';
+
+          updateActiveInfoUI(block);
+        }
+
+        function onResizeUp() {
+          if (isResizingBlock) {
+            isResizingBlock = false;
+            block.classList.remove('is-resizing');
+          }
+          window.removeEventListener('mousemove', onResizeMove);
+          window.removeEventListener('mouseup', onResizeUp);
+        }
+
+        window.addEventListener('mousemove', onResizeMove);
+        window.addEventListener('mouseup', onResizeUp);
+      });
+    });
+  }
+
+  // 5. 컴포넌트 카탈로그 드로어 채우기
+  function populateCatalogCards() {
+    var container = document.getElementById('catalogCardsContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    var catalog = (typeof window.STUDIO_CATALOG !== 'undefined') ? window.STUDIO_CATALOG : null;
+    if (!catalog) {
+      container.innerHTML = '<div style="padding:14px;color:#5f6368;">카탈로그 로드 중...</div>';
+      return;
+    }
+
+    Object.keys(catalog).forEach(function(k) {
+      var item = catalog[k];
+      if (!item || !item.type) return;
+
+      var card = document.createElement('div');
+      card.className = 'catalog-card';
+      card.innerHTML = 
+        '<div class="catalog-card-header">' +
+          '<span class="catalog-card-title">' + (item.icon || '📦') + ' ' + item.name + '</span>' +
+          '<span class="catalog-card-tag ' + item.category + '">' + (item.category === 'structure' ? '구조' : '컴포넌트') + '</span>' +
+        '</div>' +
+        '<div class="catalog-card-desc">' + (item.description || item.name) + '</div>';
+      var spawnBtn = document.createElement('button');
+      spawnBtn.type = 'button';
+      spawnBtn.className = 'catalog-spawn-btn';
+      spawnBtn.textContent = '+ 캔버스 중앙에 추가';
+      (function(tKey){
+        spawnBtn.onclick = function(){
+          spawnBlockOnCanvas(tKey);
+        };
+      })(item.type);
+      card.appendChild(spawnBtn);
+      container.appendChild(card);
+    });
+  }
+
+  // 6. 빈 캔버스 영역 클릭 시 선택 해제 & 키보드 단축키
+  var boardEl = document.getElementById('canvasBoard');
+  var viewEl = document.getElementById('canvasViewport');
+
+  if (boardEl) {
+    boardEl.addEventListener('mousedown', function(e) {
+      if (!e.target.closest('.canvas-block')) {
+        deselectCanvas();
+      }
+    });
+  }
+  if (viewEl) {
+    viewEl.addEventListener('mousedown', function(e) {
+      if (!e.target.closest('.canvas-block')) {
+        deselectCanvas();
+      }
+    });
+  }
+
+  window.addEventListener('keydown', function(e) {
+    if ((e.key === 'Delete' || e.key === 'Backspace') && activeCanvasBlock) {
+      var activeEl = document.activeElement;
+      if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) {
+        return;
+      }
+      e.preventDefault();
+      var toRemove = activeCanvasBlock;
+      deselectCanvas();
+      toRemove.remove();
+      showToast('🗑️ 요소가 삭제되었습니다.');
+    } else if (e.key === 'Escape' && activeCanvasBlock) {
+      deselectCanvas();
+    }
+  });
+
+  // 뷰포트 시작 스크롤을 중앙으로 이동 및 기본 블록 생성
+  if (viewEl) {
+    setTimeout(function() {
+      viewEl.scrollLeft = 800;
+      viewEl.scrollTop = 400;
+      if (document.querySelectorAll('.canvas-block').length === 0) {
+        spawnBlockOnCanvas('orientationIntro');
+        spawnBlockOnCanvas('flipCard3D');
+      }
+    }, 120);
+  }
 
   // ── 초기화: 드롭다운 채우기 및 폼 렌더링 ──
   updatePresetDropdown();
