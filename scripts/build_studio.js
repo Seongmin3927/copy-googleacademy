@@ -2894,7 +2894,7 @@ function buildStudio() {
 </div>
 `;
 
-  const fullHtml = htmlHead + '<script>' + clientScript + '</' + 'script>\n</body>\n</html>\n';
+  const fullHtml = htmlHead + '<script src="scripts/studio-catalog.js"></script>\n<script>' + clientScript + '</' + 'script>\n</body>\n</html>\n';
   fs.writeFileSync('builder.html', fullHtml, 'utf8');
   console.log('🎉 builder.html successfully generated! Total bytes:', fullHtml.length);
 }
